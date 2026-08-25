@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+.qa
+docs/assets
+inputs/design-system/source
+PROJECT_CONTEXT.md
+research
+*.docx
+*.pdf

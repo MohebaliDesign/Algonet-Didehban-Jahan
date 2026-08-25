@@ -1,0 +1,157 @@
+/*
+ * Source-controlled design-system mapping.
+ * Values in the light/dark blocks come from the supplied token JSON files.
+ * Variables prefixed with --temp are explicitly unapproved placeholders.
+ */
+:root {
+  color-scheme: light;
+
+  --font-sans-fa: 'Vazir FD-WOL', Tahoma, sans-serif;
+  --font-sans-en: 'Inter', system-ui, sans-serif;
+
+  --brand-primary-50: #eff6ff;
+  --brand-primary-600: #416dff;
+  --brand-primary-700: #375dd9;
+  --brand-secondary-600: #ff4000;
+
+  --background: #ffffff;
+  --foreground: #000000;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --primary: #416dff;
+  --primary-foreground: #ffffff;
+  --secondary: #ff4000;
+  --secondary-foreground: #ffffff;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --border: #e5e5e5;
+  --input: #ffffff;
+  --ring: #e5e5e5;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --shadow-sm: 0 2px 8px 15px rgb(0 0 0 / 5%);
+  --shadow-md: 0 4px 10px -2px rgb(0 0 0 / 5%);
+  --shadow-lg: 0 8px 16px -4px rgb(0 0 0 / 5%);
+
+  /* PLACEHOLDER semantic mappings: chart/map/status guidance was not supplied. */
+  --temp-ai: #416dff;
+  --temp-selected: #416dff;
+  --temp-live: #16a34a;
+  --temp-cached: #0284c7;
+  --temp-stale: #d97706;
+  --temp-partial: #7c3aed;
+  --temp-no-data: #737373;
+  --temp-error: #dc2626;
+  --temp-restricted: #525252;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --background: #000000;
+  --foreground: #fafafa;
+  --surface: #171717;
+  --surface-elevated: #171717;
+  --primary: #f5f5f5;
+  --primary-foreground: #0a0a0a;
+  --secondary: #262626;
+  --secondary-foreground: #f5f5f5;
+  --accent: #171717;
+  --accent-foreground: #f5f5f5;
+  --muted: #171717;
+  --muted-foreground: #a3a3a3;
+  --border: #404040;
+  --input: rgb(255 255 255 / 5%);
+  --ring: #404040;
+  --destructive: #9e4042;
+  --destructive-foreground: #ffffff;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans-fa);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans-fa);
+  font-synthesis: none;
+  text-rendering: optimizelegibility;
+}
+
+html[lang^='en'] {
+  font-family: var(--font-sans-en);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--background);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-primary-600);
+  outline-offset: 3px;
+}
+
+::selection {
+  color: #ffffff;
+  background: var(--brand-primary-600);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

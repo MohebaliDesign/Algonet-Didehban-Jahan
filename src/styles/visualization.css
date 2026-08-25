@@ -1,0 +1,41 @@
+/*
+ * PROVISIONAL visualization semantics for the Phase 2 prototype.
+ * These do not alter approved source tokens. Replace this file after design approval.
+ */
+:root {
+  --temp-viz-blue: #416dff;
+  --temp-viz-cyan: #0e7490;
+  --temp-viz-violet: #6d5bd0;
+  --temp-viz-teal: #0f8b75;
+  --temp-viz-amber: #b46b0b;
+  --temp-viz-red: #c33b42;
+  --temp-viz-land: #dce5ef;
+  --temp-viz-water: #f5f8fb;
+  --temp-viz-map-grid: #cbd5e1;
+  --temp-viz-route: #ff4000;
+  --temp-viz-confidence: #416dff;
+  --temp-viz-forecast: #6d5bd0;
+  --temp-viz-low: #0e7490;
+  --temp-viz-medium: #b46b0b;
+  --temp-viz-high: #d05a31;
+  --temp-viz-critical: #c33b42;
+}
+
+:root[data-theme='dark'] {
+  --temp-viz-blue: #7193ff;
+  --temp-viz-cyan: #5fc0d4;
+  --temp-viz-violet: #a598ff;
+  --temp-viz-teal: #58c6ad;
+  --temp-viz-amber: #e1a649;
+  --temp-viz-red: #f07178;
+  --temp-viz-land: #263341;
+  --temp-viz-water: #101820;
+  --temp-viz-map-grid: #334155;
+  --temp-viz-route: #ff7446;
+  --temp-viz-confidence: #7193ff;
+  --temp-viz-forecast: #a598ff;
+  --temp-viz-low: #5fc0d4;
+  --temp-viz-medium: #e1a649;
+  --temp-viz-high: #f08a60;
+  --temp-viz-critical: #f07178;
+}

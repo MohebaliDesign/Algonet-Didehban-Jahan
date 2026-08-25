@@ -1,0 +1,32 @@
+import { Navigate, Route, Routes } from 'react-router'
+
+import { AppShell } from '@/components/product/AppShell'
+import { FoundationDiagnostic } from '@/features/foundation/FoundationDiagnostic'
+import {
+  CountriesPage,
+  DataManagementPage,
+  DevelopmentsPage,
+  MarketsPage,
+  ReportsPage,
+  SecurityPage,
+} from '@/features/pages/ProductPages'
+import { WorldMonitorPage } from '@/features/world/WorldMonitorPage'
+
+export function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/world" replace />} />
+      <Route element={<AppShell />}>
+        <Route path="/world" element={<WorldMonitorPage />} />
+        <Route path="/developments" element={<DevelopmentsPage />} />
+        <Route path="/security" element={<SecurityPage />} />
+        <Route path="/markets" element={<MarketsPage />} />
+        <Route path="/countries" element={<CountriesPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/data" element={<DataManagementPage />} />
+      </Route>
+      <Route path="/foundation" element={<FoundationDiagnostic />} />
+      <Route path="*" element={<Navigate to="/world" replace />} />
+    </Routes>
+  )
+}
