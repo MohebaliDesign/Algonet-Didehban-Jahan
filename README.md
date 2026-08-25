@@ -59,7 +59,7 @@ The product starts in Persian, RTL, and light theme. The top bar can switch lang
 - `docs/design-system/` — design-system inventory, gaps, and code mapping.
 - `docs/assets/v15/` — preserved V15 visual references. They are evidence, not target designs.
 - `inputs/design-system/` — exact supplied token/font source archives and extracted token JSON.
-- `src/components/ui/` — editable shadcn-style component primitives.
+- `src/components/ui/` — official, code-owned shadcn component primitives adapted to Didehban tokens and Iconsax.
 - `src/components/product/` — application shell, module, Inspector, chart, and map contracts.
 - `src/data/mock/` — deliberately small fake datasets used by the prototype.
 - `src/services/` — the boundary that keeps UI code independent from future real APIs.
@@ -67,7 +67,7 @@ The product starts in Persian, RTL, and light theme. The top bar can switch lang
 
 ## Design system and mock data
 
-Core light/dark colors, brand colors, spacing, radii, shadows, and typography come from the supplied design-system package. Missing chart, map, and data-state colors are isolated prototype values; see [DESIGN_SYSTEM_INTAKE.md](docs/design-system/DESIGN_SYSTEM_INTAKE.md), [DESIGN_SYSTEM_MAPPING.md](docs/design-system/DESIGN_SYSTEM_MAPPING.md), and [VISUALIZATION_SEMANTICS.md](docs/design-system/VISUALIZATION_SEMANTICS.md).
+Core light/dark colors, brand colors, spacing, radii, shadows, and typography come from the supplied design-system package. Common controls use official shadcn source and all standard charts use shadcn Chart with Recharts. Missing chart, map, and data-state colors are isolated prototype values; see [DESIGN_SYSTEM_INTAKE.md](docs/design-system/DESIGN_SYSTEM_INTAKE.md), [DESIGN_SYSTEM_MAPPING.md](docs/design-system/DESIGN_SYSTEM_MAPPING.md), [SHADCN_COMPONENT_MAPPING.md](docs/design-system/SHADCN_COMPONENT_MAPPING.md), and [VISUALIZATION_SEMANTICS.md](docs/design-system/VISUALIZATION_SEMANTICS.md).
 
 Mock data is typed like future product data but stays local. The current domains include events, sources, countries, corridors, markets, forecasts, and reports. Theme, language, prototype role, and module layouts are saved only in the current browser. Clear this site’s browser storage to restore defaults.
 

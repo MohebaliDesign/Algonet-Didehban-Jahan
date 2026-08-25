@@ -62,13 +62,14 @@
   display: grid;
 }
 .brand-lockup strong {
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: var(--type-widget-title-size);
+  line-height: var(--type-widget-title-leading);
 }
 .brand-lockup small {
   direction: ltr;
   font-family: var(--font-sans-en);
-  font-size: 9px;
+  font-size: var(--type-metadata-size);
+  line-height: var(--type-metadata-leading);
   font-weight: 600;
   letter-spacing: 0.18em;
   color: var(--muted-foreground);
@@ -115,13 +116,14 @@
   gap: 8px;
   margin: 0 0 18px;
   color: var(--brand-primary-600);
-  font-size: 13px;
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-leading);
   font-weight: 600;
 }
 .hero h1 {
   max-width: 700px;
   margin: 0;
-  font-size: clamp(36px, 5vw, 58px);
+  font-size: clamp(32px, 4vw, var(--type-display-size));
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: -0.025em;
@@ -130,8 +132,8 @@
   max-width: 660px;
   margin: 22px 0 0;
   color: var(--muted-foreground);
-  font-size: 17px;
-  line-height: 1.95;
+  font-size: var(--type-body-large-size);
+  line-height: var(--type-body-large-leading);
 }
 
 .diagnostic-controls {
@@ -155,12 +157,14 @@
 }
 .control-group > span {
   color: var(--muted-foreground);
-  font-size: 12px;
+  font-size: var(--type-control-size);
+  line-height: var(--type-control-leading);
 }
 .diagnostic-note {
   margin: 12px 2px 0;
   color: var(--muted-foreground);
-  font-size: 11px;
+  font-size: var(--type-body-compact-size);
+  line-height: var(--type-body-compact-leading);
 }
 
 .token-preview-card {
@@ -251,13 +255,14 @@
 }
 .summary-card h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--type-widget-title-size);
+  line-height: var(--type-widget-title-leading);
 }
 .summary-card p {
   margin: 7px 0 0;
   color: var(--muted-foreground);
-  font-size: 12px;
-  line-height: 1.75;
+  font-size: var(--type-body-compact-size);
+  line-height: var(--type-body-compact-leading);
 }
 
 .content-grid {
@@ -275,7 +280,7 @@
   border-inline-start: 3px solid var(--brand-primary-600);
   border-radius: var(--radius-md);
   background: var(--accent);
-  font-size: 20px;
+  font-size: var(--type-section-title-size);
   font-weight: 500;
   line-height: 2;
 }
@@ -284,8 +289,8 @@
   margin: 18px 0 0;
   font-family: var(--font-sans-en);
   color: var(--muted-foreground);
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
 }
 
 .technical-list {
@@ -307,7 +312,8 @@
   direction: ltr;
   font-family: var(--font-sans-en);
   color: var(--brand-primary-600);
-  font-size: 10px;
+  font-size: var(--type-technical-size);
+  line-height: var(--type-technical-leading);
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -315,7 +321,8 @@
   overflow: hidden;
   margin: 0;
   font-family: var(--font-sans-en);
-  font-size: 12px;
+  font-size: var(--type-body-compact-size);
+  line-height: var(--type-body-compact-leading);
   text-overflow: ellipsis;
   white-space: nowrap;
   unicode-bidi: isolate;
@@ -359,13 +366,15 @@
   gap: 3px;
 }
 .swatch-item strong {
-  font-size: 12px;
+  font-size: var(--type-body-compact-size);
+  line-height: var(--type-body-compact-leading);
 }
 .swatch-item small {
   unicode-bidi: isolate;
   font-family: var(--font-sans-en);
   color: var(--muted-foreground);
-  font-size: 10px;
+  font-size: var(--type-technical-size);
+  line-height: var(--type-technical-leading);
 }
 
 .title-row {
@@ -383,13 +392,14 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 34px;
+  min-height: 40px;
   padding-inline: 11px;
   border: 1px solid color-mix(in srgb, var(--state-color) 25%, var(--border));
   border-radius: var(--radius-md);
   color: var(--foreground);
   background: color-mix(in srgb, var(--state-color) 7%, var(--surface));
-  font-size: 12px;
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-leading);
 }
 .data-state > span {
   width: 7px;
@@ -438,14 +448,16 @@
   color: var(--brand-primary-600);
   background: var(--accent);
   font-family: var(--font-sans-en);
-  font-size: 11px;
+  font-size: var(--type-technical-size);
+  line-height: var(--type-technical-leading);
 }
 
 .foundation-page footer {
   padding-block: 24px 34px;
   border-block-start: 1px solid var(--border);
   color: var(--muted-foreground);
-  font-size: 11px;
+  font-size: var(--type-body-compact-size);
+  line-height: var(--type-body-compact-leading);
   text-align: center;
 }
 
@@ -485,7 +497,8 @@
     font-size: 34px;
   }
   .hero-intro {
-    font-size: 15px;
+    font-size: var(--type-body-size);
+    line-height: var(--type-body-leading);
   }
   .diagnostic-controls,
   .control-group {

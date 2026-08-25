@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { toast } from 'sonner'
 
 import type { IntelligenceDomain, Role } from '@/types/domain'
 
@@ -28,7 +29,6 @@ interface WorkspaceValue {
   closeInspector: () => void
   searchOpen: boolean
   setSearchOpen: (open: boolean) => void
-  toast: string | null
   notify: (message: string) => void
 }
 
@@ -52,7 +52,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState(defaults)
   const [inspector, setInspector] = useState<InspectorItem | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
 
   const setRole = useCallback((next: Role) => {
     localStorage.setItem('didehban.prototype.role', next)
@@ -66,8 +65,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   )
 
   const notify = useCallback((message: string) => {
-    setToast(message)
-    window.setTimeout(() => setToast(null), 2800)
+    toast(message)
   }, [])
 
   const value = useMemo<WorkspaceValue>(
@@ -82,10 +80,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       closeInspector: () => setInspector(null),
       searchOpen,
       setSearchOpen,
-      toast,
       notify,
     }),
-    [filters, inspector, notify, role, searchOpen, setFilter, setRole, toast],
+    [filters, inspector, notify, role, searchOpen, setFilter, setRole],
   )
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>

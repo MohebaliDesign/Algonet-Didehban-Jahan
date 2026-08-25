@@ -1,10 +1,54 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
 import { Icon } from '@/components/Icon'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import {
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from '@/components/ui/sidebar'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { countries, events, reportTitlesEn, reports, sources } from '@/data/mock/visualMvpData'
 import { useProductCopy } from '@/localization/productCopy'
 import type { IntelligenceDomain, Role } from '@/types/domain'
@@ -42,7 +86,6 @@ export function AppShell() {
     setSearchOpen,
     inspector,
     closeInspector,
-    toast,
   } = useWorkspace()
   const [collapsed, setCollapsed] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -51,194 +94,272 @@ export function AppShell() {
   useEffect(() => setFiltersOpen(false), [location.pathname])
 
   return (
-    <div className={`app-shell ${collapsed ? 'nav-collapsed' : ''}`}>
-      <aside
-        className="primary-nav"
-        aria-label={locale === 'fa' ? 'ناوبری اصلی' : 'Primary navigation'}
-      >
-        <div className="product-lockup">
-          <span className="product-symbol">
-            <Icon name="eye" size={22} type="bulk" />
-          </span>
-          {!collapsed && (
-            <span>
-              <strong>{copy.product}</strong>
-              <small dir="ltr">INTELLIGENCE WORKSPACE</small>
-            </span>
-          )}
-        </div>
-        <nav>
-          {navigation.map((item) => {
-            const restricted = item.key === 'data' && role !== 'data-manager'
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `nav-item ${isActive ? 'active' : ''} ${restricted ? 'restricted' : ''}`
-                }
-                title={copy[item.key]}
-              >
-                <Icon
-                  name={item.icon}
-                  size={21}
-                  type={location.pathname === item.path ? 'bulk' : 'linear'}
-                />
-                {!collapsed && <span>{copy[item.key]}</span>}
-                {restricted && !collapsed && <Icon name="lock" size={14} />}
-              </NavLink>
-            )
-          })}
-        </nav>
-        <button
-          className="nav-collapse"
-          onClick={() => setCollapsed((value) => !value)}
-          aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+    <SidebarProvider open={!collapsed} onOpenChange={(open) => setCollapsed(!open)}>
+      <div className={`app-shell ${collapsed ? 'nav-collapsed' : ''}`}>
+        <aside
+          className="primary-nav"
+          aria-label={locale === 'fa' ? 'ناوبری اصلی' : 'Primary navigation'}
         >
-          <Icon name="arrow-left-02" className="directional-icon" />
-          {!collapsed && <span>{locale === 'fa' ? 'جمع‌کردن منو' : 'Collapse menu'}</span>}
-        </button>
-      </aside>
+          <SidebarHeader className="product-lockup">
+            <span className="product-symbol">
+              <Icon name="eye" size={22} type="bulk" />
+            </span>
+            {!collapsed && (
+              <span>
+                <strong>{copy.product}</strong>
+                <small dir="ltr">INTELLIGENCE WORKSPACE</small>
+              </span>
+            )}
+          </SidebarHeader>
+          <SidebarContent>
+            <nav>
+              <SidebarMenu>
+                {navigation.map((item) => {
+                  const restricted = item.key === 'data' && role !== 'data-manager'
+                  const active = location.pathname === item.path
+                  return (
+                    <SidebarMenuItem key={item.path}>
+                      <SidebarMenuButton asChild isActive={active} tooltip={copy[item.key]}>
+                        <NavLink
+                          to={item.path}
+                          className={`nav-item ${active ? 'active' : ''} ${restricted ? 'restricted' : ''}`}
+                        >
+                          <Icon name={item.icon} size={21} type={active ? 'bulk' : 'linear'} />
+                          {!collapsed && <span>{copy[item.key]}</span>}
+                          {restricted && !collapsed && <Icon name="lock" size={14} />}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </nav>
+          </SidebarContent>
+          <SidebarFooter>
+            <Button
+              variant="ghost"
+              className="nav-collapse"
+              onClick={() => setCollapsed((value) => !value)}
+              aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+            >
+              <Icon name="arrow-left-02" className="directional-icon" />
+              {!collapsed && <span>{locale === 'fa' ? 'جمع‌کردن منو' : 'Collapse menu'}</span>}
+            </Button>
+          </SidebarFooter>
+        </aside>
 
-      <div className="shell-main">
-        <header className="global-topbar">
-          <div className="organization-control">
-            <span className="org-avatar">ا</span>
+        <div className="shell-main">
+          <header className="global-topbar">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="organization-control">
+                  <Avatar className="org-avatar">
+                    <AvatarFallback>ا</AvatarFallback>
+                  </Avatar>
+                  <span>
+                    <small>{locale === 'fa' ? 'سازمان فعال' : 'Active organization'}</small>
+                    <strong>{copy.organization}</strong>
+                  </span>
+                  <Icon name="arrow-down-01" size={14} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuLabel>{copy.organization}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  {locale === 'fa' ? 'تنظیمات سازمانی نمایشی' : 'Prototype organization settings'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="outline"
+              className="global-search-trigger"
+              onClick={() => setSearchOpen(true)}
+            >
+              <Icon name="search-normal" />
+              <span>{copy.searchHint}</span>
+              <kbd dir="ltr">Ctrl K</kbd>
+            </Button>
+            <div className="topbar-actions">
+              <span className="sync-status">
+                <i />
+                {copy.sync}
+              </span>
+              <TopbarIconButton label={copy.watchlist}>
+                <Icon name="bookmark" />
+              </TopbarIconButton>
+              <TopbarIconButton label={copy.notifications} className="has-notification">
+                <Icon name="notification" />
+              </TopbarIconButton>
+              <TopbarIconButton
+                label={
+                  locale === 'fa'
+                    ? theme === 'light'
+                      ? 'فعال‌کردن تم تیره'
+                      : 'فعال‌کردن تم روشن'
+                    : theme === 'light'
+                      ? 'Switch to dark theme'
+                      : 'Switch to light theme'
+                }
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              >
+                <Icon name={theme === 'light' ? 'moon' : 'sun'} />
+              </TopbarIconButton>
+              <Button
+                variant="ghost"
+                className="language-button"
+                onClick={() => setLocale(locale === 'fa' ? 'en' : 'fa')}
+                dir="ltr"
+              >
+                {locale === 'fa' ? 'EN' : 'فا'}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="profile-button"
+                    aria-label={locale === 'fa' ? 'منوی کاربر' : 'User menu'}
+                  >
+                    <Avatar>
+                      <AvatarFallback>م‌ن</AvatarFallback>
+                    </Avatar>
+                    <Icon name="arrow-down-01" size={14} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    {locale === 'fa' ? 'کاربر نمایشی' : 'Prototype user'}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>{locale === 'fa' ? 'نمایه' : 'Profile'}</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
+
+          <div className={`context-bar ${filtersOpen ? 'open' : ''}`}>
+            <Button
+              variant="ghost"
+              className="compact-filter-toggle"
+              onClick={() => setFiltersOpen((value) => !value)}
+              aria-expanded={filtersOpen}
+            >
+              <Icon name="filter" />
+              {locale === 'fa' ? 'فیلترها' : 'Filters'}
+            </Button>
+            <Filter
+              label={copy.geography}
+              value={filters.geography}
+              onChange={(value) => setFilter('geography', value)}
+              options={[
+                ['global', copy.global],
+                ['mena', locale === 'fa' ? 'خاورمیانه' : 'Middle East'],
+                ['europe', locale === 'fa' ? 'اروپا' : 'Europe'],
+                ['asia', locale === 'fa' ? 'آسیا' : 'Asia'],
+              ]}
+            />
+            <Filter
+              label={copy.time}
+              value={filters.timeRange}
+              onChange={(value) => setFilter('timeRange', value)}
+              options={[
+                ['24h', locale === 'fa' ? '۲۴ ساعت' : '24 hours'],
+                ['7d', locale === 'fa' ? '۷ روز' : '7 days'],
+                ['30d', locale === 'fa' ? '۳۰ روز' : '30 days'],
+              ]}
+            />
+            <Filter
+              label={copy.domain}
+              value={filters.domain}
+              onChange={(value) => setFilter('domain', value as IntelligenceDomain | 'all')}
+              options={domains.map((item) => [item.value, locale === 'fa' ? item.fa : item.en])}
+            />
+            <Filter
+              label={copy.sources}
+              value={filters.sourceSet}
+              onChange={(value) => setFilter('sourceSet', value)}
+              options={[
+                ['verified', copy.verifiedSources],
+                ['all', locale === 'fa' ? 'همه منابع' : 'All sources'],
+                ['watch', locale === 'fa' ? 'مجموعه پایش' : 'Watch set'],
+              ]}
+              meta={copy.sourceCount}
+            />
+            <Filter
+              label={copy.savedView}
+              value={filters.savedView}
+              onChange={(value) => setFilter('savedView', value)}
+              options={[
+                ['daily', copy.dailyView],
+                ['routes', locale === 'fa' ? 'ریسک مسیرها' : 'Route risk'],
+                ['markets', locale === 'fa' ? 'پایش بازار' : 'Market watch'],
+              ]}
+            />
+            <Button variant="ghost" size="sm" onClick={resetFilters}>
+              <Icon name="refresh-circle" size={16} />
+              {copy.reset}
+            </Button>
+          </div>
+
+          <div className="prototype-strip">
             <span>
-              <small>{locale === 'fa' ? 'سازمان فعال' : 'Active organization'}</small>
-              <strong>{copy.organization}</strong>
+              <Icon name="info-circle" size={14} />
+              {copy.prototype}
             </span>
-            <Icon name="arrow-down-01" size={14} />
+            <div className="prototype-role-field">
+              <span>{copy.role}</span>
+              <Select value={role} onValueChange={(value) => setRole(value as Role)}>
+                <SelectTrigger aria-label={copy.role}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="viewer">{copy.viewer}</SelectItem>
+                  <SelectItem value="org-admin">{copy.orgAdmin}</SelectItem>
+                  <SelectItem value="data-manager">{copy.dataManager}</SelectItem>
+                </SelectContent>
+              </Select>
+              <small>{copy.devOnly}</small>
+            </div>
           </div>
-          <button className="global-search-trigger" onClick={() => setSearchOpen(true)}>
-            <Icon name="search-normal" />
-            <span>{copy.searchHint}</span>
-            <kbd dir="ltr">Ctrl K</kbd>
-          </button>
-          <div className="topbar-actions">
-            <span className="sync-status">
-              <i />
-              {copy.sync}
-            </span>
-            <button className="icon-button" title={copy.watchlist}>
-              <Icon name="bookmark" />
-            </button>
-            <button className="icon-button has-notification" title={copy.notifications}>
-              <Icon name="notification" />
-            </button>
-            <button
-              className="icon-button"
-              title={theme === 'light' ? 'Dark' : 'Light'}
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            >
-              <Icon name={theme === 'light' ? 'moon' : 'sun'} />
-            </button>
-            <button
-              className="language-button"
-              onClick={() => setLocale(locale === 'fa' ? 'en' : 'fa')}
-              dir="ltr"
-            >
-              {locale === 'fa' ? 'EN' : 'فا'}
-            </button>
-            <button className="profile-button">
-              <span>م‌ن</span>
-              <Icon name="arrow-down-01" size={14} />
-            </button>
-          </div>
-        </header>
 
-        <div className={`context-bar ${filtersOpen ? 'open' : ''}`}>
-          <button
-            className="compact-filter-toggle"
-            onClick={() => setFiltersOpen((value) => !value)}
-          >
-            <Icon name="filter" />
-            {locale === 'fa' ? 'فیلترها' : 'Filters'}
-          </button>
-          <Filter
-            label={copy.geography}
-            value={filters.geography}
-            onChange={(value) => setFilter('geography', value)}
-            options={[
-              ['global', copy.global],
-              ['mena', locale === 'fa' ? 'خاورمیانه' : 'Middle East'],
-              ['europe', locale === 'fa' ? 'اروپا' : 'Europe'],
-              ['asia', locale === 'fa' ? 'آسیا' : 'Asia'],
-            ]}
-          />
-          <Filter
-            label={copy.time}
-            value={filters.timeRange}
-            onChange={(value) => setFilter('timeRange', value)}
-            options={[
-              ['24h', locale === 'fa' ? '۲۴ ساعت' : '24 hours'],
-              ['7d', locale === 'fa' ? '۷ روز' : '7 days'],
-              ['30d', locale === 'fa' ? '۳۰ روز' : '30 days'],
-            ]}
-          />
-          <Filter
-            label={copy.domain}
-            value={filters.domain}
-            onChange={(value) => setFilter('domain', value as IntelligenceDomain | 'all')}
-            options={domains.map((item) => [item.value, locale === 'fa' ? item.fa : item.en])}
-          />
-          <Filter
-            label={copy.sources}
-            value={filters.sourceSet}
-            onChange={(value) => setFilter('sourceSet', value)}
-            options={[
-              ['verified', copy.verifiedSources],
-              ['all', locale === 'fa' ? 'همه منابع' : 'All sources'],
-              ['watch', locale === 'fa' ? 'مجموعه پایش' : 'Watch set'],
-            ]}
-            meta={copy.sourceCount}
-          />
-          <Filter
-            label={copy.savedView}
-            value={filters.savedView}
-            onChange={(value) => setFilter('savedView', value)}
-            options={[
-              ['daily', copy.dailyView],
-              ['routes', locale === 'fa' ? 'ریسک مسیرها' : 'Route risk'],
-              ['markets', locale === 'fa' ? 'پایش بازار' : 'Market watch'],
-            ]}
-          />
-          <Button variant="ghost" size="sm" onClick={resetFilters}>
-            <Icon name="refresh-circle" size={16} />
-            {copy.reset}
-          </Button>
+          <main className="product-canvas">
+            <Outlet />
+          </main>
         </div>
 
-        <div className="prototype-strip">
-          <span>
-            <Icon name="info-circle" size={14} />
-            {copy.prototype}
-          </span>
-          <label>
-            <span>{copy.role}</span>
-            <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
-              <option value="viewer">{copy.viewer}</option>
-              <option value="org-admin">{copy.orgAdmin}</option>
-              <option value="data-manager">{copy.dataManager}</option>
-            </select>
-            <small>{copy.devOnly}</small>
-          </label>
-        </div>
-
-        <main className="product-canvas">
-          <Outlet />
-        </main>
+        <GlobalSearch />
+        {inspector && <Inspector onClose={closeInspector} />}
       </div>
+    </SidebarProvider>
+  )
+}
 
-      <GlobalSearch />
-      {inspector && <Inspector onClose={closeInspector} />}
-      {toast && (
-        <div className="prototype-toast" role="status">
-          <Icon name="tick-circle" />
-          {toast}
-        </div>
-      )}
-    </div>
+function TopbarIconButton({
+  label,
+  className,
+  onClick,
+  children,
+}: {
+  label: string
+  className?: string
+  onClick?: () => void
+  children: ReactNode
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`icon-button ${className ?? ''}`}
+          aria-label={label}
+          onClick={onClick}
+        >
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -256,17 +377,22 @@ function Filter({
   meta?: string
 }) {
   return (
-    <label className="context-filter">
+    <div className="context-filter">
       <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        {options.map(([key, text]) => (
-          <option key={key} value={key}>
-            {text}
-          </option>
-        ))}
-      </select>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger aria-label={label}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(([key, text]) => (
+            <SelectItem key={key} value={key}>
+              {text}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       {meta && <small>{meta}</small>}
-    </label>
+    </div>
   )
 }
 
@@ -318,64 +444,51 @@ function GlobalSearch() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [setSearchOpen])
-  if (!searchOpen) return null
   return (
-    <div className="modal-backdrop" onMouseDown={() => setSearchOpen(false)}>
-      <section
-        className="search-palette"
-        role="dialog"
-        aria-modal="true"
-        aria-label={copy.search}
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="search-input">
-          <Icon name="search-normal" />
-          <input
-            autoFocus
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={copy.searchHint}
-          />
-          <button onClick={() => setSearchOpen(false)}>
-            <Icon name="close-circle" />
-          </button>
-        </div>
-        <div className="search-results">
-          {query && results.length === 0 && <p>{copy.noResults}</p>}
-          {results.map((item) => (
-            <button
-              key={`${item.kind}-${item.id}`}
-              onClick={() => {
-                if (item.kind === 'country') navigate('/countries')
-                if (item.kind === 'report') navigate('/reports')
-                openInspector({ kind: item.kind, id: item.id, title: item.title })
-                setSearchOpen(false)
-                setQuery('')
-              }}
-            >
-              <span className={`result-icon ${item.kind}`}>
-                <Icon
-                  name={
-                    item.kind === 'event'
-                      ? 'radar-2'
-                      : item.kind === 'report'
-                        ? 'document-text'
-                        : item.kind === 'country'
-                          ? 'global'
-                          : 'link-2'
-                  }
-                />
-              </span>
-              <span>
-                <strong>{item.title}</strong>
-                <small>{item.meta}</small>
-              </span>
-              <Icon name="arrow-left-01" className="directional-icon" />
-            </button>
-          ))}
-        </div>
-      </section>
-    </div>
+    <CommandDialog
+      open={searchOpen}
+      onOpenChange={setSearchOpen}
+      title={copy.search}
+      description={copy.searchHint}
+      className="search-palette"
+    >
+      <CommandInput value={query} onValueChange={setQuery} placeholder={copy.searchHint} />
+      <CommandList className="search-results">
+        {query && <CommandEmpty>{copy.noResults}</CommandEmpty>}
+        {results.map((item) => (
+          <CommandItem
+            key={`${item.kind}-${item.id}`}
+            value={`${item.title} ${item.meta}`}
+            onSelect={() => {
+              if (item.kind === 'country') navigate('/countries')
+              if (item.kind === 'report') navigate('/reports')
+              openInspector({ kind: item.kind, id: item.id, title: item.title })
+              setSearchOpen(false)
+              setQuery('')
+            }}
+          >
+            <span className={`result-icon ${item.kind}`}>
+              <Icon
+                name={
+                  item.kind === 'event'
+                    ? 'radar-2'
+                    : item.kind === 'report'
+                      ? 'document-text'
+                      : item.kind === 'country'
+                        ? 'global'
+                        : 'link-2'
+                }
+              />
+            </span>
+            <span>
+              <strong>{item.title}</strong>
+              <small>{item.meta}</small>
+            </span>
+            <Icon name="arrow-left-01" className="directional-icon" />
+          </CommandItem>
+        ))}
+      </CommandList>
+    </CommandDialog>
   )
 }
 
@@ -384,6 +497,11 @@ function Inspector({ onClose }: { onClose: () => void }) {
   const copy = useProductCopy()
   const { inspector, notify } = useWorkspace()
   const [tab, setTab] = useState('overview')
+  const returnFocus = useRef<HTMLElement | SVGElement | null>(
+    document.activeElement instanceof HTMLElement || document.activeElement instanceof SVGElement
+      ? document.activeElement
+      : null,
+  )
   if (!inspector) return null
   const event = events.find((item) => item.id === inspector.id)
   const title = locale === 'fa' ? inspector.title : (inspector.titleEn ?? inspector.title)
@@ -395,17 +513,28 @@ function Inspector({ onClose }: { onClose: () => void }) {
     ['sources', copy.inspectorSources],
   ]
   return (
-    <>
-      <button className="inspector-scrim" aria-label={copy.close} onClick={onClose} />
-      <aside className="inspector" aria-label={title}>
-        <header>
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
+      <SheetContent
+        side={locale === 'fa' ? 'left' : 'right'}
+        className="inspector"
+        showCloseButton={false}
+        aria-label={title}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault()
+          const target = returnFocus.current?.isConnected
+            ? returnFocus.current
+            : document.querySelector<HTMLElement>('.global-search-trigger')
+          target?.focus()
+        }}
+      >
+        <SheetHeader>
           <div>
-            <span className="inspector-kind">
+            <Badge variant="outline" className="inspector-kind">
               <Icon name={inspector.kind === 'ai' ? 'magic-star' : 'radar-2'} size={15} />
               {inspector.kind === 'ai' ? copy.generated : copy.overview}
-            </span>
-            <h2>{title}</h2>
-            <p>
+            </Badge>
+            <SheetTitle>{title}</SheetTitle>
+            <SheetDescription>
               {event
                 ? locale === 'fa'
                   ? event.region
@@ -413,27 +542,45 @@ function Inspector({ onClose }: { onClose: () => void }) {
                 : locale === 'fa'
                   ? 'جزئیات مرتبط با نمای فعلی'
                   : 'Details related to the current view'}
-            </p>
+            </SheetDescription>
           </div>
-          <button className="icon-button" onClick={onClose} aria-label={copy.close}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="icon-button"
+            onClick={onClose}
+            aria-label={copy.close}
+          >
             <Icon name="close-circle" />
-          </button>
-        </header>
-        <div className="inspector-tabs" role="tablist">
-          {tabs.map(([key, label]) => (
-            <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)}>
-              {label}
-            </button>
-          ))}
-        </div>
-        <div className="inspector-body">
-          {tab === 'overview' && <InspectorOverview event={event} />}
-          {tab === 'evidence' && <EvidencePanel />}
-          {tab === 'ai' && <AIAnalysis />}
-          {tab === 'timeline' && <TimelinePanel />}
-          {tab === 'sources' && <SourcePanel />}
-        </div>
-        <footer>
+          </Button>
+        </SheetHeader>
+        <Tabs value={tab} onValueChange={setTab} className="inspector-tabs-root">
+          <TabsList className="inspector-tabs">
+            {tabs.map(([key, label]) => (
+              <TabsTrigger key={key} value={key}>
+                {label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <ScrollArea className="inspector-body">
+            <TabsContent value="overview">
+              <InspectorOverview event={event} />
+            </TabsContent>
+            <TabsContent value="evidence">
+              <EvidencePanel />
+            </TabsContent>
+            <TabsContent value="ai">
+              <AIAnalysis />
+            </TabsContent>
+            <TabsContent value="timeline">
+              <TimelinePanel />
+            </TabsContent>
+            <TabsContent value="sources">
+              <SourcePanel />
+            </TabsContent>
+          </ScrollArea>
+        </Tabs>
+        <SheetFooter>
           <Button
             variant="outline"
             onClick={() =>
@@ -449,9 +596,9 @@ function Inspector({ onClose }: { onClose: () => void }) {
             <Icon name="magic-star" />
             {copy.analyze}
           </Button>
-        </footer>
-      </aside>
-    </>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }
 

@@ -3,6 +3,18 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
 import { Icon } from '@/components/Icon'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useProductCopy } from '@/localization/productCopy'
 import type { DataState } from '@/types/domain'
 
@@ -48,7 +60,7 @@ export function ModuleFrame({
   title,
   description,
   state = 'fresh',
-  updated = '۲ دقیقه پیش',
+  updated,
   sourceCount,
   eventCount,
   confidence,
@@ -66,16 +78,14 @@ export function ModuleFrame({
   const copy = useProductCopy()
   const { locale } = usePreferences()
   const { openInspector } = useWorkspace()
-  const [menuOpen, setMenuOpen] = useState(false)
-  useEffect(() => {
-    if (!editing) setMenuOpen(false)
-  }, [editing])
   return (
-    <section
+    <Card
       className={`module-frame module-${size} ${expanded ? 'module-expanded' : ''} ${collapsed ? 'module-collapsed' : ''}`}
       data-module-id={id}
+      role="region"
+      aria-label={title}
     >
-      <header className="module-header">
+      <CardHeader className="module-header">
         <div className="module-title">
           <div className="module-title-line">
             {editing && (
@@ -86,86 +96,122 @@ export function ModuleFrame({
                 <Icon name="menu" size={16} />
               </span>
             )}
-            <h2>{title}</h2>
-            <span className={`state-badge state-${state}`}>
+            <h2 title={title}>{title}</h2>
+            <Badge variant="outline" className={`state-badge state-${state}`}>
               <i />
               {copy[stateKeys[state]]}
-            </span>
+            </Badge>
           </div>
-          {description && !collapsed && <p>{description}</p>}
+          {description && !collapsed && <p title={description}>{description}</p>}
         </div>
         <div className="module-controls">
           {!editing && (
-            <button title={copy.analyze} onClick={() => openInspector({ kind: 'ai', id, title })}>
+            <ModuleIconButton
+              label={copy.analyze}
+              onClick={() => openInspector({ kind: 'ai', id, title })}
+            >
               <Icon name="magic-star" size={18} />
-            </button>
+            </ModuleIconButton>
           )}
-          <button title={copy.collapse} onClick={onCollapse}>
+          <ModuleIconButton label={copy.collapse} onClick={onCollapse}>
             <Icon name={collapsed ? 'arrow-down-02' : 'minus'} size={18} />
-          </button>
-          <button title={copy.expand} onClick={onExpand}>
+          </ModuleIconButton>
+          <ModuleIconButton label={copy.expand} onClick={onExpand}>
             <Icon name={expanded ? 'maximize-3' : 'maximize-4'} size={18} />
-          </button>
-          <button title={copy.more} onClick={() => setMenuOpen((value) => !value)}>
-            <Icon name="more" size={18} />
-          </button>
-          {menuOpen && (
-            <div className="module-menu">
-              <button onClick={() => openInspector({ kind: 'ai', id, title })}>
+          </ModuleIconButton>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label={copy.more}>
+                    <Icon name="more" size={18} />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>{copy.more}</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="module-menu">
+              <DropdownMenuItem onSelect={() => openInspector({ kind: 'ai', id, title })}>
                 <Icon name="magic-star" />
                 {copy.analyze}
-              </button>
-              <button onClick={footerAction}>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={footerAction} disabled={!footerAction}>
                 <Icon name="link-2" />
                 {copy.related}
-              </button>
-            </div>
-          )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </header>
+      </CardHeader>
+      <Separator className="module-separator" />
       {editing && (
         <div className="edit-tools">
-          <button onClick={() => onMove?.(-1)}>
+          <Button variant="outline" size="sm" onClick={() => onMove?.(-1)}>
             <Icon name="arrow-up-02" />
             {copy.moveUp}
-          </button>
-          <button onClick={() => onMove?.(1)}>
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => onMove?.(1)}>
             <Icon name="arrow-down-02" />
             {copy.moveDown}
-          </button>
-          <button onClick={onResize}>
+          </Button>
+          <Button variant="outline" size="sm" onClick={onResize}>
             <Icon name="arrow-square" />
             {copy.resize}
-          </button>
+          </Button>
         </div>
       )}
-      {!collapsed && <div className="module-content">{children}</div>}
-      {!collapsed && (sourceCount || eventCount || confidence) && (
-        <footer className="module-footer">
-          {sourceCount != null && (
-            <span>
-              <Icon name="document" size={14} />
-              {sourceCount} {copy.sourcesLabel}
-            </span>
+      <Collapsible open={!collapsed}>
+        <CollapsibleContent>
+          <CardContent className="module-content">{children}</CardContent>
+          {(sourceCount || eventCount || confidence) && (
+            <CardFooter className="module-footer">
+              {sourceCount != null && (
+                <span>
+                  <Icon name="document" size={14} />
+                  {sourceCount} {copy.sourcesLabel}
+                </span>
+              )}
+              {eventCount != null && (
+                <span>
+                  <Icon name="radar-2" size={14} />
+                  {eventCount} {locale === 'fa' ? 'رویداد' : 'events'}
+                </span>
+              )}
+              {confidence != null && (
+                <span>
+                  <Icon name="shield-tick" size={14} />
+                  {copy.confidence} {confidence}%
+                </span>
+              )}
+              <time>
+                {copy.updated}: {updated ?? (locale === 'fa' ? '۲ دقیقه پیش' : '2 minutes ago')}
+              </time>
+            </CardFooter>
           )}
-          {eventCount != null && (
-            <span>
-              <Icon name="radar-2" size={14} />
-              {eventCount} {locale === 'fa' ? 'رویداد' : 'events'}
-            </span>
-          )}
-          {confidence != null && (
-            <span>
-              <Icon name="shield-tick" size={14} />
-              {copy.confidence} {confidence}%
-            </span>
-          )}
-          <time>
-            {copy.updated}: {updated}
-          </time>
-        </footer>
-      )}
-    </section>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  )
+}
+
+function ModuleIconButton({
+  label,
+  onClick,
+  children,
+}: {
+  label: string
+  onClick?: () => void
+  children: ReactNode
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label={label} onClick={onClick}>
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   )
 }
 

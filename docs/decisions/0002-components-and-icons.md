@@ -1,4 +1,4 @@
-# ADR 0002: shadcn-style components and Iconsax icons
+# ADR 0002: Official shadcn components and Iconsax icons
 
 - Status: Accepted for the MVP prototype
 - Date: 2026-08-24
@@ -11,7 +11,7 @@ Use shadcn’s code-owned component approach: component source stays in this rep
 
 - The designer asked for shadcn and Iconsax.
 - Code-owned components can be adapted for Persian content and RTL instead of being hidden inside a third-party package.
-- A small initial set—button, card, and badge—is enough for the diagnostic screen.
+- Product controls use the official registry source needed by the current interfaces; product-specific patterns compose those primitives.
 - Iconsax works without a React-specific wrapper and keeps its free icon data in the installed package.
 
 ## Rules
@@ -20,6 +20,7 @@ Use shadcn’s code-owned component approach: component source stays in this rep
 - An icon never replaces a necessary text label.
 - New components must use semantic CSS variables rather than inventing colors.
 - Add components only when a prototype feature needs them.
+- Generated icon imports are adapted to the configured Iconsax wrapper rather than adding a competing icon system.
 
 ## Verified guidance
 

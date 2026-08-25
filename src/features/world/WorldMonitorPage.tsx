@@ -7,6 +7,8 @@ import { ModuleFrame, usePersistentLayout, type LayoutItem } from '@/components/
 import { KpiStrip, PageHeader } from '@/components/product/PageHeader'
 import { WorldMap } from '@/components/product/WorldMap'
 import { Icon } from '@/components/Icon'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { countries, events } from '@/data/mock/visualMvpData'
 
 const defaults: LayoutItem[] = [
@@ -33,7 +35,8 @@ export function WorldMonitorPage() {
     priority: (
       <div className="priority-list">
         {filteredEvents.slice(0, 4).map((event, index) => (
-          <button
+          <Button
+            variant="ghost"
             key={event.id}
             onClick={() =>
               openInspector({
@@ -53,7 +56,7 @@ export function WorldMonitorPage() {
               </small>
             </span>
             <span className="confidence-mini">{event.confidence}%</span>
-          </button>
+          </Button>
         ))}
       </div>
     ),
@@ -81,7 +84,8 @@ export function WorldMonitorPage() {
         {filteredEvents.map((event) => (
           <li key={event.id}>
             <time dir="ltr">{event.occurredAt.slice(11, 16)}</time>
-            <button
+            <Button
+              variant="link"
               onClick={() =>
                 openInspector({
                   kind: 'event',
@@ -92,11 +96,11 @@ export function WorldMonitorPage() {
               }
             >
               {locale === 'fa' ? event.title : event.titleEn}
-            </button>
-            <span className={`state-badge state-${event.state}`}>
+            </Button>
+            <Badge variant="outline" className={`state-badge state-${event.state}`}>
               <i />
               {event.state}
-            </span>
+            </Badge>
           </li>
         ))}
       </ol>
@@ -131,7 +135,8 @@ export function WorldMonitorPage() {
     watch: (
       <div className="watchlist">
         {countries.map((country) => (
-          <button
+          <Button
+            variant="ghost"
             key={country.id}
             onClick={() =>
               openInspector({
@@ -147,7 +152,7 @@ export function WorldMonitorPage() {
               <small>{country.region[locale]}</small>
             </span>
             <b className={`trend-${country.trend}`}>{country.risk}</b>
-          </button>
+          </Button>
         ))}
       </div>
     ),

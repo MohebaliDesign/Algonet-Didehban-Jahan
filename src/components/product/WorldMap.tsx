@@ -3,6 +3,12 @@ import { useMemo, useState } from 'react'
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
 import { Icon } from '@/components/Icon'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Slider } from '@/components/ui/slider'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { events, layerLabels } from '@/data/mock/visualMvpData'
 import type { IntelligenceDomain } from '@/types/domain'
 
@@ -54,17 +60,23 @@ export function WorldMap() {
   return (
     <div className="map-workspace">
       <div className="map-toolbar">
-        <div className="view-switch">
-          <button className={!listView ? 'active' : ''} onClick={() => setListView(false)}>
+        <ToggleGroup
+          type="single"
+          value={listView ? 'list' : 'map'}
+          onValueChange={(value) => value && setListView(value === 'list')}
+          className="view-switch"
+        >
+          <ToggleGroupItem value="map" aria-label={locale === 'fa' ? 'نقشه' : 'Map'}>
             <Icon name="global" />
             {locale === 'fa' ? 'نقشه' : 'Map'}
-          </button>
-          <button className={listView ? 'active' : ''} onClick={() => setListView(true)}>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="list" aria-label={locale === 'fa' ? 'فهرست' : 'List'}>
             <Icon name="menu" />
             {locale === 'fa' ? 'فهرست' : 'List'}
-          </button>
-        </div>
-        <button
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <Button
+          variant="ghost"
           onClick={() => {
             setZoom(1)
             setTimeline(18)
@@ -72,7 +84,7 @@ export function WorldMap() {
         >
           <Icon name="gps" />
           {locale === 'fa' ? 'بازنشانی نما' : 'Reset view'}
-        </button>
+        </Button>
       </div>
       {!listView && (
         <div className="map-stage">
@@ -156,21 +168,25 @@ export function WorldMap() {
             </g>
           </svg>
           <div className="zoom-controls">
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setZoom((value) => Math.min(1.45, value + 0.15))}
               aria-label="Zoom in"
             >
               +
-            </button>
+            </Button>
             <span dir="ltr">{Math.round(zoom * 100)}%</span>
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setZoom((value) => Math.max(0.8, value - 0.15))}
               aria-label="Zoom out"
             >
               −
-            </button>
+            </Button>
           </div>
-          <aside className="layer-panel">
+          <Card className="layer-panel">
             <header>
               <div>
                 <strong>{locale === 'fa' ? 'لایه‌های اطلاعاتی' : 'Intelligence layers'}</strong>
@@ -180,9 +196,9 @@ export function WorldMap() {
               </div>
               <Icon name="layer" />
             </header>
-            <label>
+            <label className="layer-search">
               <Icon name="search-normal" size={15} />
-              <input
+              <Input
                 value={layerSearch}
                 onChange={(e) => setLayerSearch(e.target.value)}
                 placeholder={locale === 'fa' ? 'جست‌وجوی لایه…' : 'Search layers…'}
@@ -196,19 +212,19 @@ export function WorldMap() {
                     .includes(layerSearch.toLowerCase()),
                 )
                 .map((key) => (
-                  <button
-                    key={key}
-                    className={layers.has(key) ? 'selected' : ''}
-                    onClick={() => toggle(key)}
-                  >
+                  <label key={key} className={layers.has(key) ? 'selected' : ''}>
                     <span className={`legend-symbol layer-${key}`} />
                     <span>{locale === 'fa' ? layerLabels[key].fa : layerLabels[key].en}</span>
-                    <Icon name={layers.has(key) ? 'tick-square' : 'stop'} size={17} />
-                  </button>
+                    <Checkbox
+                      checked={layers.has(key)}
+                      onCheckedChange={() => toggle(key)}
+                      aria-label={locale === 'fa' ? layerLabels[key].fa : layerLabels[key].en}
+                    />
+                  </label>
                 ))}
             </div>
-          </aside>
-          <div className="map-legend">
+          </Card>
+          <Card className="map-legend">
             <strong>{locale === 'fa' ? 'شدت' : 'Severity'}</strong>
             <span>
               <i className="low" />
@@ -226,13 +242,14 @@ export function WorldMap() {
               <i className="critical" />
               {locale === 'fa' ? 'بحرانی' : 'Critical'}
             </span>
-          </div>
+          </Card>
         </div>
       )}
       {listView && (
         <div className="map-list-alternative">
           {visible.map((item) => (
-            <button
+            <Button
+              variant="ghost"
               key={item.id}
               onClick={() =>
                 openInspector({
@@ -252,21 +269,24 @@ export function WorldMap() {
                 </small>
               </span>
               <time dir="ltr">{item.occurredAt.slice(11, 16)} UTC</time>
-            </button>
+            </Button>
           ))}
         </div>
       )}
       <div className="map-timeline">
-        <button>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={locale === 'fa' ? 'توقف خط زمانی' : 'Pause timeline'}
+        >
           <Icon name="pause" size={16} />
-        </button>
+        </Button>
         <span dir="ltr">00:00</span>
-        <input
-          type="range"
-          min="0"
-          max="24"
-          value={timeline}
-          onChange={(e) => setTimeline(Number(e.target.value))}
+        <Slider
+          min={0}
+          max={24}
+          value={[timeline]}
+          onValueChange={([value]) => setTimeline(value)}
           aria-label={locale === 'fa' ? 'زمان نقشه' : 'Map time'}
         />
         <span dir="ltr">{String(timeline).padStart(2, '0')}:00 UTC</span>

@@ -37,7 +37,7 @@ The existing `--temp-live`, `--temp-cached`, `--temp-stale`, `--temp-partial`, `
 
 - Forecast and observed lines differ by both color and dash pattern.
 - Map severity differs by size and is named in the legend and accessible list.
-- Chart values have SVG titles/tooltips and expandable data tables.
+- Chart values use the shadcn tooltip/legend contract, Recharts accessibility layer, and expandable shadcn table alternatives.
 - Matrices and maps provide textual alternatives.
 - Live, cached, stale, partial, empty, error, and restricted states include visible words and icons.
 - Color choices are intended for review, not claimed as final WCAG-approved pairs. Final contrast and color-vision testing is required after approval.

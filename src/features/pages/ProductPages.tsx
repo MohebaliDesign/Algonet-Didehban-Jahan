@@ -2,11 +2,33 @@ import { useMemo, useState, type ReactNode } from 'react'
 
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
-import { BarChart, LineChart, MatrixChart, Sparkline } from '@/components/product/Charts'
+import { BarChart, LineChart, MatrixChart, RadialKpi, Sparkline } from '@/components/product/Charts'
 import { ModuleFrame } from '@/components/product/ModuleFrame'
 import { KpiStrip, PageHeader } from '@/components/product/PageHeader'
 import { Icon } from '@/components/Icon'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { Input } from '@/components/ui/input'
+import { Progress } from '@/components/ui/progress'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   corridors,
   countries,
@@ -42,9 +64,11 @@ export function DevelopmentsPage() {
           'A clear boundary between what has been observed and what may happen next.',
         )}
       />
-      <div
+      <ToggleGroup
+        type="single"
+        value={horizon}
+        onValueChange={(value) => value && setHorizon(value)}
         className="segmented-control horizon-control"
-        role="group"
         aria-label={local(locale, 'افق پیش‌بینی', 'Forecast horizon')}
       >
         {[
@@ -52,15 +76,11 @@ export function DevelopmentsPage() {
           ['7d', '۷ روز', '7 days'],
           ['30d', '۳۰ روز', '30 days'],
         ].map(([key, fa, en]) => (
-          <button
-            key={key}
-            className={horizon === key ? 'active' : ''}
-            onClick={() => setHorizon(key)}
-          >
+          <ToggleGroupItem key={key} value={key} aria-label={local(locale, fa, en)}>
             {local(locale, fa, en)}
-          </button>
+          </ToggleGroupItem>
         ))}
-      </div>
+      </ToggleGroup>
       <KpiStrip
         items={[
           {
@@ -180,7 +200,8 @@ export function DevelopmentsPage() {
           eventCount={8}
         >
           {events.slice(0, 4).map((event) => (
-            <button
+            <Button
+              variant="ghost"
               className="signal-row"
               key={event.id}
               onClick={() =>
@@ -203,7 +224,7 @@ export function DevelopmentsPage() {
                 </small>
               </span>
               <b>{event.confidence}%</b>
-            </button>
+            </Button>
           ))}
         </ModuleFrame>
         <ModuleFrame
@@ -334,7 +355,8 @@ export function SecurityPage() {
                 'Observed activity in East Asia aligns with an announced exercise. In the Caucasus, evidence is insufficient to conclude the cause of disruption.',
               )}
             </p>
-            <button
+            <Button
+              variant="link"
               className="text-action"
               onClick={() =>
                 openInspector({
@@ -346,7 +368,7 @@ export function SecurityPage() {
             >
               {local(locale, 'بازکردن شواهد و تناقض‌ها', 'Open evidence and contradictions')}
               <Icon name="arrow-left-01" className="directional-icon" />
-            </button>
+            </Button>
           </div>
         </ModuleFrame>
         <ModuleFrame
@@ -386,7 +408,8 @@ export function SecurityPage() {
             {events.slice(0, 5).map((event) => (
               <li key={event.id}>
                 <time dir="ltr">{event.occurredAt.slice(11, 16)} UTC</time>
-                <button
+                <Button
+                  variant="link"
                   onClick={() =>
                     openInspector({
                       kind: 'event',
@@ -397,7 +420,7 @@ export function SecurityPage() {
                   }
                 >
                   {locale === 'fa' ? event.title : event.titleEn}
-                </button>
+                </Button>
                 <span className={`event-severity ${event.severity}`} />
               </li>
             ))}
@@ -446,7 +469,8 @@ export function MarketsPage() {
         >
           <div className="market-watchlist">
             {markets.map((item) => (
-              <button
+              <Button
+                variant="ghost"
                 key={item.id}
                 className={selected.id === item.id ? 'selected' : ''}
                 onClick={() => setSelected(item)}
@@ -460,7 +484,7 @@ export function MarketsPage() {
                   {item.change > 0 ? '+' : ''}
                   {item.change}%
                 </b>
-              </button>
+              </Button>
             ))}
           </div>
         </ModuleFrame>
@@ -473,14 +497,15 @@ export function MarketsPage() {
           sourceCount={7}
         >
           <div className="chart-view-header">
-            <div className="segmented-control">
-              <button className={view === 'chart' ? 'active' : ''} onClick={() => setView('chart')}>
-                {local(locale, 'نمودار', 'Chart')}
-              </button>
-              <button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')}>
-                {local(locale, 'جدول', 'Table')}
-              </button>
-            </div>
+            <ToggleGroup
+              type="single"
+              value={view}
+              onValueChange={(value) => value && setView(value as 'chart' | 'table')}
+              className="segmented-control"
+            >
+              <ToggleGroupItem value="chart">{local(locale, 'نمودار', 'Chart')}</ToggleGroupItem>
+              <ToggleGroupItem value="table">{local(locale, 'جدول', 'Table')}</ToggleGroupItem>
+            </ToggleGroup>
             <strong dir="ltr">{selected.value}</strong>
           </div>
           {view === 'chart' ? (
@@ -491,7 +516,7 @@ export function MarketsPage() {
                 ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج', 'امروز'],
                 ['S', 'M', 'T', 'W', 'T', 'F', 'S', 'Today'],
               )}
-              unit=""
+              unit={local(locale, ' شاخص', ' index')}
               series={[{ label: selected.symbol, values: selected.series, kind: 'observed' }]}
             />
           ) : (
@@ -550,7 +575,8 @@ export function MarketsPage() {
                 'Gold moved alongside higher hedging demand; causality is not established and fund-flow data is partial.',
               )}
             </p>
-            <button
+            <Button
+              variant="link"
               className="text-action"
               onClick={() =>
                 openInspector({
@@ -562,7 +588,7 @@ export function MarketsPage() {
             >
               {local(locale, 'بررسی شواهد', 'Inspect evidence')}
               <Icon name="arrow-left-01" className="directional-icon" />
-            </button>
+            </Button>
           </div>
         </ModuleFrame>
       </PageGrid>
@@ -600,7 +626,7 @@ export function CountriesPage() {
         >
           <label className="inline-search">
             <Icon name="search-normal" />
-            <input
+            <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={local(locale, 'جست‌وجوی کشور…', 'Search countries…')}
@@ -608,7 +634,8 @@ export function CountriesPage() {
           </label>
           <div className="country-list">
             {filtered.map((country) => (
-              <button
+              <Button
+                variant="ghost"
                 key={country.id}
                 className={selected.id === country.id ? 'selected' : ''}
                 onClick={() => setSelected(country)}
@@ -620,7 +647,7 @@ export function CountriesPage() {
                   </small>
                 </span>
                 <b className={`trend-${country.trend}`}>{country.risk}</b>
-              </button>
+              </Button>
             ))}
           </div>
         </ModuleFrame>
@@ -634,11 +661,10 @@ export function CountriesPage() {
           confidence={79}
         >
           <div className="country-hero">
-            <div className="risk-gauge">
-              <span style={{ '--risk': `${selected.risk}%` } as React.CSSProperties} />
-              <strong>{selected.risk}</strong>
-              <small>{local(locale, 'ریسک ترکیبی', 'Composite risk')}</small>
-            </div>
+            <RadialKpi
+              value={selected.risk}
+              label={local(locale, 'ریسک ترکیبی', 'Composite risk')}
+            />
             <div className="indicator-grid">
               {selected.indicators.map((item) => (
                 <div key={item.label.fa}>
@@ -662,7 +688,8 @@ export function CountriesPage() {
               </div>
             </div>
           </div>
-          <button
+          <Button
+            variant="link"
             className="text-action"
             onClick={() =>
               openInspector({
@@ -675,7 +702,7 @@ export function CountriesPage() {
           >
             {local(locale, 'بازکردن بازرس کشور', 'Open country Inspector')}
             <Icon name="arrow-left-01" className="directional-icon" />
-          </button>
+          </Button>
         </ModuleFrame>
         <ModuleFrame
           id="corridors"
@@ -690,7 +717,8 @@ export function CountriesPage() {
         >
           <div className="corridor-list">
             {corridors.map((corridor) => (
-              <button
+              <Button
+                variant="ghost"
                 key={corridor.id}
                 onClick={() =>
                   openInspector({
@@ -724,7 +752,7 @@ export function CountriesPage() {
                     )}
                   </small>
                 </span>
-              </button>
+              </Button>
             ))}
           </div>
         </ModuleFrame>
@@ -775,20 +803,32 @@ export function ReportsPage() {
       <div className="report-toolbar">
         <label className="inline-search">
           <Icon name="search-normal" />
-          <input
+          <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={local(locale, 'جست‌وجوی گزارش…', 'Search reports…')}
           />
         </label>
-        <select>
-          <option>{local(locale, 'همه انواع گزارش', 'All report types')}</option>
-          <option>{local(locale, 'جمع‌بندی روزانه', 'Daily brief')}</option>
-        </select>
-        <select>
-          <option>{local(locale, 'همه محدوده‌ها', 'All geographies')}</option>
-          <option>{local(locale, 'جهانی', 'Global')}</option>
-        </select>
+        <Select defaultValue="all">
+          <SelectTrigger aria-label={local(locale, 'نوع گزارش', 'Report type')}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">
+              {local(locale, 'همه انواع گزارش', 'All report types')}
+            </SelectItem>
+            <SelectItem value="daily">{local(locale, 'جمع‌بندی روزانه', 'Daily brief')}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select defaultValue="all">
+          <SelectTrigger aria-label={local(locale, 'محدوده جغرافیایی', 'Geographic scope')}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{local(locale, 'همه محدوده‌ها', 'All geographies')}</SelectItem>
+            <SelectItem value="global">{local(locale, 'جهانی', 'Global')}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <PageGrid>
         <ModuleFrame
@@ -800,7 +840,8 @@ export function ReportsPage() {
         >
           <div className="report-list">
             {visible.map((report) => (
-              <button
+              <Button
+                variant="ghost"
                 key={report.id}
                 className={selected.id === report.id ? 'selected' : ''}
                 onClick={() => setSelected(report)}
@@ -816,7 +857,7 @@ export function ReportsPage() {
                   </small>
                 </span>
                 <time dir="ltr">{report.updatedAt.slice(0, 10)}</time>
-              </button>
+              </Button>
             ))}
           </div>
         </ModuleFrame>
@@ -969,17 +1010,19 @@ export function DataManagementPage() {
             'Sources, ingestion, freshness, and quality for authorized roles.',
           )}
         />
-        <section className="restricted-panel">
-          <span>
-            <Icon name="lock" size={32} />
-          </span>
-          <h2>{copy.restrictedTitle}</h2>
-          <p>{copy.restrictedBody}</p>
+        <Empty className="restricted-panel">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Icon name="lock" size={32} />
+            </EmptyMedia>
+            <EmptyTitle>{copy.restrictedTitle}</EmptyTitle>
+            <EmptyDescription>{copy.restrictedBody}</EmptyDescription>
+          </EmptyHeader>
           <div>
             <code dir="ltr">ROLE: {role}</code>
             <code dir="ltr">REQUIRED: data-manager</code>
           </div>
-        </section>
+        </Empty>
       </div>
     )
   return (
@@ -1026,22 +1069,27 @@ export function DataManagementPage() {
       <div className="data-toolbar">
         <label className="inline-search">
           <Icon name="search-normal" />
-          <input
+          <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={local(locale, 'جست‌وجوی منبع…', 'Search sources…')}
           />
         </label>
-        <select value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
-          <option value="all">{local(locale, 'همه وضعیت‌ها', 'All states')}</option>
-          {(['fresh', 'cached', 'stale', 'partial', 'empty', 'error'] as DataState[]).map(
-            (state) => (
-              <option key={state} value={state}>
-                {copy[state === 'empty' ? 'empty' : state]}
-              </option>
-            ),
-          )}
-        </select>
+        <Select value={stateFilter} onValueChange={setStateFilter}>
+          <SelectTrigger aria-label={local(locale, 'وضعیت منبع', 'Source state')}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{local(locale, 'همه وضعیت‌ها', 'All states')}</SelectItem>
+            {(['fresh', 'cached', 'stale', 'partial', 'empty', 'error'] as DataState[]).map(
+              (state) => (
+                <SelectItem key={state} value={state}>
+                  {copy[state === 'empty' ? 'empty' : state]}
+                </SelectItem>
+              ),
+            )}
+          </SelectContent>
+        </Select>
         <Button
           onClick={() =>
             notify(
@@ -1066,35 +1114,40 @@ export function DataManagementPage() {
           state="partial"
         >
           <div className="dense-table-wrap">
-            <table className="dense-table">
-              <thead>
-                <tr>
-                  <th>{local(locale, 'منبع', 'Source')}</th>
-                  <th>{local(locale, 'نوع', 'Type')}</th>
-                  <th>{local(locale, 'وضعیت', 'State')}</th>
-                  <th>{local(locale, 'آخرین موفقیت', 'Last success')}</th>
-                  <th>{local(locale, 'تأخیر', 'Latency')}</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="dense-table">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{local(locale, 'منبع', 'Source')}</TableHead>
+                  <TableHead>{local(locale, 'نوع', 'Type')}</TableHead>
+                  <TableHead>{local(locale, 'وضعیت', 'State')}</TableHead>
+                  <TableHead>{local(locale, 'آخرین موفقیت', 'Last success')}</TableHead>
+                  <TableHead>{local(locale, 'تأخیر', 'Latency')}</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filtered.map((source) => (
-                  <tr key={source.id}>
-                    <td>
+                  <TableRow key={source.id}>
+                    <TableCell>
                       <strong>{locale === 'fa' ? source.name : source.nameEn}</strong>
                       <code dir="ltr">{source.id.toUpperCase()}</code>
-                    </td>
-                    <td dir="ltr">{source.kind.toUpperCase()}</td>
-                    <td>
-                      <span className={`state-badge state-${source.state}`}>
+                    </TableCell>
+                    <TableCell dir="ltr">{source.kind.toUpperCase()}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={`state-badge state-${source.state}`}>
                         <i />
                         {copy[source.state === 'empty' ? 'empty' : source.state]}
-                      </span>
-                    </td>
-                    <td dir="ltr">{source.lastSuccess?.slice(0, 16).replace('T', ' ')}</td>
-                    <td dir="ltr">{source.latencyMs || '—'} ms</td>
-                    <td>
-                      <button
+                      </Badge>
+                    </TableCell>
+                    <TableCell dir="ltr">
+                      {source.lastSuccess?.slice(0, 16).replace('T', ' ')}
+                    </TableCell>
+                    <TableCell dir="ltr">{source.latencyMs || '—'} ms</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={local(locale, 'بازکردن جزئیات منبع', 'Open source details')}
                         onClick={() =>
                           openInspector({
                             kind: 'source',
@@ -1105,12 +1158,12 @@ export function DataManagementPage() {
                         }
                       >
                         <Icon name="arrow-left-01" className="directional-icon" />
-                      </button>
-                    </td>
-                  </tr>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </ModuleFrame>
         <ModuleFrame
@@ -1160,7 +1213,10 @@ export function DataManagementPage() {
                   </small>
                 </div>
                 <div className="job-progress">
-                  <i style={{ inlineSize: progress }} />
+                  <Progress
+                    value={Number.parseInt(progress, 10)}
+                    aria-label={`${id} ${progress}`}
+                  />
                   <span dir="ltr">{progress}</span>
                 </div>
               </article>
@@ -1190,41 +1246,28 @@ export function DataManagementPage() {
                 'restricted',
               ] as DataState[]
             ).map((state) => (
-              <article key={state} className={`showcase-${state}`}>
-                <Icon
-                  name={
-                    state === 'loading'
-                      ? 'refresh-circle'
+              <DataStateCard
+                key={state}
+                state={state}
+                title={copy[state === 'empty' ? 'empty' : state]}
+                description={local(
+                  locale,
+                  state === 'loading'
+                    ? 'در انتظار پاسخ منبع'
+                    : state === 'empty'
+                      ? 'داده‌ای در بازه انتخابی نیست'
                       : state === 'error'
-                        ? 'close-circle'
-                        : state === 'restricted'
-                          ? 'lock'
-                          : 'info-circle'
-                  }
-                />
-                <span>
-                  <strong>{copy[state === 'empty' ? 'empty' : state]}</strong>
-                  <small>
-                    {local(
-                      locale,
-                      state === 'loading'
-                        ? 'در انتظار پاسخ منبع'
-                        : state === 'empty'
-                          ? 'داده‌ای در بازه انتخابی نیست'
-                          : state === 'error'
-                            ? 'بازیابی ناموفق؛ تلاش دوباره نمایشی است'
-                            : state === 'partial'
-                              ? 'بخشی از پوشش در دسترس نیست'
-                              : state === 'stale'
-                                ? 'آخرین داده از آستانه تازگی گذشته است'
-                                : state === 'cached'
-                                  ? 'نسخه ذخیره‌شده نمایش داده می‌شود'
-                                  : 'این داده برای نقش فعلی محدود است',
-                      state,
-                    )}
-                  </small>
-                </span>
-              </article>
+                        ? 'بازیابی ناموفق؛ تلاش دوباره نمایشی است'
+                        : state === 'partial'
+                          ? 'بخشی از پوشش در دسترس نیست'
+                          : state === 'stale'
+                            ? 'آخرین داده از آستانه تازگی گذشته است'
+                            : state === 'cached'
+                              ? 'نسخه ذخیره‌شده نمایش داده می‌شود'
+                              : 'این داده برای نقش فعلی محدود است',
+                  state,
+                )}
+              />
             ))}
           </div>
         </ModuleFrame>
@@ -1233,29 +1276,74 @@ export function DataManagementPage() {
   )
 }
 
+function DataStateCard({
+  state,
+  title,
+  description,
+}: {
+  state: DataState
+  title: string
+  description: string
+}) {
+  if (state === 'loading') {
+    return (
+      <Alert className="showcase-loading">
+        <Icon name="refresh-circle" />
+        <AlertTitle>{title}</AlertTitle>
+        <AlertDescription>
+          {description}
+          <Skeleton className="mt-2 h-2 w-3/4" />
+        </AlertDescription>
+      </Alert>
+    )
+  }
+  if (state === 'empty') {
+    return (
+      <Empty className="showcase-empty">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Icon name="info-circle" />
+          </EmptyMedia>
+          <EmptyTitle>{title}</EmptyTitle>
+          <EmptyDescription>{description}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    )
+  }
+  return (
+    <Alert variant={state === 'error' ? 'destructive' : 'default'} className={`showcase-${state}`}>
+      <Icon
+        name={state === 'error' ? 'close-circle' : state === 'restricted' ? 'lock' : 'info-circle'}
+      />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>{description}</AlertDescription>
+    </Alert>
+  )
+}
+
 function DenseTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
   return (
     <div className="dense-table-wrap">
-      <table className="dense-table">
-        <thead>
-          <tr>
+      <Table className="dense-table">
+        <TableHeader>
+          <TableRow>
             {headers.map((h) => (
-              <th key={h}>{h}</th>
+              <TableHead key={h}>{h}</TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.map((row, i) => (
-            <tr key={i}>
+            <TableRow key={i}>
               {row.map((cell, j) => (
-                <td key={j} dir={j ? 'ltr' : undefined}>
+                <TableCell key={j} dir={j ? 'ltr' : undefined}>
                   {cell}
-                </td>
+                </TableCell>
               ))}
-            </tr>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   )
 }
