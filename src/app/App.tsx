@@ -8,8 +8,8 @@ import {
   DataManagementPage,
   DevelopmentsPage,
   ReportsPage,
-  SecurityPage,
 } from '@/features/pages/ProductPages'
+import { SecurityPage } from '@/features/security/SecurityPage'
 import { WorldMonitorPage } from '@/features/world/WorldMonitorPage'
 
 export function App() {
