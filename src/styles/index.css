@@ -7,5 +7,6 @@
 @import './product.css';
 @import './responsive-spacing.css';
 @import './world-map.css';
+@import './world-map-search.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
