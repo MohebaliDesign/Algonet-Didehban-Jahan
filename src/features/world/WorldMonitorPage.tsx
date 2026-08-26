@@ -41,12 +41,11 @@ export function WorldMonitorPage() {
   const content: Record<string, React.ReactNode> = {
     map: <WorldMap />,
     priority: (
-      <ItemGroup className="priority-list" role="list">
+      <ItemGroup className="priority-list">
         {filteredEvents.slice(0, 4).map((event, index) => (
           <Item asChild size="sm" className="product-list-item" key={event.id}>
             <button
               type="button"
-              role="listitem"
               onClick={() =>
                 openInspector({
                   kind: 'event',
@@ -94,12 +93,11 @@ export function WorldMonitorPage() {
       </div>
     ),
     feed: (
-      <ItemGroup className="live-feed" role="list">
+      <ItemGroup className="live-feed">
         {filteredEvents.map((event) => (
           <Item asChild size="sm" className="product-list-item" key={event.id}>
             <button
               type="button"
-              role="listitem"
               onClick={() =>
                 openInspector({
                   kind: 'event',
@@ -154,12 +152,11 @@ export function WorldMonitorPage() {
       />
     ),
     watch: (
-      <ItemGroup className="watchlist" role="list">
+      <ItemGroup className="watchlist">
         {countries.map((country) => (
           <Item asChild size="sm" className="product-list-item" key={country.id}>
             <button
               type="button"
-              role="listitem"
               onClick={() =>
                 openInspector({
                   kind: 'country',
@@ -319,7 +316,6 @@ export function WorldMonitorPage() {
                   label: 'Last sync',
                   value: '2 min',
                   change: '7% partial',
-                  tone: 'warning',
                   icon: 'refresh-circle',
                 },
               ]
