@@ -1,10 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router'
 
 import { AppShell } from '@/components/product/AppShell'
+import { CountriesPage } from '@/features/countries/CountriesPage'
 import { FoundationDiagnostic } from '@/features/foundation/FoundationDiagnostic'
 import { MarketsPage } from '@/features/markets/MarketsPage'
 import {
-  CountriesPage,
   DataManagementPage,
   DevelopmentsPage,
   ReportsPage,
