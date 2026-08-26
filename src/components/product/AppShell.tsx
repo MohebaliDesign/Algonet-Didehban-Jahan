@@ -221,10 +221,11 @@ function AppShellContent() {
             variant="outline"
             className="global-search-trigger"
             onClick={() => setSearchOpen(true)}
+            dir={locale === 'fa' ? 'rtl' : 'ltr'}
           >
             <Icon name="search-normal" />
-            <span dir="rtl">{copy.searchHint}</span>
-            <kbd dir="rtl">Ctrl K</kbd>
+            <span>{copy.searchHint}</span>
+            <kbd dir="ltr">Ctrl K</kbd>
           </Button>
           <div className="topbar-actions">
             <span className="sync-status">
