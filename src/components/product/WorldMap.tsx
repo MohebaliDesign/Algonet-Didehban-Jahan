@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
@@ -519,14 +519,17 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
                     {layers.size} {isFa ? 'فعال' : 'active'}
                   </Badge>
                 </header>
-                <label className="layer-search">
-                  <Icon name="search-normal" size={16} />
-                  <Input
+                <InputGroup className="layer-search">
+                  <InputGroupInput
                     value={layerSearch}
                     onChange={(event) => setLayerSearch(event.target.value)}
                     placeholder={isFa ? 'جست‌وجو در لایه‌ها…' : 'Search layers…'}
+                    aria-label={isFa ? 'جست‌وجو در لایه‌های اطلاعاتی' : 'Search intelligence layers'}
                   />
-                </label>
+                  <InputGroupAddon align="inline-start">
+                    <Icon name="search-normal" size={16} />
+                  </InputGroupAddon>
+                </InputGroup>
                 <div className="layer-panel-list">
                   {(Object.keys(layerLabels) as IntelligenceDomain[])
                     .filter((key) =>
