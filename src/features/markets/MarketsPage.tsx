@@ -34,6 +34,14 @@ function marketIconName(symbol: string) {
   return 'coin'
 }
 
+function marketAssetTone(symbol: string) {
+  if (symbol === 'XAU/USD') return 'gold'
+  if (symbol === 'XAG/USD') return 'silver'
+  if (symbol === 'BRENT') return 'oil'
+  if (symbol === 'BTC-USD') return 'bitcoin'
+  return 'currency'
+}
+
 function getSeriesLabels(locale: 'fa' | 'en') {
   return local(
     locale,
@@ -64,6 +72,14 @@ function formatChange(value: number, locale: 'fa' | 'en') {
   return `${sign}${formatted}${locale === 'fa' ? '٪' : '%'}`
 }
 
+function MarketSubtitle({ item, locale }: { item: MarketInstrument; locale: 'fa' | 'en' }) {
+  return (
+    <span className="market-english-subtitle" dir="ltr">
+      {locale === 'fa' ? `${item.name.en} · ${item.symbol}` : item.symbol}
+    </span>
+  )
+}
+
 function MarketDataTable({
   locale,
   selected,
@@ -91,7 +107,9 @@ function MarketDataTable({
               <TableRow key={`${selected.id}-${labels[index] ?? index}`}>
                 <TableCell>{labels[index] ?? formatNumber(index + 1, locale, 0)}</TableCell>
                 <TableCell>{formatNumber(value, locale)}</TableCell>
-                <TableCell className={delta > 0 ? 'market-positive' : delta < 0 ? 'market-negative' : ''}>
+                <TableCell
+                  className={delta > 0 ? 'market-positive' : delta < 0 ? 'market-negative' : ''}
+                >
                   {delta > 0 ? '+' : delta < 0 ? '−' : ''}
                   {formatNumber(Math.abs(delta), locale)}
                 </TableCell>
@@ -132,6 +150,102 @@ export function MarketsPage() {
         }))}
       />
 
+      <ModuleFrame
+        id="watchlist"
+        title={local(locale, 'فهرست پایش', 'Watchlist')}
+        description={local(
+          locale,
+          'یک بازار را انتخاب کنید تا روند آن را ببینید.',
+          'Select a market to view its trend.',
+        )}
+        size="wide"
+        state="fresh"
+      >
+        <div className="market-overview-layout">
+          <div className="market-selector-pane">
+            <div className="market-selector-list" role="list">
+              {markets.map((item) => {
+                const isSelected = selected.id === item.id
+                return (
+                  <button
+                    type="button"
+                    role="listitem"
+                    key={item.id}
+                    className={`market-selector-row ${isSelected ? 'selected' : ''}`}
+                    aria-pressed={isSelected}
+                    onClick={() => setSelected(item)}
+                  >
+                    <span className={`market-asset-icon asset-${marketAssetTone(item.symbol)}`}>
+                      <Icon name={marketIconName(item.symbol)} size={40} type="bulk" />
+                    </span>
+                    <span className="market-selector-copy">
+                      <strong>{item.name[locale]}</strong>
+                      <MarketSubtitle item={item} locale={locale} />
+                    </span>
+                    <span
+                      className={item.change > 0 ? 'market-positive' : 'market-negative'}
+                      dir="auto"
+                    >
+                      {formatChange(item.change, locale)}
+                    </span>
+                    <span className="market-selector-value" dir="auto">
+                      {formatMarketValue(item.value, locale)}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="selected-market-panel">
+            <div className="selected-market-summary">
+              <div className="selected-market-title">
+                <strong>{selected.name[locale]}</strong>
+                <MarketSubtitle item={selected} locale={locale} />
+              </div>
+              <div className="selected-market-metrics">
+                <b dir="auto">{formatMarketValue(selected.value, locale)}</b>
+                <span
+                  className={selected.change > 0 ? 'market-positive' : 'market-negative'}
+                  dir="auto"
+                >
+                  {formatChange(selected.change, locale)}
+                </span>
+              </div>
+            </div>
+
+            <Tabs
+              value={view}
+              onValueChange={(value) => setView(value as 'chart' | 'table')}
+              className="market-view-tabs"
+              dir={locale === 'fa' ? 'rtl' : 'ltr'}
+            >
+              <TabsList variant="line" className="market-view-tabs-list">
+                <TabsTrigger value="chart">{local(locale, 'نمودار', 'Chart')}</TabsTrigger>
+                <TabsTrigger value="table">{local(locale, 'جدول', 'Table')}</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="chart" className="market-view-content">
+                <MarketTrendChart
+                  description={local(
+                    locale,
+                    `روند هفت‌روزه ${selected.name.fa}`,
+                    `Seven-day trend for ${selected.name.en}`,
+                  )}
+                  labels={labels}
+                  name={selected.symbol}
+                  values={selected.series}
+                />
+              </TabsContent>
+
+              <TabsContent value="table" className="market-view-content">
+                <MarketDataTable locale={locale} selected={selected} />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </ModuleFrame>
+
       <div className="markets-workspace markets-workspace-v2">
         <div className="markets-stack markets-main-stack">
           <ModuleFrame
@@ -146,7 +260,9 @@ export function MarketsPage() {
               items={markets.map((item) => ({ label: item.symbol, value: item.change }))}
             />
           </ModuleFrame>
+        </div>
 
+        <div className="markets-stack markets-side-stack">
           <ModuleFrame
             id="market-ai"
             title={local(locale, 'پیامدهای هوشمند', 'AI implications')}
@@ -185,94 +301,6 @@ export function MarketsPage() {
                 {local(locale, 'بررسی شواهد', 'Inspect evidence')}
                 <Icon name="arrow-left-01" className="directional-icon" />
               </Button>
-            </div>
-          </ModuleFrame>
-        </div>
-
-        <div className="markets-stack markets-side-stack">
-          <ModuleFrame
-            id="watchlist"
-            title={local(locale, 'فهرست پایش', 'Watchlist')}
-            description={local(
-              locale,
-              'یک بازار را انتخاب کنید تا روند آن را ببینید.',
-              'Select a market to view its trend.',
-            )}
-            size="medium"
-            state="fresh"
-          >
-            <div className="market-selector-list" role="list">
-              {markets.map((item) => {
-                const isSelected = selected.id === item.id
-                return (
-                  <button
-                    type="button"
-                    role="listitem"
-                    key={item.id}
-                    className={`market-selector-row ${isSelected ? 'selected' : ''}`}
-                    aria-pressed={isSelected}
-                    onClick={() => setSelected(item)}
-                  >
-                    <span className="market-asset-icon">
-                      <Icon name={marketIconName(item.symbol)} size={24} type="bulk" />
-                    </span>
-                    <span className="market-selector-copy">
-                      <strong>{item.name[locale]}</strong>
-                      <code dir="ltr">{item.symbol}</code>
-                    </span>
-                    <span className={item.change > 0 ? 'market-positive' : 'market-negative'} dir="auto">
-                      {formatChange(item.change, locale)}
-                    </span>
-                    <span className="market-selector-value" dir="auto">
-                      {formatMarketValue(item.value, locale)}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="selected-market-panel">
-              <div className="selected-market-summary">
-                <div>
-                  <strong>{selected.name[locale]}</strong>
-                  <code dir="ltr">{selected.symbol}</code>
-                </div>
-                <div className="selected-market-metrics">
-                  <b dir="auto">{formatMarketValue(selected.value, locale)}</b>
-                  <span className={selected.change > 0 ? 'market-positive' : 'market-negative'} dir="auto">
-                    {formatChange(selected.change, locale)}
-                  </span>
-                </div>
-              </div>
-
-              <Tabs
-                value={view}
-                onValueChange={(value) => setView(value as 'chart' | 'table')}
-                className="market-view-tabs"
-                dir={locale === 'fa' ? 'rtl' : 'ltr'}
-              >
-                <TabsList variant="line" className="market-view-tabs-list">
-                  <TabsTrigger value="chart">{local(locale, 'نمودار', 'Chart')}</TabsTrigger>
-                  <TabsTrigger value="table">{local(locale, 'جدول', 'Table')}</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="chart" className="market-view-content">
-                  <MarketTrendChart
-                    description={local(
-                      locale,
-                      `روند هفت‌روزه ${selected.name.fa}`,
-                      `Seven-day trend for ${selected.name.en}`,
-                    )}
-                    labels={labels}
-                    name={selected.symbol}
-                    values={selected.series}
-                  />
-                </TabsContent>
-
-                <TabsContent value="table" className="market-view-content">
-                  <MarketDataTable locale={locale} selected={selected} />
-                </TabsContent>
-              </Tabs>
             </div>
           </ModuleFrame>
         </div>
