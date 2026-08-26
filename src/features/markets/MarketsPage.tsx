@@ -26,7 +26,8 @@ function local<T>(locale: 'fa' | 'en', fa: T, en: T): T {
 }
 
 function marketIconName(symbol: string) {
-  if (symbol === 'XAU/USD') return 'money-4'
+  if (symbol === 'XAU/USD') return 'gold'
+  if (symbol === 'XAG/USD') return 'coin'
   if (symbol === 'BRENT') return 'gas-station'
   if (symbol === 'BTC-USD') return 'bitcoin-card'
   if (symbol === 'EUR/USD') return 'moneys'
