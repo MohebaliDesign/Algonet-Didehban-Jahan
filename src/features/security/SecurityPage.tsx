@@ -114,7 +114,7 @@ export function SecurityPage() {
             'نمای جهانی · احتمال و پیامد کانون‌های تنش',
             'Global view · likelihood and impact of tension areas',
           )}
-          size="large"
+          size="wide"
           state="fresh"
           sourceCount={41}
         >
