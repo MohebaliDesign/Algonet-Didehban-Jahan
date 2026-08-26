@@ -114,7 +114,7 @@
 
 /*
  * One shared grid owns both rows. This guarantees aligned row heights and creates
- * the intentional alternating 8/4 -> 4/8 desktop rhythm.
+ * an alternating desktop rhythm while keeping visualization cards visually dominant.
  */
 .markets-workspace {
   direction: ltr;
@@ -140,7 +140,7 @@
   direction: ltr;
 }
 
-/* Row 1: large detail + compact watchlist. */
+/* Row 1: large detail chart + compact watchlist. */
 .markets-workspace [data-module-id='market-detail'] {
   grid-column: 1 / span 8;
   grid-row: 1;
@@ -151,13 +151,13 @@
   grid-row: 1;
 }
 
-/* Row 2 mirrors the proportions to create a repeatable alternating pattern. */
-.markets-workspace [data-module-id='market-comparison'] {
+/* Row 2 mirrors the position while keeping the comparison chart larger than AI copy. */
+.markets-workspace [data-module-id='market-ai'] {
   grid-column: 1 / span 4;
   grid-row: 2;
 }
 
-.markets-workspace [data-module-id='market-ai'] {
+.markets-workspace [data-module-id='market-comparison'] {
   grid-column: 5 / span 8;
   grid-row: 2;
 }
