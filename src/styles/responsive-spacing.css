@@ -1,0 +1,160 @@
+/*
+ * Product-wide responsive spacing rules.
+ *
+ * These overrides keep shell gutters, content-card spacing, and card padding
+ * consistent across product routes without coupling spacing to individual pages.
+ */
+
+.app-shell {
+  --shell-inline-gutter: 24px;
+  --content-grid-gap: 20px;
+  --content-card-padding: 20px;
+}
+
+/* Keep the persistent shell layers aligned to one horizontal gutter. */
+.global-topbar {
+  padding-inline: var(--shell-inline-gutter);
+}
+
+.context-bar {
+  padding-inline: var(--shell-inline-gutter);
+}
+
+.product-canvas {
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+}
+
+/* Avoid oversized empty gutters on wide desktop displays. */
+.page-view {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+/* Use the same spacing rhythm between content modules on every product page. */
+.module-grid,
+.product-page-grid {
+  width: 100%;
+  min-width: 0;
+  gap: var(--content-grid-gap);
+}
+
+.module-frame {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Standardize card internals while preserving component-specific content layouts. */
+.module-header {
+  padding: 16px var(--content-card-padding);
+}
+
+.module-content {
+  min-width: 0;
+  padding: var(--content-card-padding);
+}
+
+.module-footer {
+  padding: 12px var(--content-card-padding);
+}
+
+/* Full-bleed map/chart workspaces intentionally cancel the module-content padding. */
+.map-workspace {
+  margin: calc(-1 * var(--content-card-padding));
+}
+
+/* Keep the KPI strip visually separated from the module grid. */
+.kpi-strip {
+  margin-block-end: 16px;
+}
+
+.management-sheet-body {
+  padding-inline: 20px;
+}
+
+@media (max-width: 1360px) {
+  .app-shell {
+    --content-grid-gap: 16px;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    --shell-inline-gutter: 20px;
+    --content-grid-gap: 16px;
+    --content-card-padding: 16px;
+  }
+
+  .global-topbar {
+    padding-inline: var(--shell-inline-gutter);
+  }
+
+  .product-canvas {
+    padding: 20px;
+  }
+
+  /* The compact filter access remains aligned with the page gutter. */
+  .context-bar {
+    padding-inline: var(--shell-inline-gutter);
+  }
+
+  /* Expanded filters behave like an inset responsive surface, not an edge-to-edge panel. */
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    inset-inline: 20px;
+    padding: 20px;
+    gap: 12px;
+  }
+
+  .module-header {
+    padding: 16px;
+  }
+
+  .module-footer {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    --shell-inline-gutter: 20px;
+    --content-grid-gap: 12px;
+    --content-card-padding: 16px;
+  }
+
+  .global-topbar {
+    padding-inline: var(--shell-inline-gutter);
+  }
+
+  .product-canvas {
+    padding: 20px;
+  }
+
+  .context-bar {
+    padding-inline: var(--shell-inline-gutter);
+  }
+
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    inset-inline: 20px;
+    padding: 20px;
+  }
+
+  .module-grid,
+  .product-page-grid {
+    gap: var(--content-grid-gap);
+  }
+
+  .module-header,
+  .module-content,
+  .module-footer {
+    padding-inline: var(--content-card-padding);
+  }
+
+  .module-content {
+    padding-block: var(--content-card-padding);
+  }
+}
