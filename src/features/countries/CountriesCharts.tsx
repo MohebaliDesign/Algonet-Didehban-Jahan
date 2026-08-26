@@ -67,7 +67,6 @@ export function CountryRiskSemiDonut({
             },
             {
               color: 'color-mix(in srgb, var(--border) 52%, transparent)',
-              enableMouseTracking: false,
               name: locale === 'fa' ? 'باقی‌مانده' : 'Remaining',
               y: 100 - safeValue,
             },
@@ -165,7 +164,7 @@ export function CountryComparisonRaceChart({
         formatter() {
           const value = typeof this.y === 'number' ? formatter.format(this.y) : '—'
           const direction = locale === 'fa' ? 'rtl' : 'ltr'
-          return `<div dir="${direction}"><strong>${String(this.key ?? '')}</strong><br/><span>${locale === 'fa' ? 'ریسک ترکیبی' : 'Composite risk'} · ${value}/100</span></div>`
+          return `<div dir="${direction}"><strong>${String(this.key ?? '')}</strong><br/><span>${locale === 'fa' ? 'ریسک ترکیبی' : 'Composite risk'} · ${value}/${formatter.format(100)}</span></div>`
         },
         useHTML: true,
       },
