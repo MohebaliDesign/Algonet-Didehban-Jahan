@@ -1,0 +1,216 @@
+/*
+ * Product list-item language.
+ *
+ * Comparison-heavy data stays in shadcn Table. Operational rows use the shadcn Item
+ * interaction language: borderless surfaces, 8px group spacing, and hover/focus feedback.
+ */
+
+[data-slot='item-group'],
+.priority-list,
+.watchlist,
+.live-feed,
+.market-watchlist,
+.country-list,
+.corridor-list,
+.report-list,
+.version-list,
+.job-list,
+.vertical-timeline,
+.map-panel-event-list {
+  gap: 8px;
+}
+
+.priority-list,
+.watchlist,
+.live-feed,
+.market-watchlist,
+.country-list,
+.corridor-list,
+.report-list,
+.version-list,
+.job-list,
+.vertical-timeline,
+.map-panel-event-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Real shadcn Item rows. */
+.priority-list [data-slot='item'],
+.watchlist [data-slot='item'],
+.live-feed [data-slot='item'],
+.map-panel-event-list [data-slot='item'] {
+  width: 100%;
+  min-width: 0;
+  min-height: 56px;
+  height: auto;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  text-align: start;
+}
+
+.priority-list [data-slot='item']:hover,
+.watchlist [data-slot='item']:hover,
+.live-feed [data-slot='item']:hover,
+.map-panel-event-list [data-slot='item']:hover {
+  background: color-mix(in srgb, var(--accent) 82%, transparent);
+}
+
+.priority-list [data-slot='item']:focus-visible,
+.watchlist [data-slot='item']:focus-visible,
+.live-feed [data-slot='item']:focus-visible,
+.map-panel-event-list [data-slot='item']:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+/*
+ * Legacy list compositions in ProductPages use the same Item visual contract until their
+ * JSX is decomposed into the shared Item primitives. Keep their internal grid/flex layout.
+ */
+.signal-row,
+.market-watchlist > button,
+.country-list > button,
+.corridor-list > button,
+.report-list > button {
+  width: 100%;
+  min-width: 0;
+  min-height: 56px;
+  height: auto;
+  margin: 0;
+  padding: 8px 12px;
+  border: 0 !important;
+  border-block: 0 !important;
+  border-inline: 0 !important;
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  background: transparent;
+  box-shadow: none;
+  text-align: start;
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.signal-row:hover,
+.market-watchlist > button:hover,
+.country-list > button:hover,
+.corridor-list > button:hover,
+.report-list > button:hover {
+  border: 0 !important;
+  background: color-mix(in srgb, var(--accent) 82%, transparent);
+}
+
+.signal-row:focus-visible,
+.market-watchlist > button:focus-visible,
+.country-list > button:focus-visible,
+.corridor-list > button:focus-visible,
+.report-list > button:focus-visible {
+  border: 0 !important;
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+.market-watchlist > button.selected,
+.country-list > button.selected,
+.report-list > button.selected {
+  border: 0 !important;
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+
+/* Static list rows keep whitespace grouping but do not fake interactivity with hover. */
+.version-list > li,
+.job-list > article,
+.vertical-timeline > li,
+.map-panel-event-list > article {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 12px;
+  border: 0 !important;
+  border-block: 0 !important;
+  border-inline: 0 !important;
+  border-radius: var(--radius-md);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Remove legacy divider rules and pseudo-divider artifacts from row-based lists. */
+.market-watchlist > button::before,
+.market-watchlist > button::after,
+.country-list > button::before,
+.country-list > button::after,
+.corridor-list > button::before,
+.corridor-list > button::after,
+.report-list > button::before,
+.report-list > button::after,
+.version-list > li::before,
+.version-list > li::after,
+.job-list > article::before,
+.job-list > article::after {
+  border: 0;
+}
+
+/* Keep text hierarchy quiet and consistent inside Item compositions. */
+[data-slot='item-title'],
+.signal-row strong,
+.market-watchlist strong,
+.country-list strong,
+.corridor-list strong,
+.report-list strong,
+.version-list strong,
+.job-list strong {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+[data-slot='item-description'],
+.signal-row small,
+.market-watchlist small,
+.country-list small,
+.corridor-list small,
+.report-list small,
+.version-list small,
+.job-list small {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+@media (max-width: 640px) {
+  [data-slot='item-group'],
+  .priority-list,
+  .watchlist,
+  .live-feed,
+  .market-watchlist,
+  .country-list,
+  .corridor-list,
+  .report-list,
+  .version-list,
+  .job-list,
+  .vertical-timeline,
+  .map-panel-event-list {
+    gap: 8px;
+  }
+
+  .priority-list [data-slot='item'],
+  .watchlist [data-slot='item'],
+  .live-feed [data-slot='item'],
+  .map-panel-event-list [data-slot='item'],
+  .signal-row,
+  .market-watchlist > button,
+  .country-list > button,
+  .corridor-list > button,
+  .report-list > button,
+  .version-list > li,
+  .job-list > article,
+  .vertical-timeline > li,
+  .map-panel-event-list > article {
+    padding: 8px;
+  }
+}
