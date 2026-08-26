@@ -1,0 +1,62 @@
+/*
+ * Map layer search uses the same shadcn Input + search affordance language as
+ * the global header search, without the keyboard shortcut hint.
+ */
+.layer-panel .layer-search {
+  position: relative;
+  display: flex;
+  width: auto;
+  height: 40px;
+  min-height: 40px;
+  align-items: center;
+  gap: 9px;
+  margin: 0 12px 8px;
+  padding-inline: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  background: var(--accent);
+}
+
+.layer-panel .layer-search > svg {
+  position: static;
+  z-index: auto;
+  inset: auto;
+  flex: none;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.layer-panel .layer-search [data-slot='input'] {
+  width: 100%;
+  height: 38px;
+  min-height: 38px;
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--foreground);
+  background: transparent;
+  box-shadow: none;
+  font-size: var(--type-control-size);
+  line-height: var(--type-control-leading);
+  text-align: start;
+}
+
+.layer-panel .layer-search [data-slot='input']:focus-visible {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+  --tw-ring-shadow: 0 0 #0000;
+}
+
+.layer-panel .layer-search:focus-within {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+.layer-panel .layer-search [data-slot='input']::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
