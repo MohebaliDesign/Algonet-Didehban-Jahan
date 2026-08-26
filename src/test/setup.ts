@@ -24,4 +24,9 @@ class ResizeObserverMock implements ResizeObserver {
 
 globalThis.ResizeObserver = ResizeObserverMock
 
+Object.defineProperty(window.CSS, 'supports', {
+  writable: true,
+  value: () => false,
+})
+
 afterEach(() => cleanup())

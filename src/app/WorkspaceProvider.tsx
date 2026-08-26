@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { toast } from 'sonner'
 
 import type { IntelligenceDomain, Role } from '@/types/domain'
+import { PROTOTYPE_CURRENT_USER } from '@/data/mock/prototypeCurrentUser'
 
 export interface ContextFilters {
   geography: string
@@ -42,21 +43,13 @@ const defaults: ContextFilters = {
 
 const WorkspaceContext = createContext<WorkspaceValue | null>(null)
 
-function readRole(): Role {
-  const value = localStorage.getItem('didehban.prototype.role')
-  return value === 'org-admin' || value === 'data-manager' ? value : 'viewer'
-}
-
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const [role, setRoleState] = useState<Role>(readRole)
+  // DEMO ONLY: local React state previews role-dependent interfaces. It is not
+  // authentication, is deliberately not persisted, and grants no production permission.
+  const [role, setRole] = useState<Role>(PROTOTYPE_CURRENT_USER.defaultRole)
   const [filters, setFilters] = useState(defaults)
   const [inspector, setInspector] = useState<InspectorItem | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
-
-  const setRole = useCallback((next: Role) => {
-    localStorage.setItem('didehban.prototype.role', next)
-    setRoleState(next)
-  }, [])
 
   const setFilter = useCallback(
     <K extends keyof ContextFilters>(key: K, value: ContextFilters[K]) =>
@@ -82,7 +75,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setSearchOpen,
       notify,
     }),
-    [filters, inspector, notify, role, searchOpen, setFilter, setRole],
+    [filters, inspector, notify, role, searchOpen, setFilter],
   )
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>

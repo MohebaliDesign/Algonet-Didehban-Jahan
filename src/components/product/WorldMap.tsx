@@ -1,283 +1,555 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import MapsChart, { type HighchartsReactRefObject } from '@highcharts/react/Maps'
+import type Highcharts from 'highcharts/es-modules/masters/highmaps.src.js'
 
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
 import { Icon } from '@/components/Icon'
+import { WorldMapDetailPanel } from '@/components/product/WorldMapDetailPanel'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { events, layerLabels } from '@/data/mock/visualMvpData'
-import type { IntelligenceDomain } from '@/types/domain'
+import {
+  countryMapData,
+  intelligenceMapEvents,
+  intelligenceMapRoutes,
+} from '@/data/mock/worldMapData'
+import { layerLabels } from '@/data/mock/visualMvpData'
+import type { CountryRiskLevel, IntelligenceDomain, IntelligenceMapEvent } from '@/types/domain'
+import { filterMapEvents, toCountrySeriesData } from './worldMapUtils'
 
-const land = [
-  'M45 72 L73 48 122 42 155 58 165 84 143 103 126 128 105 122 88 101 61 96 Z',
-  'M150 134 L178 123 195 144 185 170 172 211 154 231 144 198 132 168 Z',
-  'M232 57 L269 40 317 45 342 58 378 63 421 80 449 103 424 119 393 109 371 125 335 116 310 103 279 109 254 91 Z',
-  'M253 121 L289 116 317 133 305 166 286 199 264 190 248 159 Z',
-  'M420 179 L447 172 466 188 449 205 421 203 408 190 Z',
-  'M207 66 L218 57 227 65 217 76 Z',
-]
+type WorldTopology = Highcharts.GeoJSON | Highcharts.TopoJSON
+interface WorldMapProps {
+  topologyLoader?: (signal: AbortSignal) => Promise<WorldTopology>
+}
+const riskOrder: CountryRiskLevel[] = ['low', 'medium', 'high', 'critical']
+let highchartsModulesPromise: Promise<unknown> | null = null
 
-const positions: Record<string, [number, number]> = {
-  'evt-hormuz': [318, 142],
-  'evt-caucasus': [292, 91],
-  'evt-east-asia': [408, 112],
-  'evt-europe-energy': [270, 80],
-  'evt-africa-flood': [296, 161],
-  'evt-cyber': [281, 84],
+function loadHighchartsMapModules() {
+  highchartsModulesPromise ??= Promise.all([
+    import('highcharts/es-modules/masters/modules/accessibility.src.js'),
+    import('highcharts/es-modules/masters/modules/marker-clusters.src.js'),
+  ])
+  return highchartsModulesPromise
 }
 
-export function WorldMap() {
-  const { locale } = usePreferences()
-  const { filters, openInspector } = useWorkspace()
-  const [zoom, setZoom] = useState(1)
+export async function loadWorldTopology(signal: AbortSignal): Promise<WorldTopology> {
+  const response = await fetch('/world.topo.json', { signal })
+  if (!response.ok) throw new Error(`World topology request failed: ${response.status}`)
+  return (await response.json()) as WorldTopology
+}
+
+function cssToken(name: string, fallback: string) {
+  if (typeof document === 'undefined') return fallback
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
+}
+
+function escapeHtml(value: string | number) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
+}
+
+export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) {
+  const { locale, theme } = usePreferences()
+  const { filters } = useWorkspace()
+  const chartRef = useRef<HighchartsReactRefObject | null>(null)
+  const selectionTriggerRef = useRef<HTMLElement | null>(null)
+  const [topology, setTopology] = useState<WorldTopology | null>(null)
+  const [topologyError, setTopologyError] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
   const [layerSearch, setLayerSearch] = useState('')
   const [layers, setLayers] = useState<Set<IntelligenceDomain>>(
     new Set(Object.keys(layerLabels) as IntelligenceDomain[]),
   )
   const [listView, setListView] = useState(false)
   const [timeline, setTimeline] = useState(18)
-  const visible = useMemo(
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null)
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const [timelineNotice, setTimelineNotice] = useState(false)
+  const isFa = locale === 'fa'
+  const reducedMotion = useMemo(
     () =>
-      events.filter(
-        (item) =>
-          (filters.domain === 'all' || item.domain === filters.domain) &&
-          item.domain &&
-          layers.has(item.domain),
-      ),
-    [filters.domain, layers],
+      typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches,
+    [],
   )
-  const toggle = (domain: IntelligenceDomain) =>
+
+  useEffect(() => {
+    const controller = new AbortController()
+    setTopology(null)
+    setTopologyError(false)
+    Promise.all([loadHighchartsMapModules(), topologyLoader(controller.signal)])
+      .then(([, result]) => setTopology(result))
+      .catch((error: unknown) => {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) setTopologyError(true)
+      })
+    return () => controller.abort()
+  }, [retryCount, topologyLoader])
+
+  const countries = useMemo(() => toCountrySeriesData(countryMapData, timeline), [timeline])
+  const visibleEvents = useMemo(
+    () => filterMapEvents(intelligenceMapEvents, layers, timeline, filters.domain),
+    [filters.domain, layers, timeline],
+  )
+  const selectedCountry = useMemo(
+    () => countries.find((item) => item.countryCode === selectedCountryCode) ?? null,
+    [countries, selectedCountryCode],
+  )
+  const selectedEvent = useMemo(
+    () => visibleEvents.find((item) => item.id === selectedEventId) ?? null,
+    [selectedEventId, visibleEvents],
+  )
+
+  useEffect(() => {
+    if (selectedEventId && !visibleEvents.some((item) => item.id === selectedEventId)) {
+      setSelectedEventId(null)
+      setTimelineNotice(true)
+    }
+  }, [selectedEventId, visibleEvents])
+
+  const selectCountry = useCallback((code: string, trigger?: HTMLElement | null) => {
+    selectionTriggerRef.current = trigger ?? null
+    setSelectedCountryCode(code)
+    setSelectedEventId(null)
+    setTimelineNotice(false)
+  }, [])
+  const selectEvent = useCallback((event: IntelligenceMapEvent, trigger?: HTMLElement | null) => {
+    selectionTriggerRef.current = trigger ?? null
+    setSelectedCountryCode(event.countryCode)
+    setSelectedEventId(event.id)
+    setTimelineNotice(false)
+  }, [])
+  const closeDetails = useCallback(() => {
+    setSelectedCountryCode(null)
+    setSelectedEventId(null)
+    setTimelineNotice(false)
+    requestAnimationFrame(() => selectionTriggerRef.current?.focus())
+  }, [])
+
+  const palette = useMemo(
+    () => ({
+      water: cssToken('--temp-viz-water', theme === 'dark' ? '#101722' : '#f3f7fb'),
+      land: cssToken('--temp-viz-land', theme === 'dark' ? '#273242' : '#dce5ee'),
+      border: cssToken('--border', theme === 'dark' ? '#465268' : '#aab8c8'),
+      foreground: cssToken('--foreground', theme === 'dark' ? '#f5f7fa' : '#172033'),
+      muted: cssToken('--muted-foreground', '#657086'),
+      surface: cssToken('--surface', theme === 'dark' ? '#171f2d' : '#ffffff'),
+      primary: cssToken('--brand-primary-600', '#315efb'),
+      route: cssToken('--temp-viz-route', '#f47b45'),
+      low: cssToken('--temp-viz-low', '#278c77'),
+      medium: cssToken('--temp-viz-medium', '#b87709'),
+      high: cssToken('--temp-viz-high', '#d65d38'),
+      critical: cssToken('--temp-viz-critical', '#c84555'),
+    }),
+    [theme],
+  )
+  const riskLabels = useMemo(
+    () => ({
+      low: isFa ? 'کم' : 'Low',
+      medium: isFa ? 'متوسط' : 'Medium',
+      high: isFa ? 'بالا' : 'High',
+      critical: isFa ? 'بحرانی' : 'Critical',
+    }),
+    [isFa],
+  )
+
+  const chartOptions = useMemo<Highcharts.Options | null>(() => {
+    if (!topology) return null
+    const countryByCode = new Map(countries.map((country) => [country.countryCode, country]))
+    const series: Highcharts.SeriesOptionsType[] = [
+      {
+        type: 'map',
+        name: isFa ? 'امتیاز ریسک کشور' : 'Country risk score',
+        mapData: topology,
+        data: countries.map((country) => ({ ...country })),
+        joinBy: ['iso-a3', 'countryCode'],
+        allAreas: true,
+        nullColor: palette.land,
+        borderColor: palette.border,
+        borderWidth: 0.7,
+        allowPointSelect: true,
+        animation: !reducedMotion,
+        states: {
+          hover: { borderColor: palette.primary, borderWidth: 1.5, brightness: 0.08 },
+          select: { color: palette.primary, borderColor: palette.foreground, borderWidth: 2 },
+        },
+        dataLabels: {
+          enabled: true,
+          format: '{point.countryCode}',
+          filter: { property: 'value', operator: '>', value: 68 },
+          style: {
+            color: palette.foreground,
+            fontFamily: isFa ? 'var(--font-sans-fa)' : 'var(--font-sans-en)',
+            fontSize: '12px',
+            fontWeight: '400',
+            textOutline: 'none',
+          },
+        },
+        point: {
+          events: {
+            click() {
+              const code = String((this.options as { countryCode?: string }).countryCode ?? '')
+              if (code) {
+                selectCountry(code)
+                if ('zoomTo' in this && typeof this.zoomTo === 'function') this.zoomTo()
+              }
+            },
+          },
+        },
+      },
+      {
+        type: 'mapline',
+        name: isFa ? 'کریدورهای پایش‌شده' : 'Monitored corridors',
+        color: palette.route,
+        lineWidth: 1.4,
+        dashStyle: 'ShortDash',
+        enableMouseTracking: true,
+        animation: !reducedMotion,
+        data: intelligenceMapRoutes
+          .filter((route) => layers.has(route.category))
+          .map((route) => ({
+            name: isFa ? route.title.fa : route.title.en,
+            geometry: { type: 'LineString', coordinates: route.coordinates },
+          })),
+      },
+      {
+        type: 'mappoint',
+        name: isFa ? 'رویدادهای اطلاعاتی' : 'Intelligence events',
+        animation: !reducedMotion,
+        data: visibleEvents.map((event) => ({
+          id: event.id,
+          name: isFa ? event.titleFa : event.titleEn,
+          lat: event.latitude,
+          lon: event.longitude,
+          color: palette[event.severity],
+          marker: { radius: event.severity === 'critical' ? 8 : event.severity === 'high' ? 7 : 6 },
+          custom: event,
+        })),
+        cluster: { enabled: true, allowOverlap: false, animation: !reducedMotion },
+        marker: { lineColor: palette.surface, lineWidth: 2, symbol: 'circle' },
+        states: { hover: { halo: { size: 8, opacity: 0.22 } }, select: { lineWidth: 3 } },
+        point: {
+          events: {
+            click() {
+              const event = (this.options as { custom?: IntelligenceMapEvent }).custom
+              if (event) selectEvent(event)
+            },
+          },
+        },
+      },
+    ]
+    const formatDate = (value: string) =>
+      new Intl.DateTimeFormat(isFa ? 'fa-IR' : 'en', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'UTC',
+      }).format(new Date(value))
+    return {
+      chart: {
+        map: topology,
+        backgroundColor: palette.water,
+        animation: !reducedMotion,
+        height: 500,
+        spacing: [12, 12, 12, 12],
+      },
+      title: { text: undefined },
+      mapView: { projection: { name: 'EqualEarth' }, padding: [24, 24, 24, 24] },
+      credits: {
+        enabled: true,
+        text: 'Highcharts Maps · Natural Earth',
+        href: 'https://www.highcharts.com/docs/maps/map-collection',
+        style: { color: palette.muted, fontSize: '12px' },
+      },
+      lang: {
+        zoomIn: isFa ? 'بزرگ‌نمایی نقشه' : 'Zoom in map',
+        zoomOut: isFa ? 'کوچک‌نمایی نقشه' : 'Zoom out map',
+        resetZoom: isFa ? 'بازنشانی نما' : 'Reset view',
+      },
+      mapNavigation: {
+        enabled: true,
+        enableMouseWheelZoom: true,
+        buttonOptions: {
+          verticalAlign: 'bottom',
+          align: isFa ? 'right' : 'left',
+          width: 32,
+          height: 32,
+          theme: {
+            fill: palette.surface,
+            stroke: palette.border,
+            'stroke-width': 1,
+            r: 6,
+            style: { color: palette.foreground, fontSize: '16px' },
+          },
+        },
+      },
+      colorAxis: {
+        min: 0,
+        max: 100,
+        minColor: palette.land,
+        maxColor: palette.critical,
+        labels: { style: { color: palette.muted, fontSize: '12px' } },
+      },
+      legend: { enabled: false },
+      tooltip: {
+        useHTML: true,
+        outside: false,
+        backgroundColor: palette.surface,
+        borderColor: palette.border,
+        borderRadius: 8,
+        shadow: true,
+        style: { color: palette.foreground, fontSize: '14px' },
+        formatter() {
+          const options = this.options as {
+            countryCode?: string
+            custom?: IntelligenceMapEvent
+          }
+          if (options.custom) {
+            const event = options.custom
+            return `<div class="highcharts-map-tooltip" dir="${isFa ? 'rtl' : 'ltr'}"><strong>${escapeHtml(isFa ? event.titleFa : event.titleEn)}</strong><span>${escapeHtml(riskLabels[event.severity])} · ${event.sourceCount} ${isFa ? 'منبع' : 'sources'}</span><span dir="ltr">${escapeHtml(event.occurredAt)}</span></div>`
+          }
+          const country = countryByCode.get(String(options.countryCode ?? ''))
+          if (!country) return escapeHtml(this.name ?? '')
+          const trend =
+            country.trend === 'up'
+              ? isFa
+                ? 'افزایشی'
+                : 'Rising'
+              : country.trend === 'down'
+                ? isFa
+                  ? 'کاهشی'
+                  : 'Falling'
+                : isFa
+                  ? 'پایدار'
+                  : 'Stable'
+          return `<div class="highcharts-map-tooltip" dir="${isFa ? 'rtl' : 'ltr'}"><strong>${escapeHtml(isFa ? country.countryNameFa : country.countryNameEn)} <bdi dir="ltr">${country.countryCode}</bdi></strong><span>${isFa ? 'امتیاز ریسک' : 'Risk score'}: <bdi dir="ltr">${country.value}/100</bdi></span><span>${country.eventCount} ${isFa ? 'رویداد' : 'events'} · ${escapeHtml(riskLabels[country.riskLevel])}</span><span>${isFa ? 'روند' : 'Trend'}: ${escapeHtml(trend)} · ${isFa ? 'اطمینان' : 'Confidence'} <bdi dir="ltr">${country.confidence}%</bdi></span><span>${isFa ? 'به‌روزرسانی' : 'Updated'}: <bdi dir="ltr">${escapeHtml(formatDate(country.updatedAt))} UTC</bdi></span></div>`
+        },
+      },
+      accessibility: {
+        enabled: true,
+        description: isFa
+          ? 'نقشه تعاملی رویدادها و وضعیت کشورهای جهان. داده‌ها ساختگی هستند و نمای فهرست نیز در دسترس است.'
+          : 'Interactive world intelligence events and country status map. Data is mocked and a list alternative is available.',
+        keyboardNavigation: { enabled: true },
+      },
+      plotOptions: { series: { animation: !reducedMotion } },
+      series,
+    }
+  }, [
+    countries,
+    isFa,
+    layers,
+    palette,
+    reducedMotion,
+    riskLabels,
+    selectCountry,
+    selectEvent,
+    topology,
+    visibleEvents,
+  ])
+
+  const toggleLayer = (domain: IntelligenceDomain) =>
     setLayers((current) => {
       const next = new Set(current)
       if (next.has(domain)) next.delete(domain)
       else next.add(domain)
       return next
     })
+  const resetView = () => {
+    setTimeline(18)
+    const chart = chartRef.current?.chart as Highcharts.MapChart | undefined
+    chart?.mapView?.setView(undefined, 0, true, !reducedMotion)
+  }
+
   return (
-    <div className="map-workspace">
+    <div className="map-workspace" dir={isFa ? 'rtl' : 'ltr'}>
       <div className="map-toolbar">
         <ToggleGroup
           type="single"
           value={listView ? 'list' : 'map'}
           onValueChange={(value) => value && setListView(value === 'list')}
           className="view-switch"
+          aria-label={isFa ? 'نوع نمایش نقشه' : 'Map display mode'}
         >
-          <ToggleGroupItem value="map" aria-label={locale === 'fa' ? 'نقشه' : 'Map'}>
+          <ToggleGroupItem value="map" aria-label={isFa ? 'نقشه' : 'Map'}>
             <Icon name="global" />
-            {locale === 'fa' ? 'نقشه' : 'Map'}
+            {isFa ? 'نقشه' : 'Map'}
           </ToggleGroupItem>
-          <ToggleGroupItem value="list" aria-label={locale === 'fa' ? 'فهرست' : 'List'}>
+          <ToggleGroupItem value="list" aria-label={isFa ? 'فهرست' : 'List'}>
             <Icon name="menu" />
-            {locale === 'fa' ? 'فهرست' : 'List'}
+            {isFa ? 'فهرست' : 'List'}
           </ToggleGroupItem>
         </ToggleGroup>
-        <Button
-          variant="ghost"
-          onClick={() => {
-            setZoom(1)
-            setTimeline(18)
-          }}
-        >
+        <Button variant="ghost" onClick={resetView}>
           <Icon name="gps" />
-          {locale === 'fa' ? 'بازنشانی نما' : 'Reset view'}
+          {isFa ? 'بازنشانی نما' : 'Reset view'}
         </Button>
       </div>
       {!listView && (
         <div className="map-stage">
-          <svg
-            className="world-map-svg"
-            viewBox="0 0 500 250"
-            role="img"
-            aria-label={
-              locale === 'fa' ? 'نقشه رویدادهای اطلاعاتی جهان' : 'World intelligence event map'
-            }
-          >
-            <title>
-              {locale === 'fa'
-                ? 'رویدادهای قابل انتخاب روی نقشه'
-                : 'Selectable events on the world map'}
-            </title>
-            <g className="map-grid">
-              {[50, 100, 150, 200].map((y) => (
-                <line key={`y${y}`} x1="0" x2="500" y1={y} y2={y} />
-              ))}
-              {[100, 200, 300, 400].map((x) => (
-                <line key={`x${x}`} y1="0" y2="250" x1={x} x2={x} />
-              ))}
-            </g>
-            <g style={{ transform: `scale(${zoom})`, transformOrigin: '250px 125px' }}>
-              {land.map((path, i) => (
-                <path className="map-land" d={path} key={i} />
-              ))}
-              <path className="map-route" d="M160 152 Q250 95 318 142 T430 132" />
-              {visible.map((item, index) => {
-                const [x, y] = positions[item.id]
-                const clustered = index === 1 && zoom < 1.2
-                return (
-                  <g
-                    key={item.id}
-                    className={`map-marker marker-${item.severity}`}
-                    onClick={() =>
-                      openInspector({
-                        kind: 'event',
-                        id: item.id,
-                        title: item.title,
-                        titleEn: item.titleEn,
-                      })
-                    }
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter')
-                        openInspector({
-                          kind: 'event',
-                          id: item.id,
-                          title: item.title,
-                          titleEn: item.titleEn,
-                        })
-                    }}
-                    aria-label={locale === 'fa' ? item.title : item.titleEn}
-                  >
-                    <circle
-                      cx={x}
-                      cy={y}
-                      r={
-                        clustered
-                          ? 14
-                          : item.severity === 'critical'
-                            ? 10
-                            : item.severity === 'high'
-                              ? 8
-                              : 6
-                      }
-                    />
-                    <circle cx={x} cy={y} r={clustered ? 7 : 3} className="marker-core" />
-                    {clustered && (
-                      <text x={x} y={y + 3} textAnchor="middle">
-                        3
-                      </text>
-                    )}
-                    <title>{locale === 'fa' ? item.title : item.titleEn}</title>
-                  </g>
-                )
-              })}
-            </g>
-          </svg>
-          <div className="zoom-controls">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setZoom((value) => Math.min(1.45, value + 0.15))}
-              aria-label="Zoom in"
+          {topologyError ? (
+            <div className="map-state-surface">
+              <Alert variant="destructive">
+                <Icon name="warning-2" />
+                <AlertTitle>
+                  {isFa ? 'نقشه جهان بارگیری نشد' : 'World map could not load'}
+                </AlertTitle>
+                <AlertDescription>
+                  {isFa
+                    ? 'نسخهٔ محلی هندسهٔ جغرافیایی در دسترس نیست. فهرست داده‌ها همچنان قابل استفاده است.'
+                    : 'The local geographic topology is unavailable. The data list remains usable.'}
+                </AlertDescription>
+              </Alert>
+              <div>
+                <Button onClick={() => setRetryCount((value) => value + 1)}>
+                  {isFa ? 'تلاش دوباره' : 'Retry'}
+                </Button>
+                <Button variant="outline" onClick={() => setListView(true)}>
+                  {isFa ? 'نمایش فهرست' : 'Open list view'}
+                </Button>
+              </div>
+            </div>
+          ) : !chartOptions ? (
+            <div
+              className="map-loading"
+              aria-label={isFa ? 'در حال بارگیری نقشه جهان' : 'Loading world map'}
             >
-              +
-            </Button>
-            <span dir="ltr">{Math.round(zoom * 100)}%</span>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setZoom((value) => Math.max(0.8, value - 0.15))}
-              aria-label="Zoom out"
-            >
-              −
-            </Button>
-          </div>
+              <Skeleton className="map-loading-geometry" />
+              <Skeleton className="map-loading-control" />
+              <Skeleton className="map-loading-legend" />
+            </div>
+          ) : (
+            <div data-testid="highcharts-world-map">
+              <MapsChart
+                ref={chartRef}
+                options={chartOptions}
+                chartConstructor="mapChart"
+                containerProps={{
+                  className: 'highcharts-map-container',
+                  dir: isFa ? 'rtl' : 'ltr',
+                }}
+              />
+            </div>
+          )}
           <Card className="layer-panel">
             <header>
               <div>
-                <strong>{locale === 'fa' ? 'لایه‌های اطلاعاتی' : 'Intelligence layers'}</strong>
+                <strong>{isFa ? 'لایه‌های اطلاعاتی' : 'Intelligence layers'}</strong>
                 <small>
-                  {layers.size} {locale === 'fa' ? 'لایه فعال' : 'active layers'}
+                  {layers.size} {isFa ? 'لایه فعال' : 'active layers'}
                 </small>
               </div>
               <Icon name="layer" />
             </header>
             <label className="layer-search">
-              <Icon name="search-normal" size={15} />
+              <Icon name="search-normal" size={16} />
               <Input
                 value={layerSearch}
-                onChange={(e) => setLayerSearch(e.target.value)}
-                placeholder={locale === 'fa' ? 'جست‌وجوی لایه…' : 'Search layers…'}
+                onChange={(event) => setLayerSearch(event.target.value)}
+                placeholder={isFa ? 'جست‌وجوی لایه…' : 'Search layers…'}
               />
             </label>
             <div>
               {(Object.keys(layerLabels) as IntelligenceDomain[])
                 .filter((key) =>
-                  (locale === 'fa' ? layerLabels[key].fa : layerLabels[key].en)
-                    .toLowerCase()
-                    .includes(layerSearch.toLowerCase()),
+                  (isFa ? layerLabels[key].fa : layerLabels[key].en)
+                    .toLocaleLowerCase(locale)
+                    .includes(layerSearch.toLocaleLowerCase(locale)),
                 )
                 .map((key) => (
                   <label key={key} className={layers.has(key) ? 'selected' : ''}>
                     <span className={`legend-symbol layer-${key}`} />
-                    <span>{locale === 'fa' ? layerLabels[key].fa : layerLabels[key].en}</span>
-                    <Checkbox
-                      checked={layers.has(key)}
-                      onCheckedChange={() => toggle(key)}
-                      aria-label={locale === 'fa' ? layerLabels[key].fa : layerLabels[key].en}
-                    />
+                    <span>{isFa ? layerLabels[key].fa : layerLabels[key].en}</span>
+                    <Checkbox checked={layers.has(key)} onCheckedChange={() => toggleLayer(key)} />
                   </label>
                 ))}
             </div>
           </Card>
-          <Card className="map-legend">
-            <strong>{locale === 'fa' ? 'شدت' : 'Severity'}</strong>
-            <span>
-              <i className="low" />
-              {locale === 'fa' ? 'کم' : 'Low'}
-            </span>
-            <span>
-              <i className="medium" />
-              {locale === 'fa' ? 'متوسط' : 'Medium'}
-            </span>
-            <span>
-              <i className="high" />
-              {locale === 'fa' ? 'بالا' : 'High'}
-            </span>
-            <span>
-              <i className="critical" />
-              {locale === 'fa' ? 'بحرانی' : 'Critical'}
-            </span>
+          <Card className="map-legend" aria-label={isFa ? 'راهنمای شدت' : 'Severity legend'}>
+            <strong>{isFa ? 'شدت' : 'Severity'}</strong>
+            {riskOrder.map((risk) => (
+              <span key={risk}>
+                <i className={risk} />
+                {riskLabels[risk]}
+              </span>
+            ))}
           </Card>
+          {visibleEvents.length === 0 && topology && (
+            <Alert className="map-empty-overlay">
+              <Icon name="info-circle" />
+              <AlertTitle>{isFa ? 'رویداد منطبقی وجود ندارد' : 'No matching events'}</AlertTitle>
+              <AlertDescription>
+                {isFa
+                  ? 'جغرافیای جهان برای حفظ زمینه نمایش داده می‌شود.'
+                  : 'Neutral world geography remains visible for context.'}
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
       )}
       {listView && (
-        <div className="map-list-alternative">
-          {visible.map((item) => (
-            <Button
-              variant="ghost"
-              key={item.id}
-              onClick={() =>
-                openInspector({
-                  kind: 'event',
-                  id: item.id,
-                  title: item.title,
-                  titleEn: item.titleEn,
-                })
-              }
-            >
-              <span className={`event-severity ${item.severity}`} />
-              <span>
-                <strong>{locale === 'fa' ? item.title : item.titleEn}</strong>
-                <small>
-                  {locale === 'fa' ? item.region : item.regionEn} · {item.sourceCount}{' '}
-                  {locale === 'fa' ? 'منبع' : 'sources'}
-                </small>
-              </span>
-              <time dir="ltr">{item.occurredAt.slice(11, 16)} UTC</time>
-            </Button>
-          ))}
+        <div
+          className="map-list-alternative"
+          aria-label={isFa ? 'فهرست جایگزین نقشه' : 'Map list alternative'}
+        >
+          <section>
+            <h3>{isFa ? 'کشورها' : 'Countries'}</h3>
+            {countries.map((country) => (
+              <Button
+                variant="ghost"
+                key={country.countryCode}
+                onClick={(event) => selectCountry(country.countryCode, event.currentTarget)}
+              >
+                <span className={`event-severity ${country.riskLevel}`} />
+                <span>
+                  <strong>{isFa ? country.countryNameFa : country.countryNameEn}</strong>
+                  <small>
+                    <bdi dir="ltr">{country.countryCode}</bdi> · {country.eventCount}{' '}
+                    {isFa ? 'رویداد' : 'events'}
+                  </small>
+                </span>
+                <bdi dir="ltr">{country.value}/100</bdi>
+              </Button>
+            ))}
+          </section>
+          <section>
+            <h3>{isFa ? 'رویدادها' : 'Events'}</h3>
+            {visibleEvents.length ? (
+              visibleEvents.map((item) => (
+                <Button
+                  variant="ghost"
+                  key={item.id}
+                  onClick={(event) => selectEvent(item, event.currentTarget)}
+                >
+                  <span className={`event-severity ${item.severity}`} />
+                  <span>
+                    <strong>{isFa ? item.titleFa : item.titleEn}</strong>
+                    <small>
+                      {item.sourceCount} {isFa ? 'منبع' : 'sources'} ·{' '}
+                      <bdi dir="ltr">{item.countryCode}</bdi>
+                    </small>
+                  </span>
+                  <time dir="ltr">{item.occurredAt.slice(11, 16)} UTC</time>
+                </Button>
+              ))
+            ) : (
+              <p>{isFa ? 'رویداد منطبقی وجود ندارد.' : 'No matching events.'}</p>
+            )}
+          </section>
         </div>
       )}
       <div className="map-timeline">
         <Button
           variant="ghost"
           size="icon"
-          aria-label={locale === 'fa' ? 'توقف خط زمانی' : 'Pause timeline'}
+          aria-label={isFa ? 'توقف پخش نمایشی' : 'Pause mock playback'}
         >
           <Icon name="pause" size={16} />
         </Button>
@@ -287,11 +559,19 @@ export function WorldMap() {
           max={24}
           value={[timeline]}
           onValueChange={([value]) => setTimeline(value)}
-          aria-label={locale === 'fa' ? 'زمان نقشه' : 'Map time'}
+          aria-label={isFa ? 'تصویر زمانی نقشه' : 'Map time snapshot'}
         />
         <span dir="ltr">{String(timeline).padStart(2, '0')}:00 UTC</span>
-        <small>{locale === 'fa' ? '۲۴ ساعت گذشته' : 'Past 24 hours'}</small>
+        <small>{isFa ? '۲۴ ساعت گذشته · پخش ساختگی' : 'Past 24 hours · mock playback'}</small>
       </div>
+      <WorldMapDetailPanel
+        country={selectedCountry}
+        event={selectedEvent}
+        events={visibleEvents}
+        timelineNotice={timelineNotice}
+        onBackToCountry={() => setSelectedEventId(null)}
+        onClose={closeDetails}
+      />
     </div>
   )
 }

@@ -982,7 +982,7 @@ export function ReportsPage() {
   )
 }
 
-export function DataManagementPage() {
+export function DataManagementPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { locale } = usePreferences()
   const copy = useProductCopy()
   const { role, openInspector, notify } = useWorkspace()
@@ -999,7 +999,8 @@ export function DataManagementPage() {
       ),
     [locale, query, stateFilter],
   )
-  if (role !== 'data-manager')
+  const isAuthorized = role === 'org-admin' || role === 'data-manager'
+  if (!isAuthorized)
     return (
       <div className="page-view restricted-page">
         <PageHeader
@@ -1027,14 +1028,16 @@ export function DataManagementPage() {
     )
   return (
     <div className="page-view">
-      <PageHeader
-        title={local(locale, 'مدیریت داده', 'Data Management')}
-        summary={local(
-          locale,
-          'سلامت منابع، وضعیت ورود داده، تازگی و کیفیت پوشش نمایشی.',
-          'Prototype source health, ingestion, freshness, and coverage quality.',
-        )}
-      />
+      {!embedded && (
+        <PageHeader
+          title={local(locale, 'مدیریت داده', 'Data Management')}
+          summary={local(
+            locale,
+            'سلامت منابع، وضعیت ورود داده، تازگی و کیفیت پوشش نمایشی.',
+            'Prototype source health, ingestion, freshness, and coverage quality.',
+          )}
+        />
+      )}
       <KpiStrip
         items={[
           {
