@@ -524,7 +524,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
                   <Input
                     value={layerSearch}
                     onChange={(event) => setLayerSearch(event.target.value)}
-                    placeholder={isFa ? 'جست‌وجوی لایه…' : 'Search layers…'}
+                    placeholder={isFa ? 'جست‌وجو در لایه‌ها…' : 'Search layers…'}
                   />
                 </label>
                 <div className="layer-panel-list">
