@@ -88,7 +88,7 @@
 }
 
 .market-asset-icon.asset-bitcoin {
-  color: var(--brand-secondary-600);
+  color: var(--temp-viz-teal);
 }
 
 .market-asset-icon.asset-currency {
@@ -153,19 +153,27 @@
 
 .selected-market-summary {
   display: flex;
+  direction: ltr;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
 }
 
-.selected-market-metrics {
-  display: grid;
-  gap: var(--space-1);
-  justify-items: end;
+[dir='rtl'] .selected-market-title {
+  direction: rtl;
+  text-align: right;
 }
 
-[dir='rtl'] .selected-market-metrics {
-  justify-items: start;
+[dir='ltr'] .selected-market-title {
+  direction: ltr;
+  text-align: left;
+}
+
+.selected-market-metrics {
+  display: grid;
+  direction: ltr;
+  gap: var(--space-1);
+  justify-items: end;
 }
 
 .selected-market-summary strong,
