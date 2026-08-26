@@ -1,0 +1,141 @@
+/*
+ * Product typography semantics.
+ *
+ * The supplied Figma/local source contains a 48px Heading 1 token. It remains
+ * preserved in inputs/design-system, while product screens intentionally cap
+ * display text at the user-approved 40px maximum.
+ */
+:root {
+  --type-display-size: 40px;
+  --type-display-leading: 1.5;
+  --type-page-title-size: 30px;
+  --type-page-title-leading: 1.5;
+  --type-section-title-size: 24px;
+  --type-section-title-leading: 1.5;
+  --type-widget-title-size: 18px;
+  --type-widget-title-leading: 1.5;
+  --type-body-large-size: 18px;
+  --type-body-large-leading: 1.7;
+  --type-body-size: 16px;
+  --type-body-leading: 1.65;
+  --type-body-compact-size: 14px;
+  --type-body-compact-leading: 1.55;
+  --type-control-size: 14px;
+  --type-control-leading: 1.45;
+  --type-table-size: 14px;
+  --type-table-leading: 1.55;
+  --type-caption-size: 14px;
+  --type-caption-leading: 1.5;
+  --type-metadata-size: 12px;
+  --type-metadata-leading: 1.5;
+  --type-technical-size: 12px;
+  --type-technical-leading: 1.5;
+}
+
+html {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+}
+
+html[lang^='en'] {
+  --type-display-leading: 1.35;
+  --type-page-title-leading: 1.4;
+  --type-section-title-leading: 1.4;
+  --type-widget-title-leading: 1.4;
+  --type-body-large-leading: 1.55;
+  --type-body-leading: 1.5;
+  --type-body-compact-leading: 1.45;
+}
+
+/* Prevent the browser's implicit 80% <small> scaling from bypassing tokens. */
+small {
+  font-size: inherit;
+}
+
+.type-display {
+  font-size: var(--type-display-size);
+  font-weight: 700;
+  line-height: var(--type-display-leading);
+}
+
+.type-page-title {
+  font-size: var(--type-page-title-size);
+  font-weight: 700;
+  line-height: var(--type-page-title-leading);
+}
+
+.type-section-title {
+  font-size: var(--type-section-title-size);
+  font-weight: 600;
+  line-height: var(--type-section-title-leading);
+}
+
+.type-widget-title {
+  font-size: var(--type-widget-title-size);
+  font-weight: 600;
+  line-height: var(--type-widget-title-leading);
+}
+
+.type-body-large {
+  font-size: var(--type-body-large-size);
+  font-weight: 400;
+  line-height: var(--type-body-large-leading);
+}
+
+.type-body {
+  font-size: var(--type-body-size);
+  font-weight: 400;
+  line-height: var(--type-body-leading);
+}
+
+.type-body-compact,
+.type-control,
+.type-table,
+.type-caption,
+.type-metadata,
+.type-technical {
+  font-weight: 400;
+}
+
+.type-body-compact {
+  font-size: var(--type-body-compact-size);
+  line-height: var(--type-body-compact-leading);
+}
+
+.type-control {
+  font-size: var(--type-control-size);
+  font-weight: 500;
+  line-height: var(--type-control-leading);
+}
+
+.type-table {
+  font-size: var(--type-table-size);
+  line-height: var(--type-table-leading);
+}
+
+.type-caption {
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-leading);
+}
+
+.type-metadata {
+  font-size: var(--type-metadata-size);
+  line-height: var(--type-metadata-leading);
+}
+
+.type-technical,
+.technical-text,
+code,
+kbd,
+time[dir='ltr'] {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-family: var(--font-sans-en);
+  font-size: var(--type-technical-size);
+  line-height: var(--type-technical-leading);
+}
+
+html[dir='rtl'] :where([dir='ltr'], [data-technical='true']) {
+  unicode-bidi: isolate;
+  font-family: var(--font-sans-en);
+}

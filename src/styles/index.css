@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @import './fonts.css';
 @import './tokens.css';
+@import './typography.css';
 @import './visualization.css';
 @import './foundation.css';
 @import './product.css';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

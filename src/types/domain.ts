@@ -101,6 +101,53 @@ export type IntelligenceDomain =
   | 'cyber'
 
 export type Severity = 'low' | 'medium' | 'high' | 'critical'
+export type CountryRiskLevel = Severity
+export type MapEventCategory =
+  | 'conflict'
+  | 'political-instability'
+  | 'military-activity'
+  | 'economic-disruption'
+  | 'natural-hazard'
+  | 'infrastructure'
+  | 'maritime'
+  | 'cyber'
+
+export interface CountryMapDatum {
+  countryCode: string
+  countryNameFa: string
+  countryNameEn: string
+  value: number
+  riskLevel: CountryRiskLevel
+  eventCount: number
+  trend: 'up' | 'stable' | 'down'
+  confidence: number
+  updatedAt: IsoTimestamp
+}
+
+export interface IntelligenceMapEvent {
+  id: string
+  category: MapEventCategory
+  domain: IntelligenceDomain
+  titleFa: string
+  titleEn: string
+  summaryFa: string
+  summaryEn: string
+  countryCode: string
+  latitude: number
+  longitude: number
+  severity: CountryRiskLevel
+  confidence: number
+  occurredAt: IsoTimestamp
+  sourceCount: number
+  sourceIds: string[]
+}
+
+export interface IntelligenceMapRoute {
+  id: string
+  title: LocalizedText
+  category: IntelligenceDomain
+  coordinates: [number, number][]
+}
 
 export interface LocalizedText {
   fa: string

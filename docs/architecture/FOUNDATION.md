@@ -16,7 +16,7 @@ Browser
     ├── Feature modules (seven product routes)
     ├── Local SVG map and chart contracts
     ├── Foundation diagnostic (preserved at /foundation)
-    ├── shadcn-style UI primitives
+    ├── official code-owned shadcn UI primitives
     ├── CSS-variable design-token layer
     └── Repository service interface
         └── Mock implementation (current)

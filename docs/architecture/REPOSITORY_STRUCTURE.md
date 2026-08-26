@@ -18,7 +18,7 @@
 ├── src/
 │   ├── app/                    Root routing and preferences
 │   ├── components/product/     Shell, modules, Inspector, map, and charts
-│   ├── components/ui/          Editable shadcn-style primitives
+│   ├── components/ui/          Official code-owned shadcn primitives
 │   ├── data/mock/              Small typed fixtures
 │   ├── features/               Feature-owned UI and tests
 │   ├── localization/           Locale, direction, and formatting foundation

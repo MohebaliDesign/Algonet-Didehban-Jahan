@@ -20,8 +20,8 @@ Every use combines color with a label, icon, shape, line style, or table alterna
 | `--temp-viz-teal`       | `#0F8B75` | `#58C6AD` | Semantic             | Positive/healthy movement, always accompanied by text or direction.                                                                  |
 | `--temp-viz-amber`      | `#B46B0B` | `#E1A649` | Semantic             | Warning, degraded coverage, comparison threshold.                                                                                    |
 | `--temp-viz-red`        | `#C33B42` | `#F07178` | Semantic             | Critical/error information; never decorative.                                                                                        |
-| `--temp-viz-land`       | `#DCE5EF` | `#263341` | Map foundation       | Local SVG land surface.                                                                                                              |
-| `--temp-viz-water`      | `#F5F8FB` | `#101820` | Map foundation       | Local SVG water/background surface.                                                                                                  |
+| `--temp-viz-land`       | `#DCE5EF` | `#263341` | Map foundation       | Highcharts Maps no-data country surface and choropleth minimum.                                                                      |
+| `--temp-viz-water`      | `#F5F8FB` | `#101820` | Map foundation       | Highcharts Maps geographic background surface.                                                                                       |
 | `--temp-viz-map-grid`   | `#CBD5E1` | `#334155` | Map foundation       | Geographic orientation grid.                                                                                                         |
 | `--temp-viz-route`      | `#FF4000` | `#FF7446` | Map categorical      | Strategic corridor. The light value uses the supplied orange; dark is provisional.                                                   |
 | `--temp-viz-confidence` | `#416DFF` | `#7193FF` | Semantic             | Analysis confidence marks; displayed with the numeric value.                                                                         |
@@ -37,7 +37,7 @@ The existing `--temp-live`, `--temp-cached`, `--temp-stale`, `--temp-partial`, `
 
 - Forecast and observed lines differ by both color and dash pattern.
 - Map severity differs by size and is named in the legend and accessible list.
-- Chart values have SVG titles/tooltips and expandable data tables.
+- Chart values use the shadcn tooltip/legend contract, Recharts accessibility layer, and expandable shadcn table alternatives.
 - Matrices and maps provide textual alternatives.
 - Live, cached, stale, partial, empty, error, and restricted states include visible words and icons.
 - Color choices are intended for review, not claimed as final WCAG-approved pairs. Final contrast and color-vision testing is required after approval.

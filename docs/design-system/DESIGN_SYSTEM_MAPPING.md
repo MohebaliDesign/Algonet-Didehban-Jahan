@@ -8,7 +8,7 @@ Source token JSON is preserved under `inputs/design-system/source/`. Application
 Supplied token JSON (preserved)
 → reviewed source values
 → semantic CSS variables
-→ shadcn-style component primitives
+→ official code-owned shadcn component primitives
 → feature modules
 ```
 
@@ -75,6 +75,8 @@ The dark action choices should be confirmed in Phase 2, but Phase 1 preserves th
 
 Typography sizes remain available from the source package. The diagnostic screen uses only a small responsive subset; it is not a final product type scale implementation.
 
+The Visual MVP now consumes the semantic roles in `src/styles/typography.css`; see `TYPOGRAPHY_USAGE.md`. The source 48px Heading 1 value remains preserved, while the explicit product-level Display maximum is 40px. No visible product text may be smaller than 12px.
+
 ## Spacing, radius, and elevation mapping
 
 - CSS space variables use the supplied numeric steps: 4, 8, 12, 16, 20, 24, 32, 40, and 48 in the initial convenience subset.
@@ -85,6 +87,8 @@ Typography sizes remain available from the source package. The diagnostic screen
 ## shadcn component mapping
 
 `components.json` records the Vite, CSS-variable, RTL, and alias setup. Component source lives in `src/components/ui/` so it can be reviewed and adapted.
+
+The completed route-by-route inventory, installed primitives, product compositions, and sole map exception are recorded in `SHADCN_COMPONENT_MAPPING.md`.
 
 | shadcn concept              | Prototype implementation                             |
 | --------------------------- | ---------------------------------------------------- |

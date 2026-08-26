@@ -2,18 +2,19 @@
 
 - Intake date: 2026-08-24
 - Scope: Phase 1 local MVP foundation
-- Status: Core tokens and fonts received; component and visualization guidance incomplete
+- Status: Core tokens, fonts, and attached Figma component library reviewed; visualization semantics remain provisional
 
 ## Available sources
 
-| Source                          | Repository location                                                       | Intake result                                                                                              |
-| ------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `DesignSystem DesignTokens.zip` | `inputs/design-system/archives/`                                          | Preserved; 11 nested token packages extracted to `inputs/design-system/source/`.                           |
-| `Vazir FD-WOL.rar`              | `inputs/design-system/archives/`                                          | Preserved; Thin, Light, Regular, Medium, and Bold TTF files available.                                     |
-| `Inter.zip`                     | `inputs/design-system/archives/`                                          | Preserved; variable regular/italic and static TTF families plus OFL license available.                     |
-| shadcn/ui                       | [Official component documentation](https://ui.shadcn.com/docs/components) | Selected component source approach. No organization-specific component file or Figma library was supplied. |
-| Iconsax                         | [Iconsax](https://app.iconsax.io/) and the official npm package           | Selected free icon family. No project-specific subset or icon usage rules were supplied.                   |
-| V15 references                  | `docs/assets/v15/`                                                        | Reviewed as capability evidence, not target visual design.                                                 |
+| Source                          | Repository location                                                       | Intake result                                                                                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DesignSystem DesignTokens.zip` | `inputs/design-system/archives/`                                          | Preserved; 11 nested token packages extracted to `inputs/design-system/source/`.                                                                              |
+| `Vazir FD-WOL.rar`              | `inputs/design-system/archives/`                                          | Preserved; Thin, Light, Regular, Medium, and Bold TTF files available.                                                                                        |
+| `Inter.zip`                     | `inputs/design-system/archives/`                                          | Preserved; variable regular/italic and static TTF families plus OFL license available.                                                                        |
+| shadcn/ui                       | [Official component documentation](https://ui.shadcn.com/docs/components) | Selected code-owned component approach, aligned with the attached Figma Pattern Design System.                                                                |
+| Pattern Design System (Figma)   | Attached node `842:52080` and connected library search                    | Node context, screenshot, variable references, annotations, and core component identities reviewed. Code Connect is unavailable under the current Figma plan. |
+| Iconsax                         | [Iconsax](https://app.iconsax.io/) and the official npm package           | Selected free icon family. No project-specific subset or icon usage rules were supplied.                                                                      |
+| V15 references                  | `docs/assets/v15/`                                                        | Reviewed as capability evidence, not target visual design.                                                                                                    |
 
 ## Token-package inventory
 
@@ -119,10 +120,10 @@ Open typography questions:
 Received as a source choice, not as finished product specifications:
 
 - shadcn component documentation.
-- Phase 1 code primitives: Button, Card, Badge.
+- Official code-owned shadcn primitives required by the current Visual MVP; see `SHADCN_COMPONENT_MAPPING.md` for the final inventory.
 - Iconsax icon component wrapper.
 
-Missing component specifications include application shell, navigation, filters, search, select, input, tabs, menus, dialogs, drawers/inspectors, tooltip, toast, data table, pagination, module shell, chart shell, map controls, source cards, alerts, empty/error/restricted states, loading skeletons, and resizable/edit-layout behavior.
+The MVP now implements application shell, navigation, filters, search, select/input, tabs, menus, Sheet Inspector, tooltip, toast, table, module, chart, map-control, alert, empty/restricted, loading, and edit-layout compositions from shadcn primitives. Final Figma specifications remain open for pagination (not currently needed), freeform resizing, and several product-specific state matrices.
 
 ## Component states
 

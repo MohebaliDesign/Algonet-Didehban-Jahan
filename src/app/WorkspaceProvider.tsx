@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { toast } from 'sonner'
 
 import type { IntelligenceDomain, Role } from '@/types/domain'
+import { PROTOTYPE_CURRENT_USER } from '@/data/mock/prototypeCurrentUser'
 
 export interface ContextFilters {
   geography: string
@@ -28,7 +30,6 @@ interface WorkspaceValue {
   closeInspector: () => void
   searchOpen: boolean
   setSearchOpen: (open: boolean) => void
-  toast: string | null
   notify: (message: string) => void
 }
 
@@ -42,22 +43,13 @@ const defaults: ContextFilters = {
 
 const WorkspaceContext = createContext<WorkspaceValue | null>(null)
 
-function readRole(): Role {
-  const value = localStorage.getItem('didehban.prototype.role')
-  return value === 'org-admin' || value === 'data-manager' ? value : 'viewer'
-}
-
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const [role, setRoleState] = useState<Role>(readRole)
+  // DEMO ONLY: local React state previews role-dependent interfaces. It is not
+  // authentication, is deliberately not persisted, and grants no production permission.
+  const [role, setRole] = useState<Role>(PROTOTYPE_CURRENT_USER.defaultRole)
   const [filters, setFilters] = useState(defaults)
   const [inspector, setInspector] = useState<InspectorItem | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
-
-  const setRole = useCallback((next: Role) => {
-    localStorage.setItem('didehban.prototype.role', next)
-    setRoleState(next)
-  }, [])
 
   const setFilter = useCallback(
     <K extends keyof ContextFilters>(key: K, value: ContextFilters[K]) =>
@@ -66,8 +58,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   )
 
   const notify = useCallback((message: string) => {
-    setToast(message)
-    window.setTimeout(() => setToast(null), 2800)
+    toast(message)
   }, [])
 
   const value = useMemo<WorkspaceValue>(
@@ -82,10 +73,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       closeInspector: () => setInspector(null),
       searchOpen,
       setSearchOpen,
-      toast,
       notify,
     }),
-    [filters, inspector, notify, role, searchOpen, setFilter, setRole, toast],
+    [filters, inspector, notify, role, searchOpen, setFilter],
   )
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>
