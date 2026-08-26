@@ -119,7 +119,7 @@ export function CountriesPage() {
                     <small>{country.region[locale]}</small>
                   </span>
                   <span className="country-list-risk" dir="auto">
-                    {localizeDigits(country.risk, locale)}/100
+                    {localizeDigits(`${country.risk}/100`, locale)}
                   </span>
                 </Button>
               ))}
