@@ -13,18 +13,20 @@ describe('world map data normalization', () => {
     expect(countryMapData.every(hasIsoAlpha3Join)).toBe(true)
     expect(normalizeCountryValue(-8)).toBe(0)
     expect(normalizeCountryValue(108)).toBe(100)
-    expect(
-      toCountrySeriesData(countryMapData, 24).every((item) => item.value >= 0 && item.value <= 100),
-    ).toBe(true)
+    expect(toCountrySeriesData(countryMapData).every((item) => item.value >= 0 && item.value <= 100)).toBe(
+      true,
+    )
   })
 
-  it('filters layers, product domain, and timeline snapshots deterministically', () => {
+  it('filters layers, product domain, and global time range deterministically', () => {
     const layers = new Set(['maritime', 'infrastructure'] as const)
-    const morning = filterMapEvents(intelligenceMapEvents, layers, 10, 'all')
-    expect(morning.map((event) => event.id)).toEqual(['evt-caucasus'])
+    expect(filterMapEvents(intelligenceMapEvents, layers, '24h', 'all').map((event) => event.id)).toEqual([
+      'evt-hormuz',
+      'evt-caucasus',
+    ])
     expect(
-      filterMapEvents(intelligenceMapEvents, layers, 24, 'maritime').map((event) => event.id),
+      filterMapEvents(intelligenceMapEvents, layers, '24h', 'maritime').map((event) => event.id),
     ).toEqual(['evt-hormuz'])
-    expect(filterMapEvents(intelligenceMapEvents, new Set(), 24, 'all')).toEqual([])
+    expect(filterMapEvents(intelligenceMapEvents, new Set(), '7d', 'all')).toEqual([])
   })
 })
