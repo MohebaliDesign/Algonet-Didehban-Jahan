@@ -1,14 +1,15 @@
 /*
- * Product-wide responsive spacing rules.
+ * Product-wide responsive spacing and card-composition rules.
  *
- * These overrides keep shell gutters, content-card spacing, and card padding
- * consistent across product routes without coupling spacing to individual pages.
+ * These overrides keep shell gutters, card spacing, row composition, and card
+ * internals consistent across product routes without coupling layout to one page.
  */
 
 .app-shell {
   --shell-inline-gutter: 24px;
   --content-grid-gap: 16px;
   --content-card-padding: 20px;
+  --content-card-max-height: min(560px, calc(100dvh - 180px));
 }
 
 /* Keep the persistent shell layers aligned to one horizontal gutter. */
@@ -26,26 +27,22 @@
   padding: 24px;
 }
 
-/* Avoid oversized empty gutters on wide desktop displays. */
+/* Every page consumes the full available canvas width after shell padding. */
 .page-view {
   width: 100%;
   max-width: none;
   min-width: 0;
+  margin-inline: 0;
 }
 
-/*
- * Product card layout.
- * Stretching modules within each CSS Grid row removes false vertical whitespace
- * caused by different card heights. The only visible separation between rows
- * is the controlled 12–20px grid gap.
- */
+/* Shared grid foundation. */
 .module-grid,
 .product-page-grid {
   width: 100%;
   min-width: 0;
   gap: var(--content-grid-gap);
   align-items: stretch;
-  grid-auto-flow: row dense;
+  grid-auto-flow: row;
 }
 
 .module-frame {
@@ -53,14 +50,142 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  height: 100%;
+  height: auto;
   align-self: stretch;
   flex-direction: column;
 }
 
-.module-content {
-  min-width: 0;
+/*
+ * Standard product pages use paired rows that always consume all 12 columns.
+ * Default pair = 6/6. Large + secondary = 8/4. Medium + small = 8/4.
+ * An unpaired final card automatically becomes 12/12 instead of leaving whitespace.
+ */
+.product-page-grid {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.product-page-grid > .module-frame:not(.module-wide) {
+  grid-column: span 6;
+}
+
+.product-page-grid > .module-wide {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1201px) {
+  /* Large card first in a pair. */
+  .product-page-grid > .module-large:nth-child(odd):has(+ .module-frame:not(.module-large)) {
+    grid-column: span 8;
+  }
+
+  .product-page-grid > .module-large:nth-child(odd) + .module-frame:not(.module-large) {
+    grid-column: span 4;
+  }
+
+  /* Large card second in a pair. */
+  .product-page-grid > .module-frame:not(.module-large):nth-child(odd):has(+ .module-large) {
+    grid-column: span 4;
+  }
+
+  .product-page-grid > .module-frame:not(.module-large):nth-child(odd) + .module-large {
+    grid-column: span 8;
+  }
+
+  /* Medium + small keeps the more information-dense card larger. */
+  .product-page-grid > .module-medium:nth-child(odd):has(+ .module-small) {
+    grid-column: span 8;
+  }
+
+  .product-page-grid > .module-medium:nth-child(odd) + .module-small {
+    grid-column: span 4;
+  }
+
+  .product-page-grid > .module-small:nth-child(odd):has(+ .module-medium) {
+    grid-column: span 4;
+  }
+
+  .product-page-grid > .module-small:nth-child(odd) + .module-medium {
+    grid-column: span 8;
+  }
+
+  /* A single remaining card always fills the complete row. */
+  .product-page-grid > .module-frame:nth-child(odd):last-child {
+    grid-column: 1 / -1;
+  }
+
+  /* Countries: prioritize the comparison visualization over the route list. */
+  .product-page-grid > [data-module-id='corridors'] {
+    grid-column: span 4;
+  }
+
+  .product-page-grid > [data-module-id='country-comparison'] {
+    grid-column: span 8;
+  }
+}
+
+/*
+ * Bound standard dashboard cards so long content scrolls internally instead of
+ * growing one card and breaking the rhythm of the surrounding rows.
+ */
+.product-page-grid > .module-frame {
+  min-height: 0;
+  max-height: var(--content-card-max-height);
+  overflow: hidden;
+}
+
+.product-page-grid > .module-frame > [data-slot='collapsible'],
+.product-page-grid > .module-frame [data-slot='collapsible-content'] {
+  display: flex;
+  min-height: 0;
   flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.product-page-grid > .module-frame .module-content {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/*
+ * World Monitor has one intentionally full-width map followed by paired modules.
+ * Small cards are promoted to half-width so the final row cannot stop at 8/12.
+ */
+.world-page .module-grid > .module-wide {
+  grid-column: 1 / -1;
+}
+
+.world-page .module-grid > .module-medium,
+.world-page .module-grid > .module-small {
+  grid-column: span 6;
+}
+
+.world-page .module-grid > .module-frame:not(.module-wide) {
+  min-height: 0;
+  max-height: var(--content-card-max-height);
+  overflow: hidden;
+}
+
+.world-page .module-grid > .module-frame:not(.module-wide) > [data-slot='collapsible'],
+.world-page .module-grid > .module-frame:not(.module-wide) [data-slot='collapsible-content'] {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.world-page .module-grid > .module-frame:not(.module-wide) .module-content {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 /* Standardize card internals while preserving component-specific content layouts. */
@@ -69,6 +194,7 @@
 }
 
 .module-content {
+  min-width: 0;
   padding: var(--content-card-padding);
 }
 
@@ -97,9 +223,19 @@
   }
 }
 
-@media (max-width: 1360px) {
+/* Medium desktop: two equal cards per row is more resilient than 8/4. */
+@media (max-width: 1200px) {
   .app-shell {
-    --content-grid-gap: 16px;
+    --content-card-max-height: min(520px, calc(100dvh - 160px));
+  }
+
+  .product-page-grid > .module-frame:not(.module-wide),
+  .world-page .module-grid > .module-frame:not(.module-wide) {
+    grid-column: span 6 !important;
+  }
+
+  .product-page-grid > .module-frame:nth-child(odd):last-child {
+    grid-column: 1 / -1 !important;
   }
 }
 
@@ -108,6 +244,7 @@
     --shell-inline-gutter: 20px;
     --content-grid-gap: 16px;
     --content-card-padding: 16px;
+    --content-card-max-height: min(500px, calc(100dvh - 140px));
   }
 
   .global-topbar {
@@ -118,17 +255,21 @@
     padding: 20px;
   }
 
-  /* The compact filter access remains aligned with the page gutter. */
   .context-bar {
     padding-inline: var(--shell-inline-gutter);
   }
 
-  /* Expanded filters behave like an inset responsive surface, not an edge-to-edge panel. */
   .context-bar.open,
   [dir='rtl'] .context-bar.open {
     inset-inline: 20px;
     padding: 20px;
     gap: 12px;
+  }
+
+  /* Tablet and mobile use one fill-width card per row. */
+  .product-page-grid > .module-frame,
+  .world-page .module-grid > .module-frame {
+    grid-column: 1 / -1 !important;
   }
 
   .module-header {
@@ -145,6 +286,7 @@
     --shell-inline-gutter: 20px;
     --content-grid-gap: 12px;
     --content-card-padding: 16px;
+    --content-card-max-height: min(460px, calc(100dvh - 120px));
   }
 
   .global-topbar {
