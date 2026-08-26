@@ -27,6 +27,8 @@ export type SecurityRiskPoint = {
   continents: Exclude<Continent, 'all'>[]
 }
 
+const PULSE_THRESHOLD = 75
+
 const continentOptions: Array<{ value: Continent; fa: string; en: string }> = [
   { value: 'all', fa: 'همه قاره‌ها', en: 'All continents' },
   { value: 'asia', fa: 'آسیا', en: 'Asia' },
@@ -117,7 +119,7 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
       lon: item.lon,
       color: severityColor(item.severity),
       marker: {
-        radius: 7 + Math.round(item.impact / 18),
+        radius: 6 + Math.round(item.impact / 20),
         fillColor: severityColor(item.severity),
         lineColor: theme.surface,
         lineWidth: 2,
@@ -129,25 +131,51 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
       },
     }))
 
+    const pulsePoints = visibleItems
+      .filter((item) => item.likelihood >= PULSE_THRESHOLD)
+      .map((item) => ({
+        name: locale === 'fa' ? item.label : item.labelEn,
+        lat: item.lat,
+        lon: item.lon,
+        className: 'security-map-pulse-point',
+        marker: {
+          radius: 14 + Math.round(item.impact / 14),
+          fillColor: 'transparent',
+          lineColor: severityColor(item.severity),
+          lineWidth: 2,
+        },
+      }))
+
     try {
       const chart = Highcharts.mapChart(containerRef.current, {
         chart: {
           animation: false,
           backgroundColor: theme.water,
-          height: 520,
+          height: 600,
+          map: topology as never,
           margin: [0, 0, 0, 0],
+          panning: {
+            enabled: true,
+            type: 'xy',
+          },
           spacing: [0, 0, 0, 0],
           style: { fontFamily: 'inherit' },
         },
         credits: { enabled: false },
         legend: { enabled: false },
+        title: { text: null },
+        subtitle: { text: null },
         mapNavigation: {
           enabled: true,
+          enableButtons: true,
           enableDoubleClickZoom: true,
           enableMouseWheelZoom: true,
+          enableTouchZoom: true,
           buttonOptions: {
             align: 'left',
             verticalAlign: 'bottom',
+            x: 12,
+            y: -12,
             theme: {
               fill: theme.surface,
               stroke: theme.border,
@@ -158,7 +186,7 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
           },
         },
         mapView: {
-          projection: { name: 'EqualEarth' },
+          padding: 16,
           ...(view.center ? { center: view.center } : {}),
           ...(view.zoom != null ? { zoom: view.zoom } : {}),
         },
@@ -173,18 +201,30 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
             const point = this.point as Highcharts.Point & {
               custom?: { impact: number; likelihood: number; severity: Severity }
             }
-            if (!point.custom) return false
+            const dir = locale === 'fa' ? 'rtl' : 'ltr'
+            const align = locale === 'fa' ? 'right' : 'left'
+
+            if (!point.custom) {
+              return `<div dir="${dir}" style="min-width:120px;text-align:${align};font-size:14px"><strong>${point.name ?? ''}</strong></div>`
+            }
 
             const likelihood = numberFormatter.format(point.custom.likelihood)
             const impact = numberFormatter.format(point.custom.impact)
             const percent = locale === 'fa' ? '٪' : '%'
-            const dir = locale === 'fa' ? 'rtl' : 'ltr'
-            const align = locale === 'fa' ? 'right' : 'left'
 
             return `<div dir="${dir}" style="min-width:176px;text-align:${align};font-size:14px"><strong>${point.name ?? ''}</strong><br/><span style="color:${theme.muted}">${local(locale, 'احتمال', 'Likelihood')}</span> · ${likelihood}${percent}<br/><span style="color:${theme.muted}">${local(locale, 'پیامد', 'Impact')}</span> · ${impact}${percent}<br/><span style="color:${theme.muted}">${local(locale, 'شدت', 'Severity')}</span> · ${severityLabel(locale, point.custom.severity)}</div>`
           },
         },
         plotOptions: {
+          map: {
+            borderWidth: 0.8,
+            states: {
+              hover: {
+                borderColor: theme.primary,
+                borderWidth: 1.2,
+              },
+            },
+          },
           mappoint: {
             animation: false,
             dataLabels: {
@@ -196,14 +236,15 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
                   custom?: { impact: number; likelihood: number }
                 }
                 const zoom = this.series.chart.mapView?.zoom ?? 0
-                if (!point.name) return ''
-                if (zoom < 1.65 || !point.custom) return point.name
+                if (!point.name || !point.custom) return ''
+                if (zoom < 1.4) return point.name
 
                 const likelihood = numberFormatter.format(point.custom.likelihood)
                 const impact = numberFormatter.format(point.custom.impact)
                 const percent = locale === 'fa' ? '٪' : '%'
                 return `<span class="security-map-label-title">${point.name}</span><br/><span class="security-map-label-meta">${local(locale, 'احتمال', 'Likelihood')} ${likelihood}${percent} · ${local(locale, 'پیامد', 'Impact')} ${impact}${percent}</span>`
               },
+              padding: 3,
               style: {
                 color: theme.foreground,
                 fontSize: '12px',
@@ -217,19 +258,51 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
           {
             type: 'map',
             name: local(locale, 'نقشه جهان', 'World map'),
-            mapData: topology as never,
             data: [],
             allAreas: true,
             nullColor: theme.land,
-            borderColor: theme.border,
-            borderWidth: 0.6,
-            enableMouseTracking: false,
+            borderColor: theme.muted,
+            borderWidth: 0.7,
+            enableMouseTracking: true,
             showInLegend: false,
+            dataLabels: {
+              allowOverlap: false,
+              enabled: true,
+              formatter() {
+                const point = this.point as Highcharts.Point & {
+                  properties?: { labelrank?: string | number; 'country-abbrev'?: string }
+                }
+                const zoom = this.series.chart.mapView?.zoom ?? 0
+                const labelRank = Number(point.properties?.labelrank ?? 9)
+
+                if (!point.name) return ''
+                if (zoom < 1 && labelRank > 2) return ''
+                if (zoom < 1.8 && labelRank > 4) return ''
+
+                return point.properties?.['country-abbrev'] || point.name
+              },
+              style: {
+                color: theme.muted,
+                fontSize: '10px',
+                fontWeight: '500',
+                textOutline: '2px var(--temp-viz-water)',
+              },
+            },
+          },
+          {
+            type: 'mappoint',
+            name: local(locale, 'هشدار با احتمال بالا', 'High-likelihood alert'),
+            className: 'security-map-pulse-series',
+            data: pulsePoints as never,
+            dataLabels: { enabled: false },
+            enableMouseTracking: false,
+            zIndex: 4,
           },
           {
             type: 'mappoint',
             name: local(locale, 'کانون تنش', 'Tension area'),
             data: points as never,
+            zIndex: 5,
           },
         ],
       } as Highcharts.Options)
@@ -276,7 +349,13 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
             {severityLabel(locale, severity)}
           </span>
         ))}
-        <small>{local(locale, 'اندازه نقطه = پیامد', 'Point size = impact')}</small>
+        <small>
+          {local(
+            locale,
+            `چشمک‌زن = احتمال ${numberFormatter.format(PULSE_THRESHOLD)}٪ به بالا · اندازه نقطه = پیامد`,
+            `Pulse = likelihood ${PULSE_THRESHOLD}%+ · point size = impact`,
+          )}
+        </small>
       </div>
 
       <div className="security-map-shell">
@@ -314,8 +393,8 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
       <p className="security-map-hint">
         {local(
           locale,
-          'برای جزئیات بیشتر زوم کنید یا روی هر کانون بروید؛ احتمال و پیامد از همان دادهٔ ماتریس قبلی استفاده می‌کنند.',
-          'Zoom in or hover a tension area for detail; likelihood and impact use the same data as the previous matrix.',
+          'با اسکرول موس زوم کنید، با درگ نقشه را جابه‌جا کنید و برای دیدن نام کشورها و جزئیات احتمال و پیامد نزدیک‌تر شوید.',
+          'Use the mouse wheel to zoom, drag to pan, and zoom closer to reveal country names plus likelihood and impact detail.',
         )}
       </p>
     </div>
