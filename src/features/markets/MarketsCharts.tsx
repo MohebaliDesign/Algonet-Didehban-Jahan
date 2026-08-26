@@ -19,12 +19,7 @@ export function MarketTrendChart({
 }) {
   const { locale } = usePreferences()
   const theme = highchartsTokens
-  const seriesColor =
-    name === 'XAU/USD'
-      ? theme.amber
-      : name === 'XAG/USD'
-        ? 'var(--muted-foreground)'
-        : theme.primary
+  const seriesColor = theme.primary
   const numberFormatter = useMemo(
     () =>
       new Intl.NumberFormat(locale === 'fa' ? 'fa-IR' : 'en-US', {
