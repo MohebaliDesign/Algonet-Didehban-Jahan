@@ -19,8 +19,12 @@ export function MarketTrendChart({
 }) {
   const { locale } = usePreferences()
   const theme = highchartsTokens
-  const isGold = name === 'XAU/USD'
-  const seriesColor = isGold ? theme.amber : theme.primary
+  const seriesColor =
+    name === 'XAU/USD'
+      ? theme.amber
+      : name === 'XAG/USD'
+        ? 'var(--muted-foreground)'
+        : theme.primary
   const numberFormatter = useMemo(
     () =>
       new Intl.NumberFormat(locale === 'fa' ? 'fa-IR' : 'en-US', {
@@ -31,42 +35,45 @@ export function MarketTrendChart({
 
   const options = useMemo<ChartOptions>(
     () => ({
-      ...baseChartOptions(description, 300),
+      ...baseChartOptions(description, 340),
       chart: {
-        ...baseChartOptions(description, 300).chart,
-        type: isGold ? 'area' : 'line',
+        ...baseChartOptions(description, 340).chart,
+        type: 'area',
       },
       plotOptions: {
+        area: {
+          lineWidth: 2,
+          marker: { enabled: false },
+          threshold: null,
+          states: {
+            hover: { lineWidth: 2 },
+          },
+        },
         series: {
           animation: false,
-          states: {
-            hover: { lineWidthPlus: 1 },
-          },
         },
       },
       series: [
         {
           color: seriesColor,
           data: values,
-          fillColor: isGold
-            ? {
-                linearGradient: {
-                  x1: 0,
-                  y1: 0,
-                  x2: 0,
-                  y2: 1,
-                },
-                stops: [
-                  [0, `color-mix(in srgb, ${seriesColor} 28%, transparent)`],
-                  [1, `color-mix(in srgb, ${seriesColor} 2%, transparent)`],
-                ],
-              }
-            : undefined,
-          lineWidth: isGold ? 2 : 3,
+          fillColor: {
+            linearGradient: {
+              x1: 0,
+              y1: 0,
+              x2: 0,
+              y2: 1,
+            },
+            stops: [
+              [0, `color-mix(in srgb, ${seriesColor} 28%, transparent)`],
+              [1, `color-mix(in srgb, ${seriesColor} 2%, transparent)`],
+            ],
+          },
+          lineWidth: 2,
           marker: { enabled: false },
           name,
-          threshold: isGold ? null : undefined,
-          type: isGold ? 'area' : 'line',
+          threshold: null,
+          type: 'area',
         },
       ],
       tooltip: {
@@ -112,7 +119,7 @@ export function MarketTrendChart({
         title: { text: undefined },
       },
     }),
-    [description, isGold, labels, locale, name, numberFormatter, seriesColor, theme, values],
+    [description, labels, locale, name, numberFormatter, seriesColor, theme, values],
   )
 
   return (
