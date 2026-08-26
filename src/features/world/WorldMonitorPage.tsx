@@ -8,7 +8,15 @@ import { KpiStrip, PageHeader } from '@/components/product/PageHeader'
 import { WorldMap } from '@/components/product/WorldMap'
 import { Icon } from '@/components/Icon'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from '@/components/ui/item'
 import { countries, events } from '@/data/mock/visualMvpData'
 
 const defaults: LayoutItem[] = [
@@ -33,32 +41,38 @@ export function WorldMonitorPage() {
   const content: Record<string, React.ReactNode> = {
     map: <WorldMap />,
     priority: (
-      <div className="priority-list">
+      <ItemGroup className="priority-list" role="list">
         {filteredEvents.slice(0, 4).map((event, index) => (
-          <Button
-            variant="ghost"
-            key={event.id}
-            onClick={() =>
-              openInspector({
-                kind: 'event',
-                id: event.id,
-                title: event.title,
-                titleEn: event.titleEn,
-              })
-            }
-          >
-            <span className={`priority-rank severity-${event.severity}`}>{index + 1}</span>
-            <span>
-              <strong>{locale === 'fa' ? event.title : event.titleEn}</strong>
-              <small>
-                {locale === 'fa' ? event.region : event.regionEn} · {event.sourceCount}{' '}
-                {locale === 'fa' ? 'منبع' : 'sources'}
-              </small>
-            </span>
-            <span className="confidence-mini">{event.confidence}%</span>
-          </Button>
+          <Item asChild size="sm" className="product-list-item" key={event.id}>
+            <button
+              type="button"
+              role="listitem"
+              onClick={() =>
+                openInspector({
+                  kind: 'event',
+                  id: event.id,
+                  title: event.title,
+                  titleEn: event.titleEn,
+                })
+              }
+            >
+              <ItemMedia>
+                <span className={`priority-rank severity-${event.severity}`}>{index + 1}</span>
+              </ItemMedia>
+              <ItemContent>
+                <ItemTitle>{locale === 'fa' ? event.title : event.titleEn}</ItemTitle>
+                <ItemDescription>
+                  {locale === 'fa' ? event.region : event.regionEn} · {event.sourceCount}{' '}
+                  {locale === 'fa' ? 'منبع' : 'sources'}
+                </ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <span className="confidence-mini">{event.confidence}%</span>
+              </ItemActions>
+            </button>
+          </Item>
         ))}
-      </div>
+      </ItemGroup>
     ),
     brief: (
       <div className="daily-brief">
@@ -80,12 +94,12 @@ export function WorldMonitorPage() {
       </div>
     ),
     feed: (
-      <ol className="live-feed">
+      <ItemGroup className="live-feed" role="list">
         {filteredEvents.map((event) => (
-          <li key={event.id}>
-            <time dir="ltr">{event.occurredAt.slice(11, 16)}</time>
-            <Button
-              variant="link"
+          <Item asChild size="sm" className="product-list-item" key={event.id}>
+            <button
+              type="button"
+              role="listitem"
               onClick={() =>
                 openInspector({
                   kind: 'event',
@@ -95,15 +109,22 @@ export function WorldMonitorPage() {
                 })
               }
             >
-              {locale === 'fa' ? event.title : event.titleEn}
-            </Button>
-            <Badge variant="outline" className={`state-badge state-${event.state}`}>
-              <i />
-              {event.state}
-            </Badge>
-          </li>
+              <ItemContent>
+                <ItemTitle>{locale === 'fa' ? event.title : event.titleEn}</ItemTitle>
+                <ItemDescription>
+                  <time dir="ltr">{event.occurredAt.slice(11, 16)} UTC</time>
+                </ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <Badge variant="outline" className={`state-badge state-${event.state}`}>
+                  <i />
+                  {event.state}
+                </Badge>
+              </ItemActions>
+            </button>
+          </Item>
         ))}
-      </ol>
+      </ItemGroup>
     ),
     risk: (
       <LineChart
@@ -133,28 +154,32 @@ export function WorldMonitorPage() {
       />
     ),
     watch: (
-      <div className="watchlist">
+      <ItemGroup className="watchlist" role="list">
         {countries.map((country) => (
-          <Button
-            variant="ghost"
-            key={country.id}
-            onClick={() =>
-              openInspector({
-                kind: 'country',
-                id: country.id,
-                title: country.name.fa,
-                titleEn: country.name.en,
-              })
-            }
-          >
-            <span>
-              <strong>{country.name[locale]}</strong>
-              <small>{country.region[locale]}</small>
-            </span>
-            <b className={`trend-${country.trend}`}>{country.risk}</b>
-          </Button>
+          <Item asChild size="sm" className="product-list-item" key={country.id}>
+            <button
+              type="button"
+              role="listitem"
+              onClick={() =>
+                openInspector({
+                  kind: 'country',
+                  id: country.id,
+                  title: country.name.fa,
+                  titleEn: country.name.en,
+                })
+              }
+            >
+              <ItemContent>
+                <ItemTitle>{country.name[locale]}</ItemTitle>
+                <ItemDescription>{country.region[locale]}</ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <b className={`trend-${country.trend}`}>{country.risk}</b>
+              </ItemActions>
+            </button>
+          </Item>
         ))}
-      </div>
+      </ItemGroup>
     ),
     freshness: (
       <BarChart
@@ -294,6 +319,7 @@ export function WorldMonitorPage() {
                   label: 'Last sync',
                   value: '2 min',
                   change: '7% partial',
+                  tone: 'warning',
                   icon: 'refresh-circle',
                 },
               ]
