@@ -16,7 +16,7 @@ import { highchartsTokens } from '@/lib/highchartsTheme'
 type Continent = 'all' | 'asia' | 'europe' | 'africa' | 'americas' | 'oceania'
 type Severity = 'medium' | 'high' | 'critical'
 
-type SecurityRiskPoint = {
+export type SecurityRiskPoint = {
   label: string
   labelEn: string
   likelihood: number
