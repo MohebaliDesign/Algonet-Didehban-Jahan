@@ -84,19 +84,21 @@ export function CountriesPage() {
         )}
       />
 
-      <div className="countries-grid">
-        <div className="countries-stack">
-          <ModuleFrame
-            id="country-directory-v2"
-            title={local(locale, 'کشورها', 'Countries')}
-            description={local(
-              locale,
-              'جست‌وجو و انتخاب فضای کاری کشور',
-              'Search and select a country workspace',
-            )}
-            size="medium"
-            state="fresh"
-          >
+      <ModuleFrame
+        id="country-overview-v2"
+        title={local(locale, 'کشورها', 'Countries')}
+        description={local(
+          locale,
+          'یک کشور را انتخاب کنید تا پروفایل ریسک آن را در کنار فهرست ببینید.',
+          'Select a country to view its risk profile beside the directory.',
+        )}
+        size="wide"
+        state="fresh"
+        eventCount={selected.events}
+        confidence={79}
+      >
+        <div className="country-overview-layout">
+          <div className="country-directory-pane">
             <label className="country-search">
               <span>{local(locale, 'جست‌وجوی کشور', 'Search countries')}</span>
               <Input
@@ -124,69 +126,22 @@ export function CountriesPage() {
                 </Button>
               ))}
             </div>
-          </ModuleFrame>
+          </div>
 
-          <ModuleFrame
-            id="corridors-v2"
-            title={local(locale, 'مسیرهای راهبردی', 'Strategic corridors')}
-            description={local(
-              locale,
-              'وضعیت، تأخیر و گلوگاه‌های کلیدی',
-              'Status, delay, and major chokepoints',
-            )}
-            size="medium"
-            state="partial"
-          >
-            <div className="corridor-list-v2">
-              {corridors.map((corridor) => (
-                <button
-                  type="button"
-                  className="corridor-row-v2"
-                  key={corridor.id}
-                  onClick={() =>
-                    openInspector({
-                      kind: 'route',
-                      id: corridor.id,
-                      title: corridor.name.fa,
-                      titleEn: corridor.name.en,
-                    })
-                  }
-                >
-                  <span className="corridor-icon">
-                    <Icon name="routing-2" size={20} />
-                  </span>
-                  <span className="corridor-copy">
-                    <strong>{corridor.name[locale]}</strong>
-                    <small>
-                      {corridor.from[locale]} → {corridor.to[locale]}
-                    </small>
-                  </span>
-                  <span className={`corridor-status ${corridor.status}`}>
-                    {corridorStatus(corridor.status, locale)}
-                  </span>
-                  <span className="corridor-delay">
-                    {local(
-                      locale,
-                      `${localizeDigits(corridor.delayHours, locale)} ساعت تأخیر`,
-                      `${corridor.delayHours}h delay`,
-                    )}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </ModuleFrame>
-        </div>
+          <section className="country-profile-pane" aria-label={selected.name[locale]}>
+            <header className="country-profile-heading">
+              <div>
+                <h3>{selected.name[locale]}</h3>
+                <p>
+                  {selected.region[locale]} · {local(locale, 'پروفایل ریسک کشور', 'Country risk profile')}
+                </p>
+              </div>
+              <span className="country-fresh-badge">
+                <i />
+                {local(locale, 'تازه', 'Fresh')}
+              </span>
+            </header>
 
-        <div className="countries-stack">
-          <ModuleFrame
-            id="country-profile-v2"
-            title={selected.name[locale]}
-            description={`${selected.region[locale]} · ${local(locale, 'پروفایل ریسک کشور', 'Country risk profile')}`}
-            size="large"
-            state="fresh"
-            eventCount={selected.events}
-            confidence={79}
-          >
             <div className="country-profile-layout">
               <div className="country-risk-pane">
                 <CountryRiskSemiDonut
@@ -228,36 +183,88 @@ export function CountriesPage() {
                 </Button>
               </div>
             </div>
-          </ModuleFrame>
+          </section>
+        </div>
+      </ModuleFrame>
 
-          <ModuleFrame
-            id="country-compare-v2"
-            title={local(locale, 'مقایسه کشورها', 'Country comparison')}
+      <div className="countries-secondary-grid">
+        <ModuleFrame
+          id="corridors-v2"
+          title={local(locale, 'مسیرهای راهبردی', 'Strategic corridors')}
+          description={local(
+            locale,
+            'وضعیت، تأخیر و گلوگاه‌های کلیدی',
+            'Status, delay, and major chokepoints',
+          )}
+          size="medium"
+          state="partial"
+        >
+          <div className="corridor-list-v2">
+            {corridors.map((corridor) => (
+              <button
+                type="button"
+                className="corridor-row-v2"
+                key={corridor.id}
+                onClick={() =>
+                  openInspector({
+                    kind: 'route',
+                    id: corridor.id,
+                    title: corridor.name.fa,
+                    titleEn: corridor.name.en,
+                  })
+                }
+              >
+                <span className="corridor-icon">
+                  <Icon name="routing-2" size={20} />
+                </span>
+                <span className="corridor-copy">
+                  <strong>{corridor.name[locale]}</strong>
+                  <small>
+                    {corridor.from[locale]} → {corridor.to[locale]}
+                  </small>
+                </span>
+                <span className={`corridor-status ${corridor.status}`}>
+                  {corridorStatus(corridor.status, locale)}
+                </span>
+                <span className="corridor-delay">
+                  {local(
+                    locale,
+                    `${localizeDigits(corridor.delayHours, locale)} ساعت تأخیر`,
+                    `${corridor.delayHours}h delay`,
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+        </ModuleFrame>
+
+        <ModuleFrame
+          id="country-compare-v2"
+          title={local(locale, 'مقایسه کشورها', 'Country comparison')}
+          description={local(
+            locale,
+            'رتبه‌بندی ریسک ترکیبی نمونه · از ۱۰۰',
+            'Prototype composite-risk ranking · out of 100',
+          )}
+          size="large"
+          state="cached"
+        >
+          <CountryComparisonRaceChart
             description={local(
               locale,
-              'رتبه‌بندی ریسک ترکیبی نمونه · از ۱۰۰',
-              'Prototype composite-risk ranking · out of 100',
+              'رتبه‌بندی ریسک ترکیبی کشورها',
+              'Composite risk ranking by country',
             )}
-            size="large"
-            state="cached"
-          >
-            <CountryComparisonRaceChart
-              description={local(
-                locale,
-                'رتبه‌بندی ریسک ترکیبی کشورها',
-                'Composite risk ranking by country',
-              )}
-              items={comparisonItems}
-            />
-            <p className="country-compare-note">
-              {local(
-                locale,
-                'چیدمان بر اساس بیشترین ریسک مرتب می‌شود؛ این نما snapshot است و کنترل زمانی ندارد.',
-                'Bars are sorted by highest risk; this is a snapshot view without timeline controls.',
-              )}
-            </p>
-          </ModuleFrame>
-        </div>
+            items={comparisonItems}
+          />
+          <p className="country-compare-note">
+            {local(
+              locale,
+              'چیدمان بر اساس بیشترین ریسک مرتب می‌شود؛ این نما snapshot است و کنترل زمانی ندارد.',
+              'Bars are sorted by highest risk; this is a snapshot view without timeline controls.',
+            )}
+          </p>
+        </ModuleFrame>
       </div>
     </div>
   )
