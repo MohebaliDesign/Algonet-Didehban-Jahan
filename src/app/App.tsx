@@ -2,11 +2,11 @@ import { Navigate, Route, Routes } from 'react-router'
 
 import { AppShell } from '@/components/product/AppShell'
 import { FoundationDiagnostic } from '@/features/foundation/FoundationDiagnostic'
+import { MarketsPage } from '@/features/markets/MarketsPage'
 import {
   CountriesPage,
   DataManagementPage,
   DevelopmentsPage,
-  MarketsPage,
   ReportsPage,
   SecurityPage,
 } from '@/features/pages/ProductPages'
