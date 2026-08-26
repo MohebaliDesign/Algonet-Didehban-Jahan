@@ -1,8 +1,8 @@
 import './security.css'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { MapsChart, type ChartOptions } from '@highcharts/react/Maps'
+import Highcharts from 'highcharts/es-modules/masters/highmaps.src.js'
 import { usePreferences } from '@/app/PreferencesProvider'
 import {
   Select,
@@ -36,10 +36,7 @@ const continentOptions: Array<{ value: Continent; fa: string; en: string }> = [
   { value: 'oceania', fa: 'اقیانوسیه', en: 'Oceania' },
 ]
 
-const continentViews: Record<
-  Continent,
-  { center?: [number, number]; zoom?: number }
-> = {
+const continentViews: Record<Continent, { center?: [number, number]; zoom?: number }> = {
   all: {},
   asia: { center: [88, 34], zoom: 1.45 },
   europe: { center: [18, 51], zoom: 2.05 },
@@ -64,19 +61,19 @@ function severityColor(severity: Severity) {
   return 'var(--temp-viz-medium)'
 }
 
-export function SecurityWorldMap({
-  items,
-}: {
-  items: SecurityRiskPoint[]
-}) {
+export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
   const { locale } = usePreferences()
   const theme = highchartsTokens
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const [continent, setContinent] = useState<Continent>('all')
   const [topology, setTopology] = useState<object | null>(null)
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
 
   const numberFormatter = useMemo(
-    () => new Intl.NumberFormat(locale === 'fa' ? 'fa-IR' : 'en-US', { maximumFractionDigits: 0 }),
+    () =>
+      new Intl.NumberFormat(locale === 'fa' ? 'fa-IR' : 'en-US', {
+        maximumFractionDigits: 0,
+      }),
     [locale],
   )
 
@@ -110,146 +107,139 @@ export function SecurityWorldMap({
     [continent, items],
   )
 
-  const options = useMemo(() => {
+  useEffect(() => {
+    if (loadState !== 'ready' || !topology || !containerRef.current) return
+
     const view = continentViews[continent]
-    const filteredPoints = visibleItems.map((item) => ({
+    const points = visibleItems.map((item) => ({
+      name: locale === 'fa' ? item.label : item.labelEn,
+      lat: item.lat,
+      lon: item.lon,
       color: severityColor(item.severity),
-      colorValue: item.severity === 'critical' ? 3 : item.severity === 'high' ? 2 : 1,
+      marker: {
+        radius: 7 + Math.round(item.impact / 18),
+        fillColor: severityColor(item.severity),
+        lineColor: theme.surface,
+        lineWidth: 2,
+      },
       custom: {
         impact: item.impact,
         likelihood: item.likelihood,
         severity: item.severity,
       },
-      lat: item.lat,
-      lon: item.lon,
-      name: locale === 'fa' ? item.label : item.labelEn,
-      z: item.impact,
     }))
 
-    return {
-      accessibility: {
-        description: local(
-          locale,
-          'نقشه جهانی کانون‌های تنش با نمایش احتمال و پیامد.',
-          'World map of regional tension points showing likelihood and impact.',
-        ),
-      },
-      chart: {
-        animation: false,
-        backgroundColor: theme.water,
-        height: 520,
-        map: topology as never,
-        margin: [0, 0, 0, 0],
-        spacing: [0, 0, 0, 0],
-      },
-      credits: { enabled: false },
-      legend: { enabled: false },
-      mapNavigation: {
-        buttonOptions: {
-          align: 'left',
-          verticalAlign: 'bottom',
-          theme: {
-            fill: theme.surface,
-            stroke: theme.border,
-            'stroke-width': 1,
-            r: 8,
-            style: {
-              color: theme.foreground,
-              fontSize: '14px',
-            },
-          },
-        },
-        enabled: true,
-        enableDoubleClickZoom: true,
-        enableMouseWheelZoom: true,
-      },
-      mapView: {
-        projection: { name: 'EqualEarth' },
-        ...(view.center ? { center: view.center } : {}),
-        ...(view.zoom != null ? { zoom: view.zoom } : {}),
-      },
-      plotOptions: {
-        mapbubble: {
+    try {
+      const chart = Highcharts.mapChart(containerRef.current, {
+        chart: {
           animation: false,
-          dataLabels: {
-            allowOverlap: false,
-            enabled: true,
-            formatter() {
-              const point = this.point as unknown as {
-                name?: string
-                custom?: { impact: number; likelihood: number }
-                series: { chart: { mapView?: { zoom?: number } } }
-              }
-              const zoom = point.series.chart.mapView?.zoom ?? 0
-              if (!point.name) return ''
-              if (zoom < 1.65 || !point.custom) return point.name
-
-              const likelihood = numberFormatter.format(point.custom.likelihood)
-              const impact = numberFormatter.format(point.custom.impact)
-              const percent = locale === 'fa' ? '٪' : '%'
-              return `<span class="security-map-label-title">${point.name}</span><br/><span class="security-map-label-meta">${local(locale, 'احتمال', 'Likelihood')} ${likelihood}${percent} · ${local(locale, 'پیامد', 'Impact')} ${impact}${percent}</span>`
+          backgroundColor: theme.water,
+          height: 520,
+          margin: [0, 0, 0, 0],
+          spacing: [0, 0, 0, 0],
+          style: { fontFamily: 'inherit' },
+        },
+        credits: { enabled: false },
+        legend: { enabled: false },
+        mapNavigation: {
+          enabled: true,
+          enableDoubleClickZoom: true,
+          enableMouseWheelZoom: true,
+          buttonOptions: {
+            align: 'left',
+            verticalAlign: 'bottom',
+            theme: {
+              fill: theme.surface,
+              stroke: theme.border,
+              'stroke-width': 1,
+              r: 8,
+              style: { color: theme.foreground, fontSize: '14px' },
             },
-            padding: 4,
-            style: {
-              color: theme.foreground,
-              fontSize: '12px',
-              fontWeight: '500',
-              textOutline: 'none',
-            },
-            useHTML: true,
-          },
-          minSize: 12,
-          maxSize: 28,
-          marker: {
-            lineColor: theme.surface,
-            lineWidth: 2,
           },
         },
-      },
-      series: [
-        {
-          type: 'map',
-          name: local(locale, 'نقشه جهان', 'World map'),
-          nullColor: theme.land,
+        mapView: {
+          projection: { name: 'EqualEarth' },
+          ...(view.center ? { center: view.center } : {}),
+          ...(view.zoom != null ? { zoom: view.zoom } : {}),
+        },
+        tooltip: {
+          backgroundColor: theme.surface,
           borderColor: theme.border,
-          borderWidth: 0.6,
-          enableMouseTracking: false,
-          showInLegend: false,
-        },
-        {
-          type: 'mapbubble',
-          name: local(locale, 'کانون تنش', 'Tension area'),
-          data: filteredPoints,
-          joinBy: undefined,
-          minSize: 12,
-          maxSize: 28,
-        },
-      ],
-      tooltip: {
-        backgroundColor: theme.surface,
-        borderColor: theme.border,
-        borderRadius: 8,
-        padding: 12,
-        shadow: false,
-        useHTML: true,
-        formatter() {
-          const point = this.point as unknown as {
-            name?: string
-            custom?: { impact: number; likelihood: number; severity: Severity }
-          }
-          if (!point.custom) return false
+          borderRadius: 8,
+          padding: 12,
+          shadow: false,
+          useHTML: true,
+          formatter() {
+            const point = this.point as Highcharts.Point & {
+              custom?: { impact: number; likelihood: number; severity: Severity }
+            }
+            if (!point.custom) return false
 
-          const likelihood = numberFormatter.format(point.custom.likelihood)
-          const impact = numberFormatter.format(point.custom.impact)
-          const percent = locale === 'fa' ? '٪' : '%'
-          const dir = locale === 'fa' ? 'rtl' : 'ltr'
-          const align = locale === 'fa' ? 'right' : 'left'
+            const likelihood = numberFormatter.format(point.custom.likelihood)
+            const impact = numberFormatter.format(point.custom.impact)
+            const percent = locale === 'fa' ? '٪' : '%'
+            const dir = locale === 'fa' ? 'rtl' : 'ltr'
+            const align = locale === 'fa' ? 'right' : 'left'
 
-          return `<div dir="${dir}" style="min-width:176px;text-align:${align};font-size:14px"><strong>${point.name ?? ''}</strong><br/><span style="color:${theme.muted}">${local(locale, 'احتمال', 'Likelihood')}</span> · ${likelihood}${percent}<br/><span style="color:${theme.muted}">${local(locale, 'پیامد', 'Impact')}</span> · ${impact}${percent}<br/><span style="color:${theme.muted}">${local(locale, 'شدت', 'Severity')}</span> · ${severityLabel(locale, point.custom.severity)}</div>`
+            return `<div dir="${dir}" style="min-width:176px;text-align:${align};font-size:14px"><strong>${point.name ?? ''}</strong><br/><span style="color:${theme.muted}">${local(locale, 'احتمال', 'Likelihood')}</span> · ${likelihood}${percent}<br/><span style="color:${theme.muted}">${local(locale, 'پیامد', 'Impact')}</span> · ${impact}${percent}<br/><span style="color:${theme.muted}">${local(locale, 'شدت', 'Severity')}</span> · ${severityLabel(locale, point.custom.severity)}</div>`
+          },
         },
-      },
-    } as ChartOptions
-  }, [continent, locale, numberFormatter, theme, topology, visibleItems])
+        plotOptions: {
+          mappoint: {
+            animation: false,
+            dataLabels: {
+              allowOverlap: false,
+              enabled: true,
+              useHTML: true,
+              formatter() {
+                const point = this.point as Highcharts.Point & {
+                  custom?: { impact: number; likelihood: number }
+                }
+                const zoom = this.series.chart.mapView?.zoom ?? 0
+                if (!point.name) return ''
+                if (zoom < 1.65 || !point.custom) return point.name
+
+                const likelihood = numberFormatter.format(point.custom.likelihood)
+                const impact = numberFormatter.format(point.custom.impact)
+                const percent = locale === 'fa' ? '٪' : '%'
+                return `<span class="security-map-label-title">${point.name}</span><br/><span class="security-map-label-meta">${local(locale, 'احتمال', 'Likelihood')} ${likelihood}${percent} · ${local(locale, 'پیامد', 'Impact')} ${impact}${percent}</span>`
+              },
+              style: {
+                color: theme.foreground,
+                fontSize: '12px',
+                fontWeight: '500',
+                textOutline: 'none',
+              },
+            },
+          },
+        },
+        series: [
+          {
+            type: 'map',
+            name: local(locale, 'نقشه جهان', 'World map'),
+            mapData: topology as never,
+            data: [],
+            allAreas: true,
+            nullColor: theme.land,
+            borderColor: theme.border,
+            borderWidth: 0.6,
+            enableMouseTracking: false,
+            showInLegend: false,
+          },
+          {
+            type: 'mappoint',
+            name: local(locale, 'کانون تنش', 'Tension area'),
+            data: points as never,
+          },
+        ],
+      } as Highcharts.Options)
+
+      return () => chart.destroy()
+    } catch {
+      setLoadState('error')
+      return undefined
+    }
+  }, [continent, loadState, locale, numberFormatter, theme, topology, visibleItems])
 
   return (
     <div className="security-map-workspace" dir={locale === 'fa' ? 'rtl' : 'ltr'}>
@@ -286,7 +276,7 @@ export function SecurityWorldMap({
             {severityLabel(locale, severity)}
           </span>
         ))}
-        <small>{local(locale, 'اندازه حباب = پیامد', 'Bubble size = impact')}</small>
+        <small>{local(locale, 'اندازه نقطه = پیامد', 'Point size = impact')}</small>
       </div>
 
       <div className="security-map-shell">
@@ -297,11 +287,17 @@ export function SecurityWorldMap({
         ) : loadState === 'error' ? (
           <div className="security-map-state">
             <strong>{local(locale, 'بارگذاری نقشه ناموفق بود', 'World map failed to load')}</strong>
-            <span>{local(locale, 'اتصال شبکه را بررسی و صفحه را دوباره بارگذاری کنید.', 'Check the network connection and reload the page.')}</span>
+            <span>
+              {local(
+                locale,
+                'نقشه نتوانست اجرا شود؛ صفحه را یک‌بار بازخوانی کنید.',
+                'The map could not start; reload the page once.',
+              )}
+            </span>
           </div>
         ) : (
           <>
-            <MapsChart options={options} containerProps={{ className: 'security-world-map' }} />
+            <div ref={containerRef} className="security-world-map" />
             {visibleItems.length === 0 ? (
               <div className="security-map-empty">
                 {local(
