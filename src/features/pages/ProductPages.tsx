@@ -41,6 +41,11 @@ import {
 } from '@/data/mock/visualMvpData'
 import { useProductCopy } from '@/localization/productCopy'
 import type { DataState } from '@/types/domain'
+import {
+  MarketComparisonChart,
+  MarketSparkline,
+  MarketTrendChart,
+} from '@/features/markets/MarketsCharts'
 
 function PageGrid({ children }: { children: ReactNode }) {
   return <div className="module-grid product-page-grid">{children}</div>
@@ -437,7 +442,7 @@ export function MarketsPage() {
   const [selected, setSelected] = useState(markets[0])
   const [view, setView] = useState<'chart' | 'table'>('chart')
   return (
-    <div className="page-view">
+    <div className="page-view markets-page">
       <PageHeader
         title={local(locale, 'اقتصاد و بازارها', 'Economy & Markets')}
         summary={local(
@@ -592,6 +597,172 @@ export function MarketsPage() {
           </div>
         </ModuleFrame>
       </PageGrid>
+      <div className="markets-workspace">
+        <div className="markets-stack markets-main-stack">
+          <ModuleFrame
+            id="market-detail"
+            title={`${selected.name[locale]} · ${selected.symbol}`}
+            description={local(locale, '۷ روز · شاخص مشاهده‌شده', '7 days · observed index')}
+            size="large"
+            state={selected.id === 'm2' ? 'stale' : 'fresh'}
+            sourceCount={7}
+          >
+            <div className="chart-view-header">
+              <div className="segmented-control">
+                <button
+                  className={view === 'chart' ? 'active' : ''}
+                  onClick={() => setView('chart')}
+                >
+                  {local(locale, 'نمودار', 'Chart')}
+                </button>
+                <button
+                  className={view === 'table' ? 'active' : ''}
+                  onClick={() => setView('table')}
+                >
+                  {local(locale, 'جدول', 'Table')}
+                </button>
+              </div>
+              <strong dir="ltr">{selected.value}</strong>
+            </div>
+            {view === 'chart' ? (
+              <MarketTrendChart
+                description={local(
+                  locale,
+                  `روند هفت‌روزه ${selected.name.fa}`,
+                  `Seven-day trend for ${selected.name.en}`,
+                )}
+                labels={local(
+                  locale,
+                  ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج', 'امروز'],
+                  ['S', 'M', 'T', 'W', 'T', 'F', 'S', 'Today'],
+                )}
+                name={selected.symbol}
+                values={selected.series}
+              />
+            ) : (
+              <DenseTable
+                headers={[
+                  local(locale, 'زمان', 'Time'),
+                  local(locale, 'مقدار', 'Value'),
+                  local(locale, 'تغییر', 'Change'),
+                ]}
+                rows={selected.series.map((value, index) => [
+                  String(index + 1),
+                  String(value),
+                  `${index ? value - selected.series[index - 1] : 0}`,
+                ])}
+              />
+            )}
+          </ModuleFrame>
+          <ModuleFrame
+            id="market-comparison"
+            title={local(locale, 'مقایسه بازارها', 'Market comparison')}
+            description={local(locale, 'تغییر روزانه · درصد', 'Daily change · percent')}
+            size="medium"
+            state="cached"
+          >
+            <MarketComparisonChart
+              description={local(locale, 'مقایسه تغییر روزانه بازارها', 'Daily market comparison')}
+              items={markets.map((item) => ({ label: item.symbol, value: item.change }))}
+            />
+          </ModuleFrame>
+        </div>
+        <div className="markets-stack markets-side-stack">
+          <ModuleFrame
+            id="watchlist"
+            title={local(locale, 'فهرست پایش', 'Watchlist')}
+            description={local(
+              locale,
+              'انتخاب برای مشاهده جزئیات',
+              'Select an instrument for detail',
+            )}
+            size="small"
+            state="fresh"
+          >
+            <div className="market-watchlist">
+              {markets.map((item) => (
+                <Button
+                  variant="ghost"
+                  key={item.id}
+                  className={selected.id === item.id ? 'selected' : ''}
+                  onClick={() => setSelected(item)}
+                >
+                  <span className="market-symbol-frame">
+                    <Icon
+                      name={
+                        item.symbol === 'XAU/USD'
+                          ? 'money-4'
+                          : item.symbol === 'BRENT'
+                            ? 'gas-station'
+                            : item.symbol === 'BTC-USD'
+                              ? 'bitcoin-card'
+                              : 'moneys'
+                      }
+                      size={22}
+                    />
+                  </span>
+                  <span className="market-row-copy">
+                    <strong>{item.name[locale]}</strong>
+                    <code dir="ltr">{item.symbol}</code>
+                  </span>
+                  <MarketSparkline
+                    description={local(
+                      locale,
+                      `روند کوتاه ${item.name.fa}`,
+                      `Compact trend for ${item.name.en}`,
+                    )}
+                    values={item.series}
+                    positive={item.change > 0}
+                  />
+                  <b className={item.change > 0 ? 'up' : 'down'} dir="ltr">
+                    {item.change > 0 ? '+' : ''}
+                    {item.change}%
+                  </b>
+                </Button>
+              ))}
+            </div>
+          </ModuleFrame>
+          <ModuleFrame
+            id="market-ai"
+            title={local(locale, 'پیامدهای هوشمند', 'AI implications')}
+            description={local(
+              locale,
+              'تفسیر پیوندخورده با رویدادها و شواهد',
+              'Interpretation linked to events and evidence',
+            )}
+            size="medium"
+            state="partial"
+            confidence={68}
+          >
+            <div className="daily-brief">
+              <span className="ai-generated-label">
+                <Icon name="magic-star" />
+                {local(locale, 'تحلیل تولیدشده', 'Generated analysis')}
+              </span>
+              <p>
+                {local(
+                  locale,
+                  'حرکت طلا با افزایش تقاضای پوشش ریسک هم‌زمان است؛ رابطهٔ علّی اثبات نشده و دادهٔ جریان سرمایه ناقص است.',
+                  'Gold moved alongside higher hedging demand; causality is not established and fund-flow data is partial.',
+                )}
+              </p>
+              <button
+                className="text-action"
+                onClick={() =>
+                  openInspector({
+                    kind: 'ai',
+                    id: 'market-ai',
+                    title: local(locale, 'پیامدهای بازار', 'Market implications'),
+                  })
+                }
+              >
+                {local(locale, 'بررسی شواهد', 'Inspect evidence')}
+                <Icon name="arrow-left-01" className="directional-icon" />
+              </button>
+            </div>
+          </ModuleFrame>
+        </div>
+      </div>
     </div>
   )
 }
