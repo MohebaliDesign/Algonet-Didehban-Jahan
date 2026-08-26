@@ -182,14 +182,16 @@ export function MarketsPage() {
                       <strong>{item.name[locale]}</strong>
                       <MarketSubtitle item={item} locale={locale} />
                     </span>
-                    <span
-                      className={item.change > 0 ? 'market-positive' : 'market-negative'}
-                      dir="auto"
-                    >
-                      {formatChange(item.change, locale)}
-                    </span>
-                    <span className="market-selector-value" dir="auto">
-                      {formatMarketValue(item.value, locale)}
+                    <span className="market-selector-metrics">
+                      <strong className="market-selector-value" dir="auto">
+                        {formatMarketValue(item.value, locale)}
+                      </strong>
+                      <span
+                        className={item.change > 0 ? 'market-positive' : 'market-negative'}
+                        dir="auto"
+                      >
+                        {formatChange(item.change, locale)}
+                      </span>
                     </span>
                   </button>
                 )
