@@ -110,7 +110,7 @@ export function SecurityWorldMap({
     [continent, items],
   )
 
-  const options = useMemo<ChartOptions>(() => {
+  const options = useMemo(() => {
     const view = continentViews[continent]
     const filteredPoints = visibleItems.map((item) => ({
       color: severityColor(item.severity),
@@ -248,7 +248,7 @@ export function SecurityWorldMap({
           return `<div dir="${dir}" style="min-width:176px;text-align:${align};font-size:14px"><strong>${point.name ?? ''}</strong><br/><span style="color:${theme.muted}">${local(locale, 'احتمال', 'Likelihood')}</span> · ${likelihood}${percent}<br/><span style="color:${theme.muted}">${local(locale, 'پیامد', 'Impact')}</span> · ${impact}${percent}<br/><span style="color:${theme.muted}">${local(locale, 'شدت', 'Severity')}</span> · ${severityLabel(locale, point.custom.severity)}</div>`
         },
       },
-    }
+    } as ChartOptions
   }, [continent, locale, numberFormatter, theme, topology, visibleItems])
 
   return (
