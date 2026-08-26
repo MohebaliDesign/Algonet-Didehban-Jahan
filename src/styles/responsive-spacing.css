@@ -7,7 +7,7 @@
 
 .app-shell {
   --shell-inline-gutter: 24px;
-  --content-grid-gap: 20px;
+  --content-grid-gap: 16px;
   --content-card-padding: 20px;
 }
 
@@ -33,18 +33,34 @@
   min-width: 0;
 }
 
-/* Use the same spacing rhythm between content modules on every product page. */
+/*
+ * Product card layout.
+ * Stretching modules within each CSS Grid row removes false vertical whitespace
+ * caused by different card heights. The only visible separation between rows
+ * is the controlled 12–20px grid gap.
+ */
 .module-grid,
 .product-page-grid {
   width: 100%;
   min-width: 0;
   gap: var(--content-grid-gap);
+  align-items: stretch;
+  grid-auto-flow: row dense;
 }
 
 .module-frame {
+  display: flex;
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  height: 100%;
+  align-self: stretch;
+  flex-direction: column;
+}
+
+.module-content {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 /* Standardize card internals while preserving component-specific content layouts. */
@@ -53,7 +69,6 @@
 }
 
 .module-content {
-  min-width: 0;
   padding: var(--content-card-padding);
 }
 
@@ -68,11 +83,18 @@
 
 /* Keep the KPI strip visually separated from the module grid. */
 .kpi-strip {
-  margin-block-end: 16px;
+  margin-block-end: var(--content-grid-gap);
 }
 
 .management-sheet-body {
   padding-inline: 20px;
+}
+
+@media (min-width: 1600px) {
+  .app-shell {
+    --shell-inline-gutter: 24px;
+    --content-grid-gap: 20px;
+  }
 }
 
 @media (max-width: 1360px) {
