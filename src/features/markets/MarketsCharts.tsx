@@ -1,9 +1,10 @@
-﻿import './markets.css'
+import './markets.css'
 import { useEffect, useMemo, useState } from 'react'
 
 import { Chart, type ChartOptions } from '@highcharts/react'
 import { StockChart } from '@highcharts/react/Stock'
 import { Accessibility } from '@highcharts/react/modules/Accessibility'
+import { usePreferences } from '@/app/PreferencesProvider'
 import { baseChartOptions, chartAxisOptions, highchartsTokens } from '@/lib/highchartsTheme'
 
 type OhlcPoint = [number, number, number, number, number]
@@ -75,31 +76,102 @@ export function MarketTrendChart({
   name: string
   values: number[]
 }) {
+  const { locale } = usePreferences()
   const theme = highchartsTokens
+  const isGold = name === 'XAU/USD'
+  const seriesColor = isGold ? theme.amber : theme.primary
+  const numberFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat(locale === 'fa' ? 'fa-IR' : 'en-US', {
+        maximumFractionDigits: 2,
+      }),
+    [locale],
+  )
+
   const options = useMemo<ChartOptions>(
     () => ({
       ...baseChartOptions(description, 300),
-      chart: { ...baseChartOptions(description, 300).chart, type: 'line' },
+      chart: {
+        ...baseChartOptions(description, 300).chart,
+        type: isGold ? 'area' : 'line',
+      },
+      plotOptions: {
+        series: {
+          animation: false,
+          states: {
+            hover: { lineWidthPlus: 1 },
+          },
+        },
+      },
       series: [
         {
-          color: theme.primary,
+          color: seriesColor,
           data: values,
-          lineWidth: 3,
+          fillColor: isGold
+            ? {
+                linearGradient: {
+                  x1: 0,
+                  y1: 0,
+                  x2: 0,
+                  y2: 1,
+                },
+                stops: [
+                  [0, `color-mix(in srgb, ${seriesColor} 28%, transparent)`],
+                  [1, `color-mix(in srgb, ${seriesColor} 2%, transparent)`],
+                ],
+              }
+            : undefined,
+          lineWidth: isGold ? 2 : 3,
           marker: { enabled: false },
           name,
-          type: 'line',
+          threshold: isGold ? null : undefined,
+          type: isGold ? 'area' : 'line',
         },
       ],
+      tooltip: {
+        ...baseChartOptions(description).tooltip,
+        followPointer: false,
+        formatter() {
+          const index = typeof this.x === 'number' ? this.x : -1
+          const label = labels[index] ?? String(this.key ?? '')
+          const value = typeof this.y === 'number' ? numberFormatter.format(this.y) : '—'
+          const direction = locale === 'fa' ? 'rtl' : 'ltr'
+          const alignment = locale === 'fa' ? 'right' : 'left'
+
+          return `<div dir="${direction}" style="min-width:112px;text-align:${alignment}"><span style="color:${theme.muted};font-size:12px">${label}</span><br/><strong>${name}</strong><span> · ${value}</span></div>`
+        },
+        useHTML: true,
+      },
       xAxis: {
         categories: labels,
         ...chartAxisOptions(),
+        crosshair: {
+          color: theme.border,
+          dashStyle: 'Dash',
+          width: 1,
+        },
+        gridLineWidth: 0,
+        lineWidth: 0,
+        tickLength: 0,
       },
       yAxis: {
         ...chartAxisOptions(),
+        gridLineWidth: 1,
+        labels: {
+          ...chartAxisOptions().labels,
+          formatter() {
+            return typeof this.value === 'number'
+              ? numberFormatter.format(this.value)
+              : String(this.value)
+          },
+        },
+        lineWidth: 0,
+        opposite: false,
+        tickWidth: 0,
         title: { text: undefined },
       },
     }),
-    [description, labels, name, theme, values],
+    [description, isGold, labels, locale, name, numberFormatter, seriesColor, theme, values],
   )
 
   return (
@@ -270,4 +342,3 @@ export function MarketSparkline({
     </Chart>
   )
 }
-
