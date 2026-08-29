@@ -19,5 +19,9 @@
 @import './enterprise-iteration-3.css';
 /* Figma-backed context toolbar treatment, using the existing shadcn Field + Select composition. */
 @import './figma-context-toolbar.css';
+/* Audited semantic chart/map colors for light and dark themes. */
+@import './theme-audit.css';
+/* shadcn-style scroll-edge fade for internal scrolling surfaces. */
+@import './scroll-fade.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
