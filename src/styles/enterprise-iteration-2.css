@@ -1,6 +1,6 @@
 /*
  * Enterprise polish — iteration 2.
- * Focus: compact shadcn filters, natural document scrolling, balanced card fill,
+ * Focus: shadcn Field + Select filters, natural document scrolling, balanced card fill,
  * clickable provenance, and page-aware pastel visualization palettes.
  */
 
@@ -133,65 +133,92 @@ body {
   min-width: 0;
 }
 
-/* Compact global filters: the existing shadcn Select stays the interaction primitive. */
+/*
+ * Global filters use the shadcn Field → FieldLabel → Select composition.
+ * The toolbar stays compact by keeping the label at metadata scale and the control at 36px.
+ */
 .context-bar {
   inset-block-start: 72px;
-  min-height: 56px;
+  min-height: 72px;
   flex-wrap: nowrap;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
   padding-block: 8px;
+  background: color-mix(in srgb, var(--surface) 97%, var(--background));
 }
 
-.context-filter {
+.context-filter[data-slot='field'] {
+  width: auto;
+  min-width: 148px;
+  max-width: 196px;
+  flex: 0 1 176px;
+  gap: 4px;
+}
+
+.context-filter-label[data-slot='field-label'] {
   display: flex;
-  min-width: 144px;
-  min-height: 40px;
-  height: 40px;
+  width: 100%;
+  min-height: 14px;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  padding: 0 10px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.context-filter-label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.context-filter > span {
+.context-filter-label small {
   flex: none;
-  color: var(--muted-foreground);
-  font-size: 12px;
-  line-height: 1;
+  color: color-mix(in srgb, var(--muted-foreground) 78%, transparent);
+  font-size: 11px;
+  font-weight: 400;
 }
 
 .context-filter [data-slot='select-trigger'] {
-  width: auto;
+  width: 100%;
   min-width: 0;
-  min-height: 38px;
-  height: 38px;
-  flex: 1 1 auto;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  min-height: 36px;
+  height: 36px;
+  padding-inline: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--foreground);
+  background: var(--surface);
   box-shadow: none;
   font-size: 14px;
   font-weight: 500;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.context-filter [data-slot='select-trigger']:hover {
+  border-color: color-mix(in srgb, var(--foreground) 16%, var(--border));
+  background: color-mix(in srgb, var(--surface) 96%, var(--accent));
 }
 
 .context-filter [data-slot='select-trigger']:focus-visible {
-  box-shadow: none;
+  border-color: color-mix(in srgb, var(--ring) 58%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 10%, transparent);
+  outline: 0;
 }
 
-.context-filter small {
-  position: static;
-  flex: none;
-  padding-inline-start: 8px;
-  border-inline-start: 1px solid var(--border-subtle);
-  color: var(--muted-foreground);
-  font-size: 11px;
-  line-height: 1;
-  pointer-events: none;
+.context-filter[data-invalid='true'] [data-slot='field-label'],
+.context-filter [aria-invalid='true'] {
+  color: var(--destructive);
 }
 
-.context-filter:has(small) [data-slot='select-trigger'] {
-  padding-inline-end: 0;
+.context-filter [aria-invalid='true'] {
+  border-color: color-mix(in srgb, var(--destructive) 56%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 9%, transparent);
 }
 
 .context-bar > [data-slot='button'] {
@@ -264,8 +291,8 @@ body {
     scrollbar-width: thin;
   }
 
-  .context-filter {
-    flex: 0 0 auto;
+  .context-filter[data-slot='field'] {
+    flex: 0 0 164px;
   }
 }
 
@@ -279,11 +306,21 @@ body {
   .context-bar:not(.open) > [data-slot='button']:not(.compact-filter-toggle) {
     display: none;
   }
+
+  .context-filter[data-slot='field'] {
+    min-width: min(100%, 180px);
+    flex: 1 1 160px;
+  }
 }
 
 @media (max-width: 640px) {
   .module-frame .module-content {
     display: block;
+  }
+
+  .context-filter[data-slot='field'] {
+    max-width: none;
+    flex-basis: 100%;
   }
 
   .product-canvas {
