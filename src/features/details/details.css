@@ -1,0 +1,159 @@
+.intelligence-detail-page {
+  display: grid;
+  gap: 24px;
+}
+
+.detail-back-row {
+  margin-block-end: -8px;
+}
+
+.detail-tabs {
+  gap: 24px;
+}
+
+.detail-tabs-list {
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.detail-tab-content {
+  min-width: 0;
+}
+
+.detail-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.8fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.detail-primary-card,
+.detail-context-card,
+.detail-tab-content > [data-slot='card'] {
+  border-radius: var(--radius-card);
+}
+
+.detail-copy-stack,
+.detail-context-list {
+  display: grid;
+  gap: 20px;
+}
+
+.detail-copy-stack > p {
+  margin: 0;
+  line-height: 1.9;
+}
+
+.detail-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+.detail-facts > div {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--surface-subtle);
+}
+
+.detail-facts dt {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.detail-facts dd {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.detail-context-list span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted-foreground);
+  line-height: 1.7;
+}
+
+.detail-source-list,
+.detail-related-list {
+  display: grid;
+}
+
+.detail-source-row,
+.detail-related-row {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 4px;
+  border: 0;
+  border-block-end: 1px solid var(--border-subtle);
+  color: var(--foreground);
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+
+.detail-source-row:last-child,
+.detail-related-row:last-child {
+  border-block-end: 0;
+}
+
+.detail-source-row:hover,
+.detail-related-row:hover {
+  background: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.detail-source-row > span:first-child,
+.detail-related-row > span:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.detail-source-row small,
+.detail-related-row small {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.detail-raw-data {
+  max-width: 100%;
+  max-height: 560px;
+  overflow: auto;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  color: var(--foreground);
+  background: var(--surface-subtle);
+  font-family: var(--font-sans-en);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 900px) {
+  .detail-overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .detail-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .detail-tabs-list {
+    width: 100%;
+  }
+}
