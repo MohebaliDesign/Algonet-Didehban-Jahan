@@ -50,15 +50,17 @@ export function PageHeader({
 
 export function KpiStrip({
   items,
+  iconSize = 19,
 }: {
   items: { label: string; value: string; change?: string; tone?: string; icon: string }[]
+  iconSize?: number
 }) {
   return (
     <section className="kpi-strip">
       {items.map((item) => (
         <article key={item.label}>
           <span className={`kpi-icon ${item.tone ?? ''}`}>
-            <Icon name={item.icon} size={19} />
+            <Icon name={item.icon} size={iconSize} />
           </span>
           <div>
             <small>{item.label}</small>
