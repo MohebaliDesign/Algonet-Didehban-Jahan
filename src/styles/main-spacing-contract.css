@@ -1,0 +1,76 @@
+/*
+ * Main-branch padding and margin contract.
+ * These values mirror the current main branch so visual-polish iterations do not
+ * silently redefine product spacing. Component-specific visual styling may change
+ * color, border, radius, elevation, typography, or state treatment only.
+ */
+
+.primary-nav nav {
+  padding: 14px 12px;
+}
+
+.context-bar {
+  padding-block: 8px;
+}
+
+.context-filter {
+  padding: 6px 10px;
+}
+
+.page-header {
+  margin-block: 2px 18px;
+}
+
+.page-header p {
+  margin: 2px 0 0;
+}
+
+.page-eyebrow {
+  margin-block-end: 5px;
+}
+
+.kpi-strip article {
+  padding: 12px 14px;
+}
+
+.state-badge {
+  padding-inline: 7px;
+}
+
+.edit-tools {
+  padding: 6px 12px;
+}
+
+.edit-tools button {
+  padding: 6px 9px;
+}
+
+[data-slot='table-head'] {
+  padding-inline: 8px;
+}
+
+[data-slot='table-cell'] {
+  padding: 8px;
+}
+
+@media (max-width: 900px) {
+  .product-canvas {
+    padding: 20px;
+  }
+
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .product-canvas {
+    padding: 20px;
+  }
+
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    padding: 20px;
+  }
+}
