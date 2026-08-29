@@ -178,7 +178,7 @@ export function CountriesPage() {
                     })
                   }
                 >
-                  {local(locale, 'بازکردن بازرس کشور', 'Open country inspector')}
+                  {local(locale, 'مشاهده جزئیات کشور', 'View country details')}
                   <Icon name="arrow-left-01" className="directional-icon" />
                 </Button>
               </div>
