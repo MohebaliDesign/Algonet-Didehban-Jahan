@@ -608,20 +608,16 @@ export function MarketsPage() {
             sourceCount={7}
           >
             <div className="chart-view-header">
-              <div className="segmented-control">
-                <button
-                  className={view === 'chart' ? 'active' : ''}
-                  onClick={() => setView('chart')}
-                >
-                  {local(locale, 'نمودار', 'Chart')}
-                </button>
-                <button
-                  className={view === 'table' ? 'active' : ''}
-                  onClick={() => setView('table')}
-                >
-                  {local(locale, 'جدول', 'Table')}
-                </button>
-              </div>
+              <ToggleGroup
+                type="single"
+                value={view}
+                onValueChange={(value) => value && setView(value as 'chart' | 'table')}
+                className="segmented-control"
+                aria-label={local(locale, 'نوع نمایش بازار', 'Market view type')}
+              >
+                <ToggleGroupItem value="chart">{local(locale, 'نمودار', 'Chart')}</ToggleGroupItem>
+                <ToggleGroupItem value="table">{local(locale, 'جدول', 'Table')}</ToggleGroupItem>
+              </ToggleGroup>
               <strong dir="ltr">{selected.value}</strong>
             </div>
             {view === 'chart' ? (
@@ -746,7 +742,8 @@ export function MarketsPage() {
                   'Gold moved alongside higher hedging demand; causality is not established and fund-flow data is partial.',
                 )}
               </p>
-              <button
+              <Button
+                variant="link"
                 className="text-action"
                 onClick={() =>
                   openInspector({
@@ -758,7 +755,7 @@ export function MarketsPage() {
               >
                 {local(locale, 'بررسی شواهد', 'Inspect evidence')}
                 <Icon name="arrow-left-01" className="directional-icon" />
-              </button>
+              </Button>
             </div>
           </ModuleFrame>
         </div>
