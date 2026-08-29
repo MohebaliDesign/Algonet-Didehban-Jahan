@@ -27,5 +27,5 @@ jobs:
       - name: Validate shadcn configuration
         run: npm run shadcn:info
 
-      - name: Run project checks
-        run: npm run check
+      - name: Run integration checks
+        run: npm run check:ci
