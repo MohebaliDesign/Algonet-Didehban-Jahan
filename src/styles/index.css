@@ -5,12 +5,15 @@
 @import './visualization.css';
 @import './foundation.css';
 @import './product.css';
-@import './responsive-spacing.css';
 @import './world-map.css';
 @import './world-map-search.css';
 @import './list-items.css';
 @import './enterprise-polish.css';
 @import './enterprise-human-details.css';
 @import './enterprise-iteration-2.css';
+/* Keep the current main branch padding/margin and responsive spacing as the final layout contract. */
+@import './responsive-spacing.css';
+/* Visual-only refinements may follow, but should not redefine page/card padding or margins. */
+@import './enterprise-iteration-3.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
