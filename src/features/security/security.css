@@ -12,6 +12,14 @@
   font-size: var(--type-control-size);
 }
 
+.security-page .kpi-strip {
+  margin-block-end: 24px;
+}
+
+.security-page .product-page-grid {
+  gap: 24px;
+}
+
 .security-page .kpi-icon {
   width: 56px;
   height: 56px;
@@ -45,15 +53,17 @@
   display: none;
 }
 
+/* Keep the two analytical cards in one grid row without forcing their
+   internal wrappers to 100% height. The previous descendant height rule
+   stretched Collapsible wrappers and pushed chart content outside the cards. */
 .security-page [data-module-id='regional-bars'],
 .security-page [data-module-id='threat-timeline'] {
-  height: 100%;
   align-self: stretch;
 }
 
-.security-page [data-module-id='regional-bars'] > div,
-.security-page [data-module-id='threat-timeline'] > div {
-  height: 100%;
+.security-page [data-module-id='regional-bars'] .module-content,
+.security-page [data-module-id='threat-timeline'] .module-content {
+  min-height: 0;
 }
 
 .security-strategic-summary {
@@ -310,6 +320,10 @@
     width: 48px;
     height: 48px;
     flex-basis: 48px;
+  }
+
+  .security-page .product-page-grid {
+    gap: 16px;
   }
 
   .security-map-shell,
