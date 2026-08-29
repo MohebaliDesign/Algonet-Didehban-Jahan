@@ -429,28 +429,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
 
   return (
     <div className="map-workspace" dir={isFa ? 'rtl' : 'ltr'}>
-      <div className="map-toolbar">
-        <ToggleGroup
-          type="single"
-          value={listView ? 'list' : 'map'}
-          onValueChange={(value) => value && setListView(value === 'list')}
-          className="view-switch"
-          aria-label={isFa ? 'نوع نمایش نقشه' : 'Map display mode'}
-        >
-          <ToggleGroupItem value="map" aria-label={isFa ? 'نقشه' : 'Map'}>
-            <Icon name="global" />
-            {isFa ? 'نقشه' : 'Map'}
-          </ToggleGroupItem>
-          <ToggleGroupItem value="list" aria-label={isFa ? 'فهرست' : 'List'}>
-            <Icon name="menu" />
-            {isFa ? 'فهرست' : 'List'}
-          </ToggleGroupItem>
-        </ToggleGroup>
-        <Button variant="ghost" onClick={resetView}>
-          <Icon name="gps" />
-          {isFa ? 'بازنشانی نما' : 'Reset view'}
-        </Button>
-      </div>
+      
 
       {!listView && (
         <div className="map-stage">
