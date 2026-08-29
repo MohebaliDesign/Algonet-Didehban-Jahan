@@ -17,5 +17,7 @@
 @import './main-spacing-contract.css';
 /* Visual-only refinements may follow, but should not redefine page/card padding or margins. */
 @import './enterprise-iteration-3.css';
+/* Figma-backed context toolbar treatment, using the existing shadcn Field + Select composition. */
+@import './figma-context-toolbar.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
