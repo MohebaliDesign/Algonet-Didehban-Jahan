@@ -8,3 +8,47 @@
 - Never store real secrets. Use typed mock data until a real integration is explicitly approved.
 - Before handoff, run formatting, linting, type checking, unit tests, a production build, and visual checks relevant to the change.
 - Report changed files and verification results. Update documentation whenever a product or architecture decision changes.
+
+## shadcn component-library contract
+
+- Use shadcn/ui as the default component library for application UI.
+- Before creating a new interactive control, search the shadcn registry through the shadcn MCP server or CLI.
+- Add missing primitives with `npm run shadcn:add -- <component>`.
+- Do not create raw `button`, `input`, `select`, `textarea`, `table`, `dialog`, or `progress` elements outside `src/components/ui`.
+- Product-specific compositions belong in `src/components/product` or feature folders and must compose primitives from `@/components/ui`.
+- Highcharts remains the visualization engine. Do not replace charts or maps with shadcn components.
+
+### Project design-system overrides
+
+- Preserve the project semantic tokens in `src/styles/tokens.css`.
+- Never replace project brand colors, typography, spacing tokens, radii, or theme variables with shadcn demo values.
+- Components should consume semantic tokens such as `background`, `foreground`, `primary`, `muted`, `accent`, `border`, `input`, `ring`, and their foreground pairs.
+- Avoid hard-coded brand colors inside components when a token exists.
+- The existing Iconsax-based `Icon` wrapper is a project-level visual-system override. Keep icon usage consistent with the wrapper unless an explicit icon migration is approved.
+
+### Persian, RTL, and localization
+
+- Persian is a first-class layout mode, not a text-only translation.
+- Keep `components.json` RTL support enabled and use the existing `DirectionProvider` for runtime `rtl`/`ltr` switching.
+- Prefer logical direction utilities and properties (`start/end`, `ps/pe`) instead of physical left/right values in reusable UI primitives.
+- Mirror directional icons when required. Keep inherently LTR content such as URLs, IDs, coordinates, timestamps, tickers, and code readable with explicit direction.
+- Write natural Persian product copy; do not translate English UI wording literally.
+
+### shadcn ownership model
+
+- `src/components/ui`: shadcn primitives and narrowly scoped project adaptations.
+- `src/components/product`: reusable Didehban Jahan compositions built from shadcn primitives.
+- `src/features`: page/feature composition; no duplicate primitive implementations.
+- Do not install the entire registry pre-emptively. Add only components required by product behavior.
+- When a generated shadcn file is customized, preserve accessibility behavior, states, data attributes, and Radix/Base UI semantics unless there is a documented product reason to change them.
+
+### Verification
+
+Run before merging UI changes:
+
+```bash
+npm run shadcn:info
+npm run check
+```
+
+The Vitest shadcn guardrail must remain passing. If a native primitive is genuinely necessary, implement or wrap it in `src/components/ui` rather than bypassing the guardrail in a feature file.
