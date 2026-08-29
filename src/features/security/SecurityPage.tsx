@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
@@ -37,6 +38,7 @@ function PageGrid({ children }: { children: React.ReactNode }) {
 export function SecurityPage() {
   const { locale } = usePreferences()
   const { openInspector } = useWorkspace()
+  const navigate = useNavigate()
   const [continent, setContinent] = useState<Continent>('all')
 
   const riskItems: SecurityRiskPoint[] = [
@@ -87,7 +89,7 @@ export function SecurityPage() {
   ]
 
   return (
-    <div className="page-view">
+    <div className="page-view security-page">
       <PageHeader
         title={local(locale, 'امنیت و ژئوپلیتیک', 'Security & Geopolitics')}
         summary={local(
@@ -98,6 +100,7 @@ export function SecurityPage() {
       />
 
       <KpiStrip
+        iconSize={40}
         items={[
           {
             label: local(locale, 'کانون تنش فعال', 'Active tension areas'),
@@ -162,47 +165,6 @@ export function SecurityPage() {
         </ModuleFrame>
 
         <ModuleFrame
-          id="posture"
-          title={local(locale, 'جمع‌بندی وضعیت راهبردی', 'Strategic posture summary')}
-          description={local(
-            locale,
-            'ارزیابی AI با شواهد پیوندخورده',
-            'Evidence-linked AI assessment',
-          )}
-          size="medium"
-          state="partial"
-          confidence={74}
-        >
-          <div className="daily-brief">
-            <span className="ai-generated-label">
-              <Icon name="magic-star" />
-              {local(locale, 'تولیدشده با AI', 'AI-generated')}
-            </span>
-            <p>
-              {local(
-                locale,
-                'افزایش فعالیت مشاهده‌شده در شرق آسیا با اعلان رسمی رزمایش هم‌خوان است. در قفقاز، شواهد برای نتیجه‌گیری دربارهٔ علت اختلال کافی نیست.',
-                'Observed activity in East Asia aligns with an announced exercise. In the Caucasus, evidence is insufficient to conclude the cause of disruption.',
-              )}
-            </p>
-            <Button
-              variant="link"
-              className="text-action"
-              onClick={() =>
-                openInspector({
-                  kind: 'ai',
-                  id: 'security-assessment',
-                  title: local(locale, 'ارزیابی امنیت منطقه‌ای', 'Regional security assessment'),
-                })
-              }
-            >
-              {local(locale, 'بازکردن شواهد و تناقض‌ها', 'Open evidence and contradictions')}
-              <Icon name="arrow-left-01" className="directional-icon" />
-            </Button>
-          </div>
-        </ModuleFrame>
-
-        <ModuleFrame
           id="regional-bars"
           title={local(locale, 'مقایسه ریسک منطقه‌ای', 'Regional risk comparison')}
           description={local(
@@ -257,6 +219,44 @@ export function SecurityPage() {
               </li>
             ))}
           </ol>
+        </ModuleFrame>
+
+        <ModuleFrame
+          id="posture"
+          title={local(locale, 'جمع‌بندی وضعیت راهبردی', 'Strategic posture summary')}
+          description={local(
+            locale,
+            'جمع‌بندی شواهد و میزان قطعیت ارزیابی',
+            'Evidence summary and assessment confidence',
+          )}
+          size="wide"
+          state="partial"
+          confidence={74}
+        >
+          <div className="daily-brief security-strategic-summary">
+            <p>
+              {local(
+                locale,
+                'در دادهٔ نمونه، افزایش فعالیت مشاهده‌شده در شرق آسیا با اعلان رسمی رزمایش هم‌خوان است و می‌تواند توضیحی برای بخشی از تغییرات ثبت‌شده باشد. با این حال، این هم‌زمانی به‌تنهایی برای نتیجه‌گیری قطعی کافی نیست و باید در کنار زمان‌بندی رویدادها، دامنه منابع و شواهد مستقل بررسی شود.',
+                'In the sample data, increased activity observed in East Asia aligns with an announced exercise and may explain part of the recorded change. This timing alone is not enough for a definitive conclusion and should be reviewed alongside event timing, source scope, and independent evidence.',
+              )}
+            </p>
+            <p>
+              {local(
+                locale,
+                'در قفقاز، شواهد موجود برای نسبت‌دادن علت اختلال کافی نیست. برای جلوگیری از نتیجه‌گیری زودهنگام، شواهد همسو، موارد متناقض و نقاط دارای دادهٔ ناکافی در صفحهٔ جزئیات به‌صورت جداگانه نمایش داده می‌شوند.',
+                'In the Caucasus, the available evidence is insufficient to attribute a cause to the disruption. To avoid premature conclusions, supporting evidence, contradictions, and insufficient-data areas are separated in the detailed assessment page.',
+              )}
+            </p>
+            <Button
+              variant="link"
+              className="text-action"
+              onClick={() => navigate('/security/assessment')}
+            >
+              {local(locale, 'مشاهده شواهد و تناقض‌ها', 'View evidence and contradictions')}
+              <Icon name="arrow-left-01" className="directional-icon" />
+            </Button>
+          </div>
         </ModuleFrame>
       </PageGrid>
     </div>
