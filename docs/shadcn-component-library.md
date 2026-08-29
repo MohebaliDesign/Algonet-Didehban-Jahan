@@ -112,11 +112,13 @@ When a newly added shadcn component contains icons, normalize those icons to the
 
 `src/test/shadcn-usage.test.ts` prevents native interactive primitives from being introduced outside `src/components/ui`. If a low-level primitive is genuinely required, wrap or implement it in the UI layer rather than bypassing the rule in feature code.
 
-## Required verification before merge
+## Required shadcn verification before merge
 
 ```bash
 npm run shadcn:info
-npm run check
+npm run check:shadcn
 ```
+
+The repository-wide `npm run check` remains the broader project quality command. At the time this integration branch was created, `main` already contained unrelated Prettier and Highcharts TypeScript failures; those should be resolved in their own scoped change rather than silently bundled into the component-library migration.
 
 Also visually verify both Persian RTL and English LTR modes, keyboard focus, dialogs/popovers, long localized content, dark/light themes, and responsive states affected by the change.
