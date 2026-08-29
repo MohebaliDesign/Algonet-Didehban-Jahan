@@ -1,0 +1,41 @@
+/*
+ * Map layer search uses shadcn InputGroup with the same visual language as the
+ * global header search, without the keyboard shortcut hint.
+ */
+.layer-panel .layer-search {
+  width: auto;
+  height: 40px;
+  min-height: 40px;
+  margin: 0 12px 8px;
+  border-color: var(--border);
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  background: var(--accent);
+  box-shadow: none;
+}
+
+.layer-panel .layer-search [data-slot='input-group-control'] {
+  height: 38px;
+  min-height: 38px;
+  min-width: 0;
+  padding-inline: 0 12px;
+  color: var(--foreground);
+  background: transparent;
+  font-size: var(--type-control-size);
+  line-height: var(--type-control-leading);
+  text-align: start;
+}
+
+.layer-panel .layer-search [data-slot='input-group-control']::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+.layer-panel .layer-search [data-slot='input-group-addon'] {
+  flex: none;
+  color: var(--muted-foreground);
+}
+
+.layer-panel .layer-search:focus-within {
+  border-color: var(--ring);
+}

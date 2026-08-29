@@ -7,12 +7,12 @@ import { useWorkspace } from '@/app/WorkspaceProvider'
 import { Icon } from '@/components/Icon'
 import { WorldMapDetailPanel } from '@/components/product/WorldMapDetailPanel'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Slider } from '@/components/ui/slider'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   countryMapData,
@@ -24,9 +24,11 @@ import type { CountryRiskLevel, IntelligenceDomain, IntelligenceMapEvent } from 
 import { filterMapEvents, toCountrySeriesData } from './worldMapUtils'
 
 type WorldTopology = Highcharts.GeoJSON | Highcharts.TopoJSON
+
 interface WorldMapProps {
   topologyLoader?: (signal: AbortSignal) => Promise<WorldTopology>
 }
+
 const riskOrder: CountryRiskLevel[] = ['low', 'medium', 'high', 'critical']
 let highchartsModulesPromise: Promise<unknown> | null = null
 
@@ -71,10 +73,10 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
     new Set(Object.keys(layerLabels) as IntelligenceDomain[]),
   )
   const [listView, setListView] = useState(false)
-  const [timeline, setTimeline] = useState(18)
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const [timelineNotice, setTimelineNotice] = useState(false)
+  const [now, setNow] = useState(() => new Date())
   const isFa = locale === 'fa'
   const reducedMotion = useMemo(
     () =>
@@ -94,10 +96,15 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
     return () => controller.abort()
   }, [retryCount, topologyLoader])
 
-  const countries = useMemo(() => toCountrySeriesData(countryMapData, timeline), [timeline])
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(new Date()), 1000)
+    return () => window.clearInterval(interval)
+  }, [])
+
+  const countries = useMemo(() => toCountrySeriesData(countryMapData), [])
   const visibleEvents = useMemo(
-    () => filterMapEvents(intelligenceMapEvents, layers, timeline, filters.domain),
-    [filters.domain, layers, timeline],
+    () => filterMapEvents(intelligenceMapEvents, layers, filters.timeRange, filters.domain),
+    [filters.domain, filters.timeRange, layers],
   )
   const selectedCountry = useMemo(
     () => countries.find((item) => item.countryCode === selectedCountryCode) ?? null,
@@ -106,6 +113,15 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
   const selectedEvent = useMemo(
     () => visibleEvents.find((item) => item.id === selectedEventId) ?? null,
     [selectedEventId, visibleEvents],
+  )
+  const hasVisibleRoutes = useMemo(
+    () =>
+      intelligenceMapRoutes.some(
+        (route) =>
+          layers.has(route.category) &&
+          (filters.domain === 'all' || route.category === filters.domain),
+      ),
+    [filters.domain, layers],
   )
 
   useEffect(() => {
@@ -121,12 +137,14 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
     setSelectedEventId(null)
     setTimelineNotice(false)
   }, [])
+
   const selectEvent = useCallback((event: IntelligenceMapEvent, trigger?: HTMLElement | null) => {
     selectionTriggerRef.current = trigger ?? null
     setSelectedCountryCode(event.countryCode)
     setSelectedEventId(event.id)
     setTimelineNotice(false)
   }, [])
+
   const closeDetails = useCallback(() => {
     setSelectedCountryCode(null)
     setSelectedEventId(null)
@@ -151,6 +169,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
     }),
     [theme],
   )
+
   const riskLabels = useMemo(
     () => ({
       low: isFa ? 'کم' : 'Low',
@@ -161,24 +180,51 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
     [isFa],
   )
 
+  const mapClock = useMemo(() => {
+    const date = new Intl.DateTimeFormat(isFa ? 'fa-IR-u-ca-gregory' : 'en-GB', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(now)
+    const time = new Intl.DateTimeFormat(isFa ? 'fa-IR' : 'en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: 'UTC',
+    }).format(now)
+    return { date, time }
+  }, [isFa, now])
+
   const chartOptions = useMemo<Highcharts.Options | null>(() => {
     if (!topology) return null
     const countryByCode = new Map(countries.map((country) => [country.countryCode, country]))
+    const formatDate = (value: string) =>
+      new Intl.DateTimeFormat(isFa ? 'fa-IR-u-ca-gregory' : 'en-GB', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'UTC',
+      }).format(new Date(value))
+
     const series: Highcharts.SeriesOptionsType[] = [
       {
         type: 'map',
-        name: isFa ? 'امتیاز ریسک کشور' : 'Country risk score',
+        name: isFa ? 'کشورها' : 'Countries',
         mapData: topology,
-        data: countries.map((country) => ({ ...country })),
+        data: countries.map((country) => ({ ...country, color: palette.land })),
         joinBy: ['iso-a3', 'countryCode'],
         allAreas: true,
+        color: palette.land,
         nullColor: palette.land,
         borderColor: palette.border,
         borderWidth: 0.7,
         allowPointSelect: true,
         animation: !reducedMotion,
+        showInLegend: false,
         states: {
-          hover: { borderColor: palette.primary, borderWidth: 1.5, brightness: 0.08 },
+          hover: { color: palette.land, borderColor: palette.primary, borderWidth: 1.5, brightness: 0.08 },
           select: { color: palette.primary, borderColor: palette.foreground, borderWidth: 2 },
         },
         dataLabels: {
@@ -207,14 +253,19 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
       },
       {
         type: 'mapline',
-        name: isFa ? 'کریدورهای پایش‌شده' : 'Monitored corridors',
+        name: isFa ? 'مسیرهای پایش‌شده' : 'Monitored routes',
         color: palette.route,
-        lineWidth: 1.4,
+        lineWidth: 1.5,
         dashStyle: 'ShortDash',
         enableMouseTracking: true,
         animation: !reducedMotion,
+        showInLegend: false,
         data: intelligenceMapRoutes
-          .filter((route) => layers.has(route.category))
+          .filter(
+            (route) =>
+              layers.has(route.category) &&
+              (filters.domain === 'all' || route.category === filters.domain),
+          )
           .map((route) => ({
             name: isFa ? route.title.fa : route.title.en,
             geometry: { type: 'LineString', coordinates: route.coordinates },
@@ -224,6 +275,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
         type: 'mappoint',
         name: isFa ? 'رویدادهای اطلاعاتی' : 'Intelligence events',
         animation: !reducedMotion,
+        showInLegend: false,
         data: visibleEvents.map((event) => ({
           id: event.id,
           name: isFa ? event.titleFa : event.titleEn,
@@ -233,7 +285,19 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
           marker: { radius: event.severity === 'critical' ? 8 : event.severity === 'high' ? 7 : 6 },
           custom: event,
         })),
-        cluster: { enabled: true, allowOverlap: false, animation: !reducedMotion },
+        cluster: {
+          enabled: true,
+          allowOverlap: false,
+          animation: !reducedMotion,
+          drillToCluster: true,
+          minimumClusterSize: 2,
+          marker: {
+            fillColor: palette.primary,
+            lineColor: palette.surface,
+            lineWidth: 2,
+            radius: 16,
+          },
+        },
         marker: { lineColor: palette.surface, lineWidth: 2, symbol: 'circle' },
         states: { hover: { halo: { size: 8, opacity: 0.22 } }, select: { lineWidth: 3 } },
         point: {
@@ -246,22 +310,17 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
         },
       },
     ]
-    const formatDate = (value: string) =>
-      new Intl.DateTimeFormat(isFa ? 'fa-IR' : 'en', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-        timeZone: 'UTC',
-      }).format(new Date(value))
+
     return {
       chart: {
         map: topology,
         backgroundColor: palette.water,
         animation: !reducedMotion,
-        height: 500,
-        spacing: [12, 12, 12, 12],
+        height: 560,
+        spacing: [16, 16, 16, 16],
       },
       title: { text: undefined },
-      mapView: { projection: { name: 'EqualEarth' }, padding: [24, 24, 24, 24] },
+      mapView: { projection: { name: 'EqualEarth' }, padding: [32, 24, 32, 24] },
       credits: {
         enabled: true,
         text: 'Highcharts Maps · Natural Earth',
@@ -278,24 +337,22 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
         enableMouseWheelZoom: true,
         buttonOptions: {
           verticalAlign: 'bottom',
-          align: isFa ? 'right' : 'left',
+          align: isFa ? 'left' : 'right',
+          alignTo: 'spacingBox',
           width: 32,
           height: 32,
+          x: 0,
           theme: {
             fill: palette.surface,
             stroke: palette.border,
             'stroke-width': 1,
             r: 6,
             style: { color: palette.foreground, fontSize: '16px' },
+            states: {
+              hover: { fill: cssToken('--accent', theme === 'dark' ? '#202b3b' : '#eef3f8') },
+            },
           },
         },
-      },
-      colorAxis: {
-        min: 0,
-        max: 100,
-        minColor: palette.land,
-        maxColor: palette.critical,
-        labels: { style: { color: palette.muted, fontSize: '12px' } },
       },
       legend: { enabled: false },
       tooltip: {
@@ -313,7 +370,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
           }
           if (options.custom) {
             const event = options.custom
-            return `<div class="highcharts-map-tooltip" dir="${isFa ? 'rtl' : 'ltr'}"><strong>${escapeHtml(isFa ? event.titleFa : event.titleEn)}</strong><span>${escapeHtml(riskLabels[event.severity])} · ${event.sourceCount} ${isFa ? 'منبع' : 'sources'}</span><span dir="ltr">${escapeHtml(event.occurredAt)}</span></div>`
+            return `<div class="highcharts-map-tooltip" dir="${isFa ? 'rtl' : 'ltr'}"><strong>${escapeHtml(isFa ? event.titleFa : event.titleEn)}</strong><span>${escapeHtml(riskLabels[event.severity])} · ${event.sourceCount} ${isFa ? 'منبع' : 'sources'}</span><span dir="ltr">${escapeHtml(formatDate(event.occurredAt))} UTC</span></div>`
           }
           const country = countryByCode.get(String(options.countryCode ?? ''))
           if (!country) return escapeHtml(this.name ?? '')
@@ -335,8 +392,8 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
       accessibility: {
         enabled: true,
         description: isFa
-          ? 'نقشه تعاملی رویدادها و وضعیت کشورهای جهان. داده‌ها ساختگی هستند و نمای فهرست نیز در دسترس است.'
-          : 'Interactive world intelligence events and country status map. Data is mocked and a list alternative is available.',
+          ? 'نقشه تعاملی رویدادهای جهان با خوشه‌بندی نقاط، مسیرهای پایش‌شده و نمای فهرست جایگزین.'
+          : 'Interactive world event map with marker clustering, monitored routes, and an alternative list view.',
         keyboardNavigation: { enabled: true },
       },
       plotOptions: { series: { animation: !reducedMotion } },
@@ -344,6 +401,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
     }
   }, [
     countries,
+    filters.domain,
     isFa,
     layers,
     palette,
@@ -351,6 +409,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
     riskLabels,
     selectCountry,
     selectEvent,
+    theme,
     topology,
     visibleEvents,
   ])
@@ -362,36 +421,16 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
       else next.add(domain)
       return next
     })
+
   const resetView = () => {
-    setTimeline(18)
     const chart = chartRef.current?.chart as Highcharts.MapChart | undefined
     chart?.mapView?.setView(undefined, 0, true, !reducedMotion)
   }
 
   return (
     <div className="map-workspace" dir={isFa ? 'rtl' : 'ltr'}>
-      <div className="map-toolbar">
-        <ToggleGroup
-          type="single"
-          value={listView ? 'list' : 'map'}
-          onValueChange={(value) => value && setListView(value === 'list')}
-          className="view-switch"
-          aria-label={isFa ? 'نوع نمایش نقشه' : 'Map display mode'}
-        >
-          <ToggleGroupItem value="map" aria-label={isFa ? 'نقشه' : 'Map'}>
-            <Icon name="global" />
-            {isFa ? 'نقشه' : 'Map'}
-          </ToggleGroupItem>
-          <ToggleGroupItem value="list" aria-label={isFa ? 'فهرست' : 'List'}>
-            <Icon name="menu" />
-            {isFa ? 'فهرست' : 'List'}
-          </ToggleGroupItem>
-        </ToggleGroup>
-        <Button variant="ghost" onClick={resetView}>
-          <Icon name="gps" />
-          {isFa ? 'بازنشانی نما' : 'Reset view'}
-        </Button>
-      </div>
+      
+
       {!listView && (
         <div className="map-stage">
           {topologyError ? (
@@ -426,7 +465,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
               <Skeleton className="map-loading-legend" />
             </div>
           ) : (
-            <div data-testid="highcharts-world-map">
+            <div data-testid="highcharts-world-map" className="highcharts-world-map-shell">
               <MapsChart
                 ref={chartRef}
                 options={chartOptions}
@@ -438,49 +477,78 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
               />
             </div>
           )}
-          <Card className="layer-panel">
-            <header>
-              <div>
-                <strong>{isFa ? 'لایه‌های اطلاعاتی' : 'Intelligence layers'}</strong>
-                <small>
-                  {layers.size} {isFa ? 'لایه فعال' : 'active layers'}
-                </small>
-              </div>
-              <Icon name="layer" />
-            </header>
-            <label className="layer-search">
-              <Icon name="search-normal" size={16} />
-              <Input
-                value={layerSearch}
-                onChange={(event) => setLayerSearch(event.target.value)}
-                placeholder={isFa ? 'جست‌وجوی لایه…' : 'Search layers…'}
-              />
-            </label>
-            <div>
-              {(Object.keys(layerLabels) as IntelligenceDomain[])
-                .filter((key) =>
-                  (isFa ? layerLabels[key].fa : layerLabels[key].en)
-                    .toLocaleLowerCase(locale)
-                    .includes(layerSearch.toLocaleLowerCase(locale)),
-                )
-                .map((key) => (
-                  <label key={key} className={layers.has(key) ? 'selected' : ''}>
-                    <span className={`legend-symbol layer-${key}`} />
-                    <span>{isFa ? layerLabels[key].fa : layerLabels[key].en}</span>
-                    <Checkbox checked={layers.has(key)} onCheckedChange={() => toggleLayer(key)} />
-                  </label>
-                ))}
-            </div>
+
+          <Card className="map-clock" aria-label={isFa ? 'زمان جاری نقشه' : 'Current map time'}>
+            <Icon name="clock" size={16} />
+            <time dateTime={now.toISOString()}>
+              <span>{mapClock.date}</span>
+              <bdi dir="ltr">{mapClock.time} UTC</bdi>
+            </time>
           </Card>
-          <Card className="map-legend" aria-label={isFa ? 'راهنمای شدت' : 'Severity legend'}>
-            <strong>{isFa ? 'شدت' : 'Severity'}</strong>
-            {riskOrder.map((risk) => (
-              <span key={risk}>
-                <i className={risk} />
-                {riskLabels[risk]}
-              </span>
-            ))}
-          </Card>
+
+          {chartOptions && (
+            <>
+              <Card className="layer-panel">
+                <header>
+                  <div>
+                    <strong>{isFa ? 'لایه‌های اطلاعاتی' : 'Intelligence layers'}</strong>
+                    <small>{isFa ? 'نمایش داده روی نقشه' : 'Data shown on the map'}</small>
+                  </div>
+                  <Badge variant="outline">
+                    {layers.size} {isFa ? 'فعال' : 'active'}
+                  </Badge>
+                </header>
+                <InputGroup className="layer-search">
+                  <InputGroupInput
+                    value={layerSearch}
+                    onChange={(event) => setLayerSearch(event.target.value)}
+                    placeholder={isFa ? 'جست‌وجو در لایه‌ها…' : 'Search layers…'}
+                    aria-label={isFa ? 'جست‌وجو در لایه‌های اطلاعاتی' : 'Search intelligence layers'}
+                  />
+                  <InputGroupAddon align="inline-start">
+                    <Icon name="search-normal" size={16} />
+                  </InputGroupAddon>
+                </InputGroup>
+                <div className="layer-panel-list">
+                  {(Object.keys(layerLabels) as IntelligenceDomain[])
+                    .filter((key) =>
+                      (isFa ? layerLabels[key].fa : layerLabels[key].en)
+                        .toLocaleLowerCase(locale)
+                        .includes(layerSearch.toLocaleLowerCase(locale)),
+                    )
+                    .map((key) => (
+                      <label key={key} className={layers.has(key) ? 'selected' : ''}>
+                        <span className={`legend-symbol layer-${key}`} />
+                        <span>{isFa ? layerLabels[key].fa : layerLabels[key].en}</span>
+                        <Checkbox
+                          checked={layers.has(key)}
+                          onCheckedChange={() => toggleLayer(key)}
+                        />
+                      </label>
+                    ))}
+                </div>
+              </Card>
+
+              <Card className="map-legend" aria-label={isFa ? 'راهنمای نقشه' : 'Map legend'}>
+                <strong>{isFa ? 'راهنما' : 'Legend'}</strong>
+                <div>
+                  {riskOrder.map((risk) => (
+                    <Badge variant="outline" className="map-legend-item" key={risk}>
+                      <i className={risk} />
+                      {riskLabels[risk]}
+                    </Badge>
+                  ))}
+                  {hasVisibleRoutes && (
+                    <Badge variant="outline" className="map-legend-item">
+                      <i className="route" />
+                      {isFa ? 'مسیر پایش' : 'Monitored route'}
+                    </Badge>
+                  )}
+                </div>
+              </Card>
+            </>
+          )}
+
           {visibleEvents.length === 0 && topology && (
             <Alert className="map-empty-overlay">
               <Icon name="info-circle" />
@@ -494,6 +562,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
           )}
         </div>
       )}
+
       {listView && (
         <div
           className="map-list-alternative"
@@ -545,25 +614,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
           </section>
         </div>
       )}
-      <div className="map-timeline">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={isFa ? 'توقف پخش نمایشی' : 'Pause mock playback'}
-        >
-          <Icon name="pause" size={16} />
-        </Button>
-        <span dir="ltr">00:00</span>
-        <Slider
-          min={0}
-          max={24}
-          value={[timeline]}
-          onValueChange={([value]) => setTimeline(value)}
-          aria-label={isFa ? 'تصویر زمانی نقشه' : 'Map time snapshot'}
-        />
-        <span dir="ltr">{String(timeline).padStart(2, '0')}:00 UTC</span>
-        <small>{isFa ? '۲۴ ساعت گذشته · پخش ساختگی' : 'Past 24 hours · mock playback'}</small>
-      </div>
+
       <WorldMapDetailPanel
         country={selectedCountry}
         event={selectedEvent}
