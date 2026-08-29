@@ -11,8 +11,10 @@
 @import './enterprise-polish.css';
 @import './enterprise-human-details.css';
 @import './enterprise-iteration-2.css';
-/* Keep the current main branch padding/margin and responsive spacing as the final layout contract. */
+/* Keep the current main branch responsive spacing as the final layout baseline. */
 @import './responsive-spacing.css';
+/* Reassert only padding/margin values that enterprise visual layers previously changed. */
+@import './main-spacing-contract.css';
 /* Visual-only refinements may follow, but should not redefine page/card padding or margins. */
 @import './enterprise-iteration-3.css';
 
