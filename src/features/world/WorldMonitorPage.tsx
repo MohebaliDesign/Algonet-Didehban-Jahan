@@ -8,6 +8,7 @@ import { KpiStrip, PageHeader } from '@/components/product/PageHeader'
 import { WorldMap } from '@/components/product/WorldMap'
 import { Icon } from '@/components/Icon'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Item,
   ItemActions,
@@ -44,8 +45,9 @@ export function WorldMonitorPage() {
       <ItemGroup className="priority-list">
         {filteredEvents.slice(0, 4).map((event, index) => (
           <Item asChild size="sm" className="product-list-item" key={event.id}>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() =>
                 openInspector({
                   kind: 'event',
@@ -68,7 +70,7 @@ export function WorldMonitorPage() {
               <ItemActions>
                 <span className="confidence-mini">{event.confidence}%</span>
               </ItemActions>
-            </button>
+            </Button>
           </Item>
         ))}
       </ItemGroup>
@@ -96,8 +98,9 @@ export function WorldMonitorPage() {
       <ItemGroup className="live-feed">
         {filteredEvents.map((event) => (
           <Item asChild size="sm" className="product-list-item" key={event.id}>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() =>
                 openInspector({
                   kind: 'event',
@@ -119,7 +122,7 @@ export function WorldMonitorPage() {
                   {event.state}
                 </Badge>
               </ItemActions>
-            </button>
+            </Button>
           </Item>
         ))}
       </ItemGroup>
@@ -155,8 +158,9 @@ export function WorldMonitorPage() {
       <ItemGroup className="watchlist">
         {countries.map((country) => (
           <Item asChild size="sm" className="product-list-item" key={country.id}>
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() =>
                 openInspector({
                   kind: 'country',
@@ -173,7 +177,7 @@ export function WorldMonitorPage() {
               <ItemActions>
                 <b className={`trend-${country.trend}`}>{country.risk}</b>
               </ItemActions>
-            </button>
+            </Button>
           </Item>
         ))}
       </ItemGroup>
