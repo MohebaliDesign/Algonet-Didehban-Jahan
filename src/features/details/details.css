@@ -12,9 +12,23 @@
 }
 
 .detail-tabs-list {
+  position: sticky;
+  z-index: 22;
+  inset-block-start: 136px;
   width: fit-content;
   max-width: 100%;
   overflow-x: auto;
+  padding-block: 8px;
+  background: var(--background);
+}
+
+.detail-tabs-list::after {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  height: 1px;
+  background: var(--border-subtle);
+  content: '';
 }
 
 .detail-tab-content {
@@ -143,17 +157,22 @@
 }
 
 @media (max-width: 900px) {
+  .detail-tabs-list {
+    inset-block-start: 128px;
+  }
+
   .detail-overview-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 640px) {
-  .detail-facts {
-    grid-template-columns: minmax(0, 1fr);
+  .detail-tabs-list {
+    position: static;
+    width: 100%;
   }
 
-  .detail-tabs-list {
-    width: 100%;
+  .detail-facts {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
