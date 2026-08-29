@@ -7,6 +7,7 @@ export const highchartsTokens = {
   critical: 'var(--chart-critical, var(--temp-viz-critical))',
   foreground: 'var(--foreground)',
   forecast: 'var(--chart-forecast, var(--temp-viz-forecast))',
+  grid: 'var(--chart-grid, var(--border))',
   high: 'var(--chart-warning, var(--temp-viz-high))',
   land: 'var(--temp-viz-land)',
   low: 'var(--chart-positive, var(--temp-viz-low))',
@@ -75,7 +76,7 @@ export function baseChartOptions(description: string, height = 300): ChartOption
 
 export function chartAxisOptions() {
   return {
-    gridLineColor: highchartsTokens.border,
+    gridLineColor: highchartsTokens.grid,
     labels: { style: { color: highchartsTokens.muted, fontSize: '12px' } },
     lineColor: highchartsTokens.border,
     tickColor: highchartsTokens.border,
