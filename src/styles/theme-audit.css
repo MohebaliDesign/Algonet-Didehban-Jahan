@@ -1,0 +1,134 @@
+/*
+ * Theme audit — semantic light/dark color contract.
+ *
+ * UI chrome continues to use tokens.css. Visualization aliases are kept separate
+ * so chart palettes can be tuned per analytical domain without leaking into
+ * controls, navigation, or status styling.
+ */
+
+:root {
+  --chart-grid: #e7ebf0;
+  --map-neutral-country: #f1f3f5;
+  --map-country-border: #ffffff;
+  --scrollbar-thumb: #cbd3de;
+  --scrollbar-thumb-hover: #aeb8c5;
+}
+
+/* Default analytical palette. These tones retain a calm pastel character while
+ * keeping graphical marks distinct against the light surface. */
+.page-view {
+  --chart-primary: #6e8fb8;
+  --chart-secondary: #7f95ad;
+  --chart-forecast: #9388b2;
+  --chart-positive: #6e9889;
+  --chart-warning: #b78643;
+  --chart-critical: #c56d72;
+}
+
+.world-page {
+  --chart-primary: #6e8fb8;
+  --chart-secondary: #7f95ad;
+  --chart-forecast: #9388b2;
+  --chart-positive: #6e9889;
+  --chart-warning: #b78643;
+  --chart-critical: #c56d72;
+}
+
+.security-page,
+.security-assessment-page {
+  --chart-primary: #b7896b;
+  --chart-secondary: #8f8378;
+  --chart-forecast: #9388b2;
+  --chart-positive: #6e9889;
+  --chart-warning: #b78643;
+  --chart-critical: #c56d72;
+}
+
+.markets-page {
+  --chart-primary: #6e8fb8;
+  --chart-secondary: #7f95ad;
+  --chart-forecast: #8f8db3;
+  --chart-positive: #68977f;
+  --chart-warning: #b78643;
+  --chart-critical: #c56d72;
+}
+
+.countries-page-v2 {
+  --chart-primary: #729b8d;
+  --chart-secondary: #78938b;
+  --chart-forecast: #918dae;
+  --chart-positive: #68977f;
+  --chart-warning: #b78643;
+  --chart-critical: #c56d72;
+}
+
+:root[data-theme='dark'] {
+  --chart-grid: #303640;
+  --map-neutral-country: #222832;
+  --map-country-border: #171a20;
+  --scrollbar-thumb: #444c59;
+  --scrollbar-thumb-hover: #5b6574;
+}
+
+:root[data-theme='dark'] .page-view,
+:root[data-theme='dark'] .world-page {
+  --chart-primary: #8eadd2;
+  --chart-secondary: #8198b2;
+  --chart-forecast: #b1a8d0;
+  --chart-positive: #83b7a4;
+  --chart-warning: #d6b379;
+  --chart-critical: #d9898c;
+}
+
+:root[data-theme='dark'] .security-page,
+:root[data-theme='dark'] .security-assessment-page {
+  --chart-primary: #d0a487;
+  --chart-secondary: #ad927d;
+  --chart-forecast: #b1a8d0;
+  --chart-positive: #83b7a4;
+  --chart-warning: #d6b379;
+  --chart-critical: #d9898c;
+}
+
+:root[data-theme='dark'] .markets-page {
+  --chart-primary: #8eadd2;
+  --chart-secondary: #8198b2;
+  --chart-forecast: #aaa9d2;
+  --chart-positive: #7fb79e;
+  --chart-warning: #d6b379;
+  --chart-critical: #d9898c;
+}
+
+:root[data-theme='dark'] .countries-page-v2 {
+  --chart-primary: #8cb8ac;
+  --chart-secondary: #7fa49b;
+  --chart-forecast: #aaa9d2;
+  --chart-positive: #7fb79e;
+  --chart-warning: #d6b379;
+  --chart-critical: #d9898c;
+}
+
+/* Native document scrollbar stays available for orientation, but is deliberately
+ * quieter than content. Internal scroll surfaces use scroll-fade instead. */
+html {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-width: thin;
+}
+
+html::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
