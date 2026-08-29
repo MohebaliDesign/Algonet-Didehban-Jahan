@@ -74,6 +74,12 @@
   --markets-positive: #4ade80;
 }
 
+/* The legacy PageGrid is retained in source for now, but hidden here so the
+ * Highcharts workspace is the single rendered version of these sections. */
+.markets-page > .product-page-grid {
+  display: none;
+}
+
 .markets-page .page-header,
 .markets-page .kpi-strip {
   margin-block-end: 16px;
@@ -284,6 +290,17 @@
   gap: 8px;
 }
 
+.markets-page .market-watchlist .markets-sparkline {
+  order: 4;
+  width: 120px;
+  justify-self: end;
+}
+
+.markets-page .market-watchlist b {
+  order: 3;
+  white-space: nowrap;
+}
+
 .markets-page .market-watchlist strong,
 .markets-page .market-watchlist code,
 .markets-page .market-watchlist b,
@@ -370,7 +387,11 @@
   }
 
   .markets-page .market-watchlist button {
-    grid-template-columns: 48px minmax(0, 1fr) 112px auto;
+    grid-template-columns: 48px minmax(0, 1fr) auto 112px;
+  }
+
+  .markets-page .market-watchlist .markets-sparkline {
+    width: 112px;
   }
 }
 
@@ -420,10 +441,11 @@
   }
 
   .markets-page .market-watchlist button {
-    grid-template-columns: 48px minmax(0, 1fr) 80px auto;
+    grid-template-columns: 48px minmax(0, 1fr) auto 80px;
   }
 
   .markets-page .market-watchlist .markets-sparkline {
     display: block;
+    width: 80px;
   }
 }
