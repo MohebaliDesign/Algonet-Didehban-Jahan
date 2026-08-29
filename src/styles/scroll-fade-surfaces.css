@@ -1,7 +1,24 @@
 /* Product-specific scroll surfaces using the shared shadcn scroll-fade primitives. */
 
+/* SelectContent owns the popover border/background. Do not mask that chrome;
+ * when Radix exposes its viewport, the fade is applied to that inner scroller. */
+[data-slot='select-content'] {
+  -webkit-mask-image: none;
+  mask-image: none;
+  animation: none;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-width: thin;
+}
+
+[data-slot='select-content']::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+  height: 6px;
+}
+
 .layer-panel-list,
-[data-slot='sidebar-content'] {
+[data-slot='sidebar-content'],
+[data-radix-select-viewport] {
   --_scroll-fade-size-t: var(
     --scroll-fade-t-size,
     var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
@@ -26,13 +43,15 @@
 }
 
 .layer-panel-list::-webkit-scrollbar,
-[data-slot='sidebar-content']::-webkit-scrollbar {
+[data-slot='sidebar-content']::-webkit-scrollbar,
+[data-radix-select-viewport]::-webkit-scrollbar {
   display: none;
 }
 
 @supports (animation-timeline: scroll()) {
   .layer-panel-list,
-  [data-slot='sidebar-content'] {
+  [data-slot='sidebar-content'],
+  [data-radix-select-viewport] {
     animation:
       scroll-fade-reveal-t 1ms ease-in-out,
       scroll-fade-reveal-b 1ms ease-in-out;
@@ -46,7 +65,8 @@
 
 @supports not (animation-timeline: scroll()) {
   .layer-panel-list,
-  [data-slot='sidebar-content'] {
+  [data-slot='sidebar-content'],
+  [data-radix-select-viewport] {
     --scroll-fade-t: var(--_scroll-fade-size-t);
     --scroll-fade-b: var(--_scroll-fade-size-b);
   }
