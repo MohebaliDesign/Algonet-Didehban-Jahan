@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router'
 
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
@@ -80,7 +81,13 @@ export function ModuleFrame({
   const copy = useProductCopy()
   const { locale } = usePreferences()
   const { openInspector } = useWorkspace()
+  const navigate = useNavigate()
   const showState = state !== 'fresh'
+
+  const openSources = () =>
+    navigate(`/details/module/${encodeURIComponent(id)}?tab=sources`, {
+      state: { kind: 'ai', id, title },
+    })
 
   return (
     <Card
@@ -97,7 +104,7 @@ export function ModuleFrame({
                 className="drag-handle"
                 title={locale === 'fa' ? 'دستگیره جابه‌جایی' : 'Drag handle'}
               >
-                <Icon name="menu" size={16} />
+                <Icon name="menu" size={18} />
               </span>
             )}
             <h2 title={title}>{title}</h2>
@@ -117,21 +124,21 @@ export function ModuleFrame({
               label={copy.analyze}
               onClick={() => openInspector({ kind: 'ai', id, title })}
             >
-              <Icon name="document-filter" size={18} />
+              <Icon name="document-filter" size={20} />
             </ModuleIconButton>
           )}
           <ModuleIconButton label={copy.collapse} onClick={onCollapse}>
-            <Icon name={collapsed ? 'arrow-down-02' : 'minus'} size={18} />
+            <Icon name={collapsed ? 'arrow-down-02' : 'minus'} size={20} />
           </ModuleIconButton>
           <ModuleIconButton label={copy.expand} onClick={onExpand}>
-            <Icon name={expanded ? 'maximize-3' : 'maximize-4'} size={18} />
+            <Icon name={expanded ? 'maximize-3' : 'maximize-4'} size={20} />
           </ModuleIconButton>
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label={copy.more}>
-                    <Icon name="more" size={18} />
+                    <Icon name="more" size={20} />
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
@@ -173,10 +180,18 @@ export function ModuleFrame({
           {(sourceCount != null || eventCount != null || confidence != null || updated) && (
             <CardFooter className="module-footer">
               {sourceCount != null && (
-                <span>
-                  <Icon name="document" size={14} />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="module-footer-source"
+                  onClick={openSources}
+                  aria-label={`${sourceCount} ${copy.sourcesLabel}`}
+                >
+                  <Icon name="document" size={16} />
                   {sourceCount} {copy.sourcesLabel}
-                </span>
+                  <Icon name="arrow-left-01" size={14} className="directional-icon" />
+                </Button>
               )}
               {eventCount != null && (
                 <span>
