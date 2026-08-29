@@ -108,6 +108,13 @@
   --chart-critical: #d9898c;
 }
 
+/* Keep chart scaffolding quieter than the data in both themes. */
+.product-chart .recharts-cartesian-grid line,
+.product-chart .recharts-cartesian-axis line,
+.highcharts-grid-line {
+  stroke: var(--chart-grid);
+}
+
 /* Native document scrollbar stays available for orientation, but is deliberately
  * quieter than content. Internal scroll surfaces use scroll-fade instead. */
 html {
