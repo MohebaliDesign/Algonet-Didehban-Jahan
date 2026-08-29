@@ -4,21 +4,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import Highcharts from 'highcharts/es-modules/masters/highmaps.src.js'
 import { usePreferences } from '@/app/PreferencesProvider'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { highchartsTokens } from '@/lib/highchartsTheme'
 
-type Continent = 'all' | 'asia' | 'europe' | 'africa' | 'americas' | 'oceania'
-type Severity = 'medium' | 'high' | 'critical'
+export type Continent = 'all' | 'asia' | 'europe' | 'africa' | 'americas' | 'oceania'
+export type Severity = 'medium' | 'high' | 'critical'
 
 export type SecurityRiskPoint = {
   label: string
   labelEn: string
+  hcKey: string
   likelihood: number
   impact: number
   severity: Severity
@@ -27,16 +21,10 @@ export type SecurityRiskPoint = {
   continents: Exclude<Continent, 'all'>[]
 }
 
-const PULSE_THRESHOLD = 75
-
-const continentOptions: Array<{ value: Continent; fa: string; en: string }> = [
-  { value: 'all', fa: 'همه قاره‌ها', en: 'All continents' },
-  { value: 'asia', fa: 'آسیا', en: 'Asia' },
-  { value: 'europe', fa: 'اروپا', en: 'Europe' },
-  { value: 'africa', fa: 'آفریقا', en: 'Africa' },
-  { value: 'americas', fa: 'آمریکا', en: 'Americas' },
-  { value: 'oceania', fa: 'اقیانوسیه', en: 'Oceania' },
-]
+const PULSE_THRESHOLD = 85
+const BASE_COUNTRY_COLOR = '#F1F3F5'
+const MAP_BACKGROUND = '#FFFFFF'
+const COUNTRY_BORDER = '#FFFFFF'
 
 const continentViews: Record<Continent, { center?: [number, number]; zoom?: number }> = {
   all: {},
@@ -63,11 +51,16 @@ function severityColor(severity: Severity) {
   return 'var(--temp-viz-medium)'
 }
 
-export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
+export function SecurityWorldMap({
+  items,
+  continent,
+}: {
+  items: SecurityRiskPoint[]
+  continent: Continent
+}) {
   const { locale } = usePreferences()
   const theme = highchartsTokens
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const [continent, setContinent] = useState<Continent>('all')
   const [topology, setTopology] = useState<object | null>(null)
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
 
@@ -113,15 +106,27 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
     if (loadState !== 'ready' || !topology || !containerRef.current) return
 
     const view = continentViews[continent]
-    const points = visibleItems.map((item) => ({
+    const countryData = visibleItems.map((item) => ({
+      'hc-key': item.hcKey,
+      color: severityColor(item.severity),
+      custom: {
+        impact: item.impact,
+        likelihood: item.likelihood,
+        severity: item.severity,
+      },
+      name: locale === 'fa' ? item.label : item.labelEn,
+      value: item.impact,
+    }))
+
+    const alertDots = visibleItems.map((item) => ({
       name: locale === 'fa' ? item.label : item.labelEn,
       lat: item.lat,
       lon: item.lon,
       color: severityColor(item.severity),
       marker: {
-        radius: 6 + Math.round(item.impact / 20),
+        radius: item.severity === 'critical' ? 6 : 5,
         fillColor: severityColor(item.severity),
-        lineColor: theme.surface,
+        lineColor: MAP_BACKGROUND,
         lineWidth: 2,
       },
       custom: {
@@ -132,16 +137,16 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
     }))
 
     const pulsePoints = visibleItems
-      .filter((item) => item.likelihood >= PULSE_THRESHOLD)
+      .filter((item) => item.severity === 'critical' || item.likelihood >= PULSE_THRESHOLD)
       .map((item) => ({
         name: locale === 'fa' ? item.label : item.labelEn,
         lat: item.lat,
         lon: item.lon,
         className: 'security-map-pulse-point',
         marker: {
-          radius: 14 + Math.round(item.impact / 14),
+          radius: 18 + Math.round(item.impact / 18),
           fillColor: 'transparent',
-          lineColor: severityColor(item.severity),
+          lineColor: 'var(--temp-viz-critical)',
           lineWidth: 2,
         },
       }))
@@ -150,14 +155,11 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
       const chart = Highcharts.mapChart(containerRef.current, {
         chart: {
           animation: false,
-          backgroundColor: theme.water,
+          backgroundColor: MAP_BACKGROUND,
           height: 600,
           map: topology as never,
           margin: [0, 0, 0, 0],
-          panning: {
-            enabled: true,
-            type: 'xy',
-          },
+          panning: { enabled: true, type: 'xy' },
           spacing: [0, 0, 0, 0],
           style: { fontFamily: 'inherit' },
         },
@@ -177,8 +179,8 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
             x: 12,
             y: -12,
             theme: {
-              fill: theme.surface,
-              stroke: theme.border,
+              fill: MAP_BACKGROUND,
+              stroke: '#E5E7EB',
               'stroke-width': 1,
               r: 8,
               style: { color: theme.foreground, fontSize: '14px' },
@@ -217,52 +219,30 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
         },
         plotOptions: {
           map: {
-            borderWidth: 0.8,
+            borderWidth: 1,
             states: {
               hover: {
-                borderColor: theme.primary,
-                borderWidth: 1.2,
+                brightness: -0.03,
+                borderColor: COUNTRY_BORDER,
+                borderWidth: 1,
               },
             },
           },
           mappoint: {
             animation: false,
-            dataLabels: {
-              allowOverlap: false,
-              enabled: true,
-              useHTML: true,
-              formatter() {
-                const point = this.point as Highcharts.Point & {
-                  custom?: { impact: number; likelihood: number }
-                }
-                const zoom = this.series.chart.mapView?.zoom ?? 0
-                if (!point.name || !point.custom) return ''
-                if (zoom < 1.4) return point.name
-
-                const likelihood = numberFormatter.format(point.custom.likelihood)
-                const impact = numberFormatter.format(point.custom.impact)
-                const percent = locale === 'fa' ? '٪' : '%'
-                return `<span class="security-map-label-title">${point.name}</span><br/><span class="security-map-label-meta">${local(locale, 'احتمال', 'Likelihood')} ${likelihood}${percent} · ${local(locale, 'پیامد', 'Impact')} ${impact}${percent}</span>`
-              },
-              padding: 3,
-              style: {
-                color: theme.foreground,
-                fontSize: '12px',
-                fontWeight: '500',
-                textOutline: 'none',
-              },
-            },
+            dataLabels: { enabled: false },
           },
         },
         series: [
           {
             type: 'map',
             name: local(locale, 'نقشه جهان', 'World map'),
-            data: [],
+            data: countryData as never,
+            joinBy: 'hc-key',
             allAreas: true,
-            nullColor: theme.land,
-            borderColor: theme.muted,
-            borderWidth: 0.7,
+            nullColor: BASE_COUNTRY_COLOR,
+            borderColor: COUNTRY_BORDER,
+            borderWidth: 1,
             enableMouseTracking: true,
             showInLegend: false,
             dataLabels: {
@@ -275,23 +255,22 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
                 const zoom = this.series.chart.mapView?.zoom ?? 0
                 const labelRank = Number(point.properties?.labelrank ?? 9)
 
-                if (!point.name) return ''
-                if (zoom < 1 && labelRank > 2) return ''
-                if (zoom < 1.8 && labelRank > 4) return ''
+                if (!point.name || zoom < 1.55) return ''
+                if (zoom < 2.2 && labelRank > 4) return ''
 
                 return point.properties?.['country-abbrev'] || point.name
               },
               style: {
-                color: theme.muted,
+                color: '#667085',
                 fontSize: '10px',
                 fontWeight: '500',
-                textOutline: '2px var(--temp-viz-water)',
+                textOutline: '2px #FFFFFF',
               },
             },
           },
           {
             type: 'mappoint',
-            name: local(locale, 'هشدار با احتمال بالا', 'High-likelihood alert'),
+            name: local(locale, 'تنش شدید', 'High tension'),
             className: 'security-map-pulse-series',
             data: pulsePoints as never,
             dataLabels: { enabled: false },
@@ -301,7 +280,7 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
           {
             type: 'mappoint',
             name: local(locale, 'کانون تنش', 'Tension area'),
-            data: points as never,
+            data: alertDots as never,
             zIndex: 5,
           },
         ],
@@ -316,48 +295,6 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
 
   return (
     <div className="security-map-workspace" dir={locale === 'fa' ? 'rtl' : 'ltr'}>
-      <div className="security-map-toolbar">
-        <div className="security-map-scope">
-          <strong>{local(locale, 'نمای جغرافیایی تنش‌ها', 'Geographic tension view')}</strong>
-          <span>
-            {numberFormatter.format(visibleItems.length)}{' '}
-            {local(locale, 'کانون در محدوده فعلی', 'areas in the current scope')}
-          </span>
-        </div>
-
-        <label className="security-continent-filter">
-          <span>{local(locale, 'قاره', 'Continent')}</span>
-          <Select value={continent} onValueChange={(value) => setContinent(value as Continent)}>
-            <SelectTrigger aria-label={local(locale, 'فیلتر بر اساس قاره', 'Filter by continent')}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {continentOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {local(locale, option.fa, option.en)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </label>
-      </div>
-
-      <div className="security-map-legend" aria-label={local(locale, 'راهنمای شدت', 'Severity legend')}>
-        {(['critical', 'high', 'medium'] as Severity[]).map((severity) => (
-          <span key={severity}>
-            <i className={`security-map-dot severity-${severity}`} />
-            {severityLabel(locale, severity)}
-          </span>
-        ))}
-        <small>
-          {local(
-            locale,
-            `چشمک‌زن = احتمال ${numberFormatter.format(PULSE_THRESHOLD)}٪ به بالا · اندازه نقطه = پیامد`,
-            `Pulse = likelihood ${PULSE_THRESHOLD}%+ · point size = impact`,
-          )}
-        </small>
-      </div>
-
       <div className="security-map-shell">
         {loadState === 'loading' ? (
           <div className="security-map-state">
@@ -375,28 +312,9 @@ export function SecurityWorldMap({ items }: { items: SecurityRiskPoint[] }) {
             </span>
           </div>
         ) : (
-          <>
-            <div ref={containerRef} className="security-world-map" />
-            {visibleItems.length === 0 ? (
-              <div className="security-map-empty">
-                {local(
-                  locale,
-                  'در دادهٔ نمونه برای این قاره کانونی ثبت نشده است.',
-                  'No tension areas are available for this continent in the sample data.',
-                )}
-              </div>
-            ) : null}
-          </>
+          <div ref={containerRef} className="security-world-map" />
         )}
       </div>
-
-      <p className="security-map-hint">
-        {local(
-          locale,
-          'با اسکرول موس زوم کنید، با درگ نقشه را جابه‌جا کنید و برای دیدن نام کشورها و جزئیات احتمال و پیامد نزدیک‌تر شوید.',
-          'Use the mouse wheel to zoom, drag to pan, and zoom closer to reveal country names plus likelihood and impact detail.',
-        )}
-      </p>
     </div>
   )
 }
