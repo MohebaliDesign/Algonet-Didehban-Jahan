@@ -167,8 +167,9 @@ export function MarketsPage() {
               {markets.map((item) => {
                 const isSelected = selected.id === item.id
                 return (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     role="listitem"
                     key={item.id}
                     className={`market-selector-row ${isSelected ? 'selected' : ''}`}
@@ -193,7 +194,7 @@ export function MarketsPage() {
                         {formatChange(item.change, locale)}
                       </span>
                     </span>
-                  </button>
+                  </Button>
                 )
               })}
             </div>
@@ -214,7 +215,6 @@ export function MarketsPage() {
                 <strong>{selected.name[locale]}</strong>
                 <MarketSubtitle item={selected} locale={locale} />
               </div>
-              
             </div>
 
             <Tabs
