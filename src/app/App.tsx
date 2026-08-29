@@ -9,6 +9,7 @@ import {
   DevelopmentsPage,
   ReportsPage,
 } from '@/features/pages/ProductPages'
+import { SecurityAssessmentPage } from '@/features/security/SecurityAssessmentPage'
 import { SecurityPage } from '@/features/security/SecurityPage'
 import { WorldMonitorPage } from '@/features/world/WorldMonitorPage'
 
@@ -20,6 +21,7 @@ export function App() {
         <Route path="/world" element={<WorldMonitorPage />} />
         <Route path="/developments" element={<DevelopmentsPage />} />
         <Route path="/security" element={<SecurityPage />} />
+        <Route path="/security/assessment" element={<SecurityAssessmentPage />} />
         <Route path="/markets" element={<MarketsPage />} />
         <Route path="/countries" element={<CountriesPage />} />
         <Route path="/reports" element={<ReportsPage />} />
