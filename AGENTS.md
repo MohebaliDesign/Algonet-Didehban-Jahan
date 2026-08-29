@@ -44,11 +44,13 @@
 
 ### Verification
 
-Run before merging UI changes:
+Run the shadcn integration checks before merging UI changes:
 
 ```bash
 npm run shadcn:info
-npm run check
+npm run check:shadcn
 ```
+
+The repository-wide formatting, type checking, full unit suite, build, and visual checks remain required by the general handoff rules above. Do not hide pre-existing failures by weakening those project-level rules or by bundling unrelated fixes into a component-library change.
 
 The Vitest shadcn guardrail must remain passing. If a native primitive is genuinely necessary, implement or wrap it in `src/components/ui` rather than bypassing the guardrail in a feature file.
