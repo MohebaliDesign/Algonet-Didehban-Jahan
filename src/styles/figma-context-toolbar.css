@@ -5,13 +5,16 @@
  */
 
 .context-bar {
+  min-height: 48px;
+  height: 48px;
   align-items: center;
   gap: 16px;
+  padding-block: 0 !important;
   background: var(--surface);
 }
 
 /* Each filter is one 48px control. The FieldLabel is visually placed inside
- * the trigger to match the Figma component: muted label above, value below. */
+ * the trigger to match the approved Figma component: muted label above value. */
 .context-filter[data-slot='field'] {
   position: relative;
   width: 180px;
@@ -34,7 +37,7 @@
   width: calc(100% - 48px);
   min-height: 12px;
   overflow: hidden;
-  color: #818181;
+  color: var(--muted-foreground);
   font-size: 10px;
   font-weight: 400;
   line-height: 1.2;
@@ -64,10 +67,10 @@
   align-items: center;
   gap: 8px;
   padding: 16px 12px 5px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  color: #353535;
-  background: #fffffc;
+  color: var(--foreground);
+  background: var(--surface);
   box-shadow: none;
   font-size: 14px;
   font-weight: 500;
@@ -83,7 +86,7 @@
   min-width: 0;
   overflow: hidden;
   flex: 1;
-  color: #353535;
+  color: var(--foreground);
   font-size: 14px;
   font-weight: 500;
   line-height: 1.2;
@@ -92,22 +95,34 @@
   white-space: nowrap;
 }
 
+/* Keep the approved component anatomy intact; only optical alignment changes
+ * with writing direction. */
+[dir='rtl'] .context-filter-label[data-slot='field-label'],
+[dir='rtl'] .context-filter [data-slot='select-value'] {
+  text-align: right;
+}
+
+[dir='ltr'] .context-filter-label[data-slot='field-label'],
+[dir='ltr'] .context-filter [data-slot='select-value'] {
+  text-align: left;
+}
+
 .context-filter [data-slot='select-trigger'] > [aria-hidden='true'],
 .context-filter [data-slot='select-trigger'] > svg {
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
-  color: #818181;
+  color: var(--muted-foreground);
   opacity: 1;
 }
 
 .context-filter [data-slot='select-trigger']:hover {
-  border-color: #e7e7e7;
-  background: #fffffc;
+  border-color: color-mix(in srgb, var(--foreground) 12%, var(--border-subtle));
+  background: color-mix(in srgb, var(--surface) 98%, var(--accent));
 }
 
 .context-filter [data-slot='select-trigger']:focus-visible {
-  border-color: color-mix(in srgb, var(--ring) 44%, #f0f0f0);
+  border-color: color-mix(in srgb, var(--ring) 44%, var(--border-subtle));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 8%, transparent);
   outline: 0;
 }
@@ -117,8 +132,8 @@
 }
 
 .context-filter [aria-invalid='true'] {
-  color: #353535;
-  border-color: color-mix(in srgb, var(--destructive) 62%, #f0f0f0);
+  color: var(--foreground);
+  border-color: color-mix(in srgb, var(--destructive) 62%, var(--border-subtle));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 9%, transparent);
 }
 
@@ -129,7 +144,7 @@
 }
 
 /* Reset control mirrors the Figma component: 163×48, 12px radius,
- * 16px refresh glyph, quiet neutral border and no elevation. */
+ * 16px refresh glyph, quiet semantic border and no elevation. */
 .context-bar > [data-slot='button']:last-child {
   min-width: 163px;
   width: 163px;
@@ -138,10 +153,10 @@
   align-self: center;
   margin-inline-start: auto;
   gap: 8px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  color: #353535;
-  background: #fffffc;
+  color: var(--foreground);
+  background: var(--surface);
   box-shadow: none;
   font-size: 14px;
   font-weight: 500;
@@ -149,8 +164,8 @@
 }
 
 .context-bar > [data-slot='button']:last-child:hover {
-  border-color: #e7e7e7;
-  background: #fffffc;
+  border-color: color-mix(in srgb, var(--foreground) 12%, var(--border-subtle));
+  background: color-mix(in srgb, var(--surface) 98%, var(--accent));
 }
 
 .context-bar > [data-slot='button']:last-child svg,
@@ -158,15 +173,10 @@
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
-  color: #818181;
+  color: var(--muted-foreground);
 }
 
 @media (max-width: 1200px) {
-  .context-bar {
-    overflow-x: auto;
-    scrollbar-width: thin;
-  }
-
   .context-filter[data-slot='field'] {
     width: 172px;
     min-width: 172px;
@@ -182,6 +192,15 @@
 
 @media (max-width: 900px) {
   .context-bar {
+    height: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    height: auto;
+    min-height: 0;
     align-items: stretch;
   }
 
