@@ -14,7 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { refineModuleTitle } from '@/localization/moduleTitles'
 import { useProductCopy } from '@/localization/productCopy'
@@ -159,7 +158,6 @@ export function ModuleFrame({
           </DropdownMenu>
         </div>
       </CardHeader>
-      <Separator className="module-separator" />
       {editing && (
         <div className="edit-tools">
           <Button variant="outline" size="sm" onClick={() => onMove?.(-1)}>
