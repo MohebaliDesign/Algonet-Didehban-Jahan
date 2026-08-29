@@ -1,0 +1,292 @@
+/*
+ * Enterprise polish — iteration 2.
+ * Focus: compact shadcn filters, natural document scrolling, balanced card fill,
+ * clickable provenance, and page-aware pastel visualization palettes.
+ */
+
+/* Page-level chart palettes. Components inherit these semantic aliases. */
+.page-view {
+  --chart-primary: #7f9fc8;
+  --chart-secondary: #b7c7db;
+  --chart-forecast: #a99fc6;
+  --chart-positive: #79a998;
+  --chart-warning: #d1a76d;
+  --chart-critical: #cf7d80;
+}
+
+.world-page {
+  --chart-primary: #7899c2;
+  --chart-secondary: #afc1d7;
+  --chart-forecast: #a99fc0;
+  --chart-positive: #79a697;
+  --chart-warning: #d2aa72;
+  --chart-critical: #cf7b7e;
+}
+
+.security-page,
+.security-assessment-page {
+  --chart-primary: #bd9274;
+  --chart-secondary: #d8bf9d;
+  --chart-forecast: #b7a9c5;
+  --chart-positive: #83a898;
+  --chart-warning: #d0a15e;
+  --chart-critical: #cf7378;
+}
+
+.markets-page {
+  --chart-primary: #7399c4;
+  --chart-secondary: #aebfd4;
+  --chart-forecast: #a6a8c8;
+  --chart-positive: #75a992;
+  --chart-warning: #d0aa72;
+  --chart-critical: #c97a7d;
+}
+
+.countries-page-v2 {
+  --chart-primary: #7ba59a;
+  --chart-secondary: #b0c8c0;
+  --chart-forecast: #aaa9c4;
+  --chart-positive: #72a38f;
+  --chart-warning: #d0aa72;
+  --chart-critical: #c97a7b;
+}
+
+/* Use the document as the primary scroll surface instead of creating a scroll area per card. */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+}
+
+.shell-main,
+.product-canvas,
+.page-view {
+  overflow: visible;
+}
+
+.product-page-grid > .module-frame > [data-slot='collapsible'],
+.product-page-grid > .module-frame [data-slot='collapsible-content'],
+.world-page .module-grid > .module-frame:not(.module-wide) > [data-slot='collapsible'],
+.world-page .module-grid > .module-frame:not(.module-wide) [data-slot='collapsible-content'] {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.product-page-grid > .module-frame .module-content,
+.world-page .module-grid > .module-frame:not(.module-wide) .module-content {
+  min-height: 0;
+  overflow: visible;
+  overscroll-behavior: auto;
+  scrollbar-gutter: auto;
+}
+
+/* Paired sections share row height, while their content uses the available card body. */
+.module-grid,
+.product-page-grid,
+.countries-secondary-grid,
+.markets-workspace {
+  align-items: stretch;
+}
+
+.module-grid > .module-frame,
+.product-page-grid > .module-frame,
+.countries-secondary-grid > .module-frame,
+.markets-workspace .module-frame {
+  height: 100%;
+}
+
+.module-frame > [data-slot='collapsible'],
+.module-frame [data-slot='collapsible-content'] {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.module-frame .module-content {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.module-frame .module-content > :only-child {
+  width: 100%;
+}
+
+.chart-figure,
+.bar-chart,
+.matrix-chart,
+.markets-highchart,
+.country-comparison-chart,
+.security-map-workspace {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Compact global filters: the existing shadcn Select stays the interaction primitive. */
+.context-bar {
+  inset-block-start: 72px;
+  min-height: 56px;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding-block: 8px;
+}
+
+.context-filter {
+  display: flex;
+  min-width: 144px;
+  min-height: 40px;
+  height: 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.context-filter > span {
+  flex: none;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.context-filter [data-slot='select-trigger'] {
+  width: auto;
+  min-width: 0;
+  min-height: 38px;
+  height: 38px;
+  flex: 1 1 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.context-filter [data-slot='select-trigger']:focus-visible {
+  box-shadow: none;
+}
+
+.context-filter small {
+  position: static;
+  flex: none;
+  padding-inline-start: 8px;
+  border-inline-start: 1px solid var(--border-subtle);
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.context-filter:has(small) [data-slot='select-trigger'] {
+  padding-inline-end: 0;
+}
+
+.context-bar > [data-slot='button'] {
+  min-height: 40px;
+}
+
+/* Header toolbars: 40px is the interaction frame; glyphs remain optically controlled. */
+.module-controls > button,
+.module-controls [data-slot='tooltip-trigger'] {
+  min-width: 40px;
+  width: 40px;
+  min-height: 40px;
+  height: 40px;
+}
+
+.module-controls svg {
+  flex: none;
+}
+
+.module-header-accessory [data-slot='select-trigger'] {
+  min-height: 40px;
+  height: 40px;
+  border-radius: var(--radius-control);
+  font-size: 13px;
+}
+
+/* Provenance should look actionable without competing with chart content. */
+.module-footer-source {
+  min-height: 32px !important;
+  height: 32px !important;
+  margin: -4px 0;
+  padding-inline: 8px !important;
+  border-radius: 8px;
+  color: var(--muted-foreground) !important;
+  font-size: var(--type-metadata-size) !important;
+  font-weight: 500;
+}
+
+.module-footer-source:hover {
+  color: var(--foreground) !important;
+  background: var(--accent) !important;
+}
+
+/* Calm chart chrome so multiple visualizations can coexist on the same screen. */
+.product-chart .recharts-cartesian-grid line,
+.product-chart .recharts-cartesian-axis line {
+  stroke: color-mix(in srgb, var(--border) 72%, transparent);
+}
+
+.product-chart text {
+  fill: var(--muted-foreground);
+}
+
+.highcharts-grid-line {
+  stroke: color-mix(in srgb, var(--border) 72%, transparent);
+}
+
+/* Keep long analytical pages comfortable to scroll and end with breathing room. */
+.product-canvas {
+  padding-block-end: 64px;
+}
+
+.page-view > :last-child {
+  margin-block-end: 0;
+}
+
+@media (max-width: 1200px) {
+  .context-bar {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .context-filter {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .context-bar {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .context-bar:not(.open) .context-filter,
+  .context-bar:not(.open) > [data-slot='button']:not(.compact-filter-toggle) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .module-frame .module-content {
+    display: block;
+  }
+
+  .product-canvas {
+    padding-block-end: 48px;
+  }
+}
