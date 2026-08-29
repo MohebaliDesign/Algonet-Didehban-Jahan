@@ -1,0 +1,28 @@
+/* Final anti-template details layered after page-level styles. */
+
+/* Static analytical modules should not imply clickability through card hover chrome. */
+.module-frame:hover {
+  border-color: var(--border);
+}
+
+/* Keep AI provenance explicit in text, but remove decorative magic/sparkle treatment. */
+.ai-generated-label {
+  gap: 0;
+}
+
+.ai-generated-label svg {
+  display: none;
+}
+
+/* Quiet generic elevation on static primitives; floating layers keep their own shadows. */
+[data-slot='card'] {
+  box-shadow: none;
+}
+
+[data-slot='dialog-content'],
+[data-slot='sheet-content'],
+[data-slot='dropdown-menu-content'],
+[data-slot='popover-content'],
+[data-slot='select-content'] {
+  box-shadow: var(--shadow-popover);
+}

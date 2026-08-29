@@ -1,4 +1,3 @@
-import { usePreferences } from '@/app/PreferencesProvider'
 import { Icon } from '@/components/Icon'
 import { Button } from '@/components/ui/button'
 import { useProductCopy } from '@/localization/productCopy'
@@ -18,15 +17,11 @@ export function PageHeader({
   onReset?: () => void
   eyebrow?: string
 }) {
-  const { locale } = usePreferences()
   const copy = useProductCopy()
   return (
     <header className="page-header">
       <div>
-        <span className="page-eyebrow">
-          <i />
-          {eyebrow ?? (locale === 'fa' ? 'تصویر عملیاتی' : 'Operational view')}
-        </span>
+        {eyebrow ? <span className="page-eyebrow">{eyebrow}</span> : null}
         <h1>{title}</h1>
         <p>{summary}</p>
       </div>
@@ -50,7 +45,7 @@ export function PageHeader({
 
 export function KpiStrip({
   items,
-  iconSize = 19,
+  iconSize = 28,
 }: {
   items: { label: string; value: string; change?: string; tone?: string; icon: string }[]
   iconSize?: number

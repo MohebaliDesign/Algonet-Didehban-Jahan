@@ -1,7 +1,7 @@
 /*
  * Source-controlled design-system mapping.
- * Values in the light/dark blocks come from the supplied token JSON files.
- * Variables prefixed with --temp are explicitly unapproved placeholders.
+ * Global enterprise-polish semantics live here so pages share one visual language.
+ * Visualization colors remain separate and are not repurposed for general UI chrome.
  */
 :root {
   color-scheme: light;
@@ -9,14 +9,15 @@
   --font-sans-fa: 'Vazir FD-WOL', Tahoma, sans-serif;
   --font-sans-en: 'Inter', system-ui, sans-serif;
 
-  --brand-primary-50: #eff6ff;
+  --brand-primary-50: #f2f6ff;
   --brand-primary-600: #416dff;
   --brand-primary-700: #375dd9;
   --brand-secondary-600: #ff4000;
 
-  --background: #ffffff;
-  --foreground: #000000;
+  --background: #f6f7f9;
+  --foreground: #172033;
   --surface: #ffffff;
+  --surface-subtle: #fafbfc;
   --surface-elevated: #ffffff;
   --card: var(--surface);
   --card-foreground: var(--foreground);
@@ -24,34 +25,42 @@
   --popover-foreground: var(--foreground);
   --primary: #416dff;
   --primary-foreground: #ffffff;
-  --secondary: #ff4000;
-  --secondary-foreground: #ffffff;
-  --accent: #f5f5f5;
-  --accent-foreground: #171717;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --border: #e5e5e5;
+  --secondary: #eef1f5;
+  --secondary-foreground: #273142;
+  --accent: #f2f4f7;
+  --accent-foreground: #273142;
+  --muted: #f2f4f7;
+  --muted-foreground: #667085;
+  --border: #e5e9ef;
+  --border-subtle: #edf0f4;
   --input: #ffffff;
-  --ring: #e5e5e5;
-  --destructive: #dc2626;
+  --ring: #416dff;
+  --destructive: #c84a4a;
   --destructive-foreground: #ffffff;
-  --sidebar: var(--surface);
+  --status-critical: #c84a4a;
+  --status-warning: #ad7418;
+  --status-positive: #2f7d57;
+  --status-info: #3f6fca;
+  --sidebar: #fbfcfd;
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
+  --sidebar-accent: #f2f4f7;
   --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: var(--border);
+  --sidebar-border: var(--border-subtle);
   --sidebar-ring: var(--ring);
 
   --radius-xs: 2px;
-  --radius: var(--radius-lg);
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
   --radius-xl: 12px;
   --radius-2xl: 16px;
-  --radius-3xl: 24px;
+  --radius-3xl: 20px;
+  --radius-card: 16px;
+  --radius-card-lg: 20px;
+  --radius-control: 10px;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -62,53 +71,61 @@
   --space-8: 32px;
   --space-10: 40px;
   --space-12: 48px;
+  --space-16: 64px;
 
-  --shadow-sm: 0 2px 8px 15px rgb(0 0 0 / 5%);
-  --shadow-md: 0 4px 10px -2px rgb(0 0 0 / 5%);
-  --shadow-lg: 0 8px 16px -4px rgb(0 0 0 / 5%);
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 4%), 0 4px 12px rgb(15 23 42 / 3%);
+  --shadow-md: 0 8px 24px rgb(15 23 42 / 8%);
+  --shadow-lg: 0 16px 40px rgb(15 23 42 / 12%);
+  --shadow-popover: 0 12px 32px rgb(15 23 42 / 12%);
 
-  /* PLACEHOLDER semantic mappings: chart/map/status guidance was not supplied. */
+  /* Existing prototype state mappings. */
   --temp-ai: #416dff;
   --temp-selected: #416dff;
-  --temp-live: #16a34a;
-  --temp-cached: #0284c7;
-  --temp-stale: #d97706;
-  --temp-partial: #7c3aed;
-  --temp-no-data: #737373;
-  --temp-error: #dc2626;
-  --temp-restricted: #525252;
+  --temp-live: #2f7d57;
+  --temp-cached: #3f6fca;
+  --temp-stale: #ad7418;
+  --temp-partial: #7a6da8;
+  --temp-no-data: #667085;
+  --temp-error: #c84a4a;
+  --temp-restricted: #596273;
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --background: #000000;
-  --foreground: #fafafa;
-  --surface: #171717;
-  --surface-elevated: #171717;
+  --background: #111318;
+  --foreground: #f3f5f7;
+  --surface: #171a20;
+  --surface-subtle: #14171c;
+  --surface-elevated: #1d2128;
   --card: var(--surface);
   --card-foreground: var(--foreground);
   --popover: var(--surface-elevated);
   --popover-foreground: var(--foreground);
-  --primary: #f5f5f5;
-  --primary-foreground: #0a0a0a;
-  --secondary: #262626;
-  --secondary-foreground: #f5f5f5;
-  --accent: #171717;
-  --accent-foreground: #f5f5f5;
-  --muted: #171717;
-  --muted-foreground: #a3a3a3;
-  --border: #404040;
-  --input: rgb(255 255 255 / 5%);
-  --ring: #404040;
-  --destructive: #9e4042;
+  --primary: #7f9cff;
+  --primary-foreground: #0f1420;
+  --secondary: #222730;
+  --secondary-foreground: #eef1f4;
+  --accent: #20242b;
+  --accent-foreground: #f3f5f7;
+  --muted: #20242b;
+  --muted-foreground: #9aa4b2;
+  --border: #2b3038;
+  --border-subtle: #242930;
+  --input: #1b1f25;
+  --ring: #7f9cff;
+  --destructive: #d36a6a;
   --destructive-foreground: #ffffff;
-  --sidebar: var(--surface);
+  --status-critical: #d36a6a;
+  --status-warning: #d29a4a;
+  --status-positive: #62a881;
+  --status-info: #7f9cff;
+  --sidebar: #14171c;
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
+  --sidebar-accent: #20242b;
   --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: var(--border);
+  --sidebar-border: var(--border-subtle);
   --sidebar-ring: var(--ring);
 }
 
@@ -175,8 +192,8 @@ textarea {
 }
 
 :focus-visible {
-  outline: 2px solid var(--brand-primary-600);
-  outline-offset: 3px;
+  outline: 2px solid color-mix(in srgb, var(--ring) 72%, transparent);
+  outline-offset: 2px;
 }
 
 ::selection {

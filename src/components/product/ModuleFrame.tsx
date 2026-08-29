@@ -80,6 +80,8 @@ export function ModuleFrame({
   const copy = useProductCopy()
   const { locale } = usePreferences()
   const { openInspector } = useWorkspace()
+  const showState = state !== 'fresh'
+
   return (
     <Card
       className={`module-frame module-${size} ${expanded ? 'module-expanded' : ''} ${collapsed ? 'module-collapsed' : ''}`}
@@ -99,10 +101,12 @@ export function ModuleFrame({
               </span>
             )}
             <h2 title={title}>{title}</h2>
-            <Badge variant="outline" className={`state-badge state-${state}`}>
-              <i />
-              {copy[stateKeys[state]]}
-            </Badge>
+            {showState ? (
+              <Badge variant="outline" className={`state-badge state-${state}`}>
+                <i />
+                {copy[stateKeys[state]]}
+              </Badge>
+            ) : null}
           </div>
           {description && !collapsed && <p title={description}>{description}</p>}
         </div>
@@ -113,7 +117,7 @@ export function ModuleFrame({
               label={copy.analyze}
               onClick={() => openInspector({ kind: 'ai', id, title })}
             >
-              <Icon name="magic-star" size={18} />
+              <Icon name="document-filter" size={18} />
             </ModuleIconButton>
           )}
           <ModuleIconButton label={copy.collapse} onClick={onCollapse}>
@@ -135,7 +139,7 @@ export function ModuleFrame({
             </Tooltip>
             <DropdownMenuContent align="end" className="module-menu">
               <DropdownMenuItem onSelect={() => openInspector({ kind: 'ai', id, title })}>
-                <Icon name="magic-star" />
+                <Icon name="document-filter" />
                 {copy.analyze}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={footerAction} disabled={!footerAction}>
@@ -166,7 +170,7 @@ export function ModuleFrame({
       <Collapsible open={!collapsed}>
         <CollapsibleContent>
           <CardContent className="module-content">{children}</CardContent>
-          {(sourceCount || eventCount || confidence) && (
+          {(sourceCount != null || eventCount != null || confidence != null || updated) && (
             <CardFooter className="module-footer">
               {sourceCount != null && (
                 <span>
@@ -186,9 +190,11 @@ export function ModuleFrame({
                   {copy.confidence} {confidence}%
                 </span>
               )}
-              <time>
-                {copy.updated}: {updated ?? (locale === 'fa' ? '۲ دقیقه پیش' : '2 minutes ago')}
-              </time>
+              {updated ? (
+                <time>
+                  {copy.updated}: {updated}
+                </time>
+              ) : null}
             </CardFooter>
           )}
         </CollapsibleContent>
