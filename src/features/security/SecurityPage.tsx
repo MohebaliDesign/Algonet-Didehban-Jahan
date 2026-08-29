@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
 import { Icon } from '@/components/Icon'
@@ -5,12 +7,28 @@ import { BarChart } from '@/components/product/Charts'
 import { ModuleFrame } from '@/components/product/ModuleFrame'
 import { KpiStrip, PageHeader } from '@/components/product/PageHeader'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { events } from '@/data/mock/visualMvpData'
-import { SecurityWorldMap, type SecurityRiskPoint } from './SecurityWorldMap'
+import { SecurityWorldMap, type Continent, type SecurityRiskPoint } from './SecurityWorldMap'
 
 function local<T>(locale: 'fa' | 'en', fa: T, en: T): T {
   return locale === 'fa' ? fa : en
 }
+
+const continentOptions: Array<{ value: Continent; fa: string; en: string }> = [
+  { value: 'all', fa: 'همه قاره‌ها', en: 'All continents' },
+  { value: 'asia', fa: 'آسیا', en: 'Asia' },
+  { value: 'europe', fa: 'اروپا', en: 'Europe' },
+  { value: 'africa', fa: 'آفریقا', en: 'Africa' },
+  { value: 'americas', fa: 'آمریکا', en: 'Americas' },
+  { value: 'oceania', fa: 'اقیانوسیه', en: 'Oceania' },
+]
 
 function PageGrid({ children }: { children: React.ReactNode }) {
   return <div className="module-grid product-page-grid">{children}</div>
@@ -19,11 +37,13 @@ function PageGrid({ children }: { children: React.ReactNode }) {
 export function SecurityPage() {
   const { locale } = usePreferences()
   const { openInspector } = useWorkspace()
+  const [continent, setContinent] = useState<Continent>('all')
 
   const riskItems: SecurityRiskPoint[] = [
     {
       label: 'اوکراین',
       labelEn: 'Ukraine',
+      hcKey: 'ua',
       impact: 84,
       likelihood: 91,
       severity: 'critical',
@@ -32,33 +52,36 @@ export function SecurityPage() {
       continents: ['europe'],
     },
     {
-      label: 'دریای سرخ',
-      labelEn: 'Red Sea',
-      impact: 71,
-      likelihood: 76,
-      severity: 'high',
-      lat: 20,
-      lon: 38,
-      continents: ['africa', 'asia'],
+      label: 'اسرائیل',
+      labelEn: 'Israel',
+      hcKey: 'il',
+      impact: 82,
+      likelihood: 88,
+      severity: 'critical',
+      lat: 31.5,
+      lon: 34.8,
+      continents: ['asia'],
     },
     {
-      label: 'قفقاز',
-      labelEn: 'Caucasus',
-      impact: 58,
-      likelihood: 62,
-      severity: 'medium',
-      lat: 42,
-      lon: 44,
-      continents: ['asia', 'europe'],
+      label: 'سودان',
+      labelEn: 'Sudan',
+      hcKey: 'sd',
+      impact: 86,
+      likelihood: 90,
+      severity: 'critical',
+      lat: 15.5,
+      lon: 32.5,
+      continents: ['africa'],
     },
     {
-      label: 'شرق آسیا',
-      labelEn: 'East Asia',
-      impact: 47,
-      likelihood: 69,
+      label: 'میانمار',
+      labelEn: 'Myanmar',
+      hcKey: 'mm',
+      impact: 70,
+      likelihood: 78,
       severity: 'high',
-      lat: 34,
-      lon: 118,
+      lat: 19.7,
+      lon: 96.1,
       continents: ['asia'],
     },
   ]
@@ -111,14 +134,31 @@ export function SecurityPage() {
           title={local(locale, 'نقشه تنش‌های منطقه‌ای', 'Regional tension map')}
           description={local(
             locale,
-            'نمای جهانی · احتمال و پیامد کانون‌های تنش',
-            'Global view · likelihood and impact of tension areas',
+            'نمای جهانی · دادهٔ نمونهٔ تنش و درگیری',
+            'Global view · sample conflict and tension data',
           )}
           size="wide"
           state="fresh"
           sourceCount={41}
+          headerAccessory={
+            <Select value={continent} onValueChange={(value) => setContinent(value as Continent)}>
+              <SelectTrigger
+                className="security-continent-toolbar-filter"
+                aria-label={local(locale, 'فیلتر قاره', 'Filter by continent')}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {continentOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {local(locale, option.fa, option.en)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
         >
-          <SecurityWorldMap items={riskItems} />
+          <SecurityWorldMap items={riskItems} continent={continent} />
         </ModuleFrame>
 
         <ModuleFrame
