@@ -1,0 +1,132 @@
+/*
+ * Enterprise polish — iteration 3.
+ * Visual-only refinement layered on top of the spacing contract from main.
+ * No new page/card padding or page margins are introduced here.
+ */
+
+/* Section cards: rely on surface + restrained gray elevation, not heavy borders. */
+.module-frame {
+  border: 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.module-frame:hover {
+  border-color: transparent;
+  box-shadow: var(--shadow-card-hover);
+}
+
+.module-header,
+.module-collapsed .module-header {
+  border-block-end: 0;
+}
+
+.module-separator {
+  display: none;
+}
+
+/* Keep elevation deliberate: secondary summary strips remain flatter than analytical modules. */
+.kpi-strip {
+  border-color: var(--border-subtle);
+  box-shadow: none;
+}
+
+/*
+ * Global filters follow the shadcn Field + Select anatomy:
+ * label above, trigger below, validation reserved for true invalid states.
+ * Outer spacing continues to come from main's context-filter rules.
+ */
+.context-filter[data-slot='field'] {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.context-filter-label[data-slot='field-label'] {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.context-filter-label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context-filter-label small {
+  flex: none;
+  color: color-mix(in srgb, var(--muted-foreground) 76%, transparent);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.context-filter [data-slot='select-trigger'] {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  height: 36px;
+  padding-inline: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--foreground);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  font-size: 14px;
+  font-weight: 500;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.context-filter [data-slot='select-trigger']:hover {
+  border-color: color-mix(in srgb, var(--foreground) 14%, var(--border));
+  background: color-mix(in srgb, var(--surface) 97%, var(--accent));
+}
+
+.context-filter [data-slot='select-trigger']:focus-visible {
+  border-color: color-mix(in srgb, var(--ring) 54%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 9%, transparent), var(--shadow-sm);
+  outline: 0;
+}
+
+.context-filter[data-invalid='true'] [data-slot='field-label'],
+.context-filter [aria-invalid='true'] {
+  color: var(--destructive);
+}
+
+.context-filter [aria-invalid='true'] {
+  border-color: color-mix(in srgb, var(--destructive) 58%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 9%, transparent);
+}
+
+.context-filter [data-slot='field-error'] {
+  color: var(--destructive);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Interaction contrast increases slightly on hover/focus without adding decoration. */
+.module-controls > button:hover,
+.module-controls [data-slot='tooltip-trigger']:hover,
+.module-footer-source:hover {
+  background: color-mix(in srgb, var(--accent) 82%, var(--surface));
+}
+
+/* Popovers are true overlays, so they receive a clearer elevation than static modules. */
+.module-menu,
+[data-slot='dropdown-menu-content'],
+[data-slot='popover-content'],
+[data-slot='select-content'] {
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-popover);
+}
+
+/* Dark theme uses surface contrast first; shadow remains gray-tinted rather than black. */
+:root[data-theme='dark'] .module-frame {
+  background: color-mix(in srgb, var(--surface) 98%, var(--surface-elevated));
+}
