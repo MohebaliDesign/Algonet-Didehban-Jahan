@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router'
 
 import { AppShell } from '@/components/product/AppShell'
 import { CountriesPage } from '@/features/countries/CountriesPage'
+import { IntelligenceDetailPage } from '@/features/details/IntelligenceDetailPage'
 import { FoundationDiagnostic } from '@/features/foundation/FoundationDiagnostic'
 import { MarketsPage } from '@/features/markets/MarketsPage'
 import {
@@ -26,6 +27,7 @@ export function App() {
         <Route path="/countries" element={<CountriesPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/data" element={<DataManagementPage />} />
+        <Route path="/details/:kind/:id" element={<IntelligenceDetailPage />} />
       </Route>
       <Route path="/foundation" element={<FoundationDiagnostic />} />
       <Route path="*" element={<Navigate to="/world" replace />} />
