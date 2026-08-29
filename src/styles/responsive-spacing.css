@@ -1,0 +1,324 @@
+/*
+ * Product-wide responsive spacing and card-composition rules.
+ *
+ * These overrides keep shell gutters, card spacing, row composition, and card
+ * internals consistent across product routes without coupling layout to one page.
+ */
+
+.app-shell {
+  --shell-inline-gutter: 24px;
+  --content-grid-gap: 16px;
+  --content-card-padding: 20px;
+  --content-card-max-height: min(560px, calc(100dvh - 180px));
+}
+
+/* Keep the persistent shell layers aligned to one horizontal gutter. */
+.global-topbar {
+  padding-inline: var(--shell-inline-gutter);
+}
+
+.context-bar {
+  padding-inline: var(--shell-inline-gutter);
+}
+
+.product-canvas {
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+}
+
+/* Every page consumes the full available canvas width after shell padding. */
+.page-view {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin-inline: 0;
+}
+
+/* Shared grid foundation. */
+.module-grid,
+.product-page-grid {
+  width: 100%;
+  min-width: 0;
+  gap: var(--content-grid-gap);
+  align-items: stretch;
+  grid-auto-flow: row;
+}
+
+.module-frame {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: auto;
+  align-self: stretch;
+  flex-direction: column;
+}
+
+/*
+ * Standard product pages use paired rows that always consume all 12 columns.
+ * Default pair = 6/6. Large + secondary = 8/4. Medium + small = 8/4.
+ * An unpaired final card automatically becomes 12/12 instead of leaving whitespace.
+ */
+.product-page-grid {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.product-page-grid > .module-frame:not(.module-wide) {
+  grid-column: span 6;
+}
+
+.product-page-grid > .module-wide {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1201px) {
+  /* Large card first in a pair. */
+  .product-page-grid > .module-large:nth-child(odd):has(+ .module-frame:not(.module-large)) {
+    grid-column: span 8;
+  }
+
+  .product-page-grid > .module-large:nth-child(odd) + .module-frame:not(.module-large) {
+    grid-column: span 4;
+  }
+
+  /* Large card second in a pair. */
+  .product-page-grid > .module-frame:not(.module-large):nth-child(odd):has(+ .module-large) {
+    grid-column: span 4;
+  }
+
+  .product-page-grid > .module-frame:not(.module-large):nth-child(odd) + .module-large {
+    grid-column: span 8;
+  }
+
+  /* Medium + small keeps the more information-dense card larger. */
+  .product-page-grid > .module-medium:nth-child(odd):has(+ .module-small) {
+    grid-column: span 8;
+  }
+
+  .product-page-grid > .module-medium:nth-child(odd) + .module-small {
+    grid-column: span 4;
+  }
+
+  .product-page-grid > .module-small:nth-child(odd):has(+ .module-medium) {
+    grid-column: span 4;
+  }
+
+  .product-page-grid > .module-small:nth-child(odd) + .module-medium {
+    grid-column: span 8;
+  }
+
+  /* A single remaining card always fills the complete row. */
+  .product-page-grid > .module-frame:nth-child(odd):last-child {
+    grid-column: 1 / -1;
+  }
+
+  /* Countries: prioritize the comparison visualization over the route list. */
+  .product-page-grid > [data-module-id='corridors'] {
+    grid-column: span 4;
+  }
+
+  .product-page-grid > [data-module-id='country-comparison'] {
+    grid-column: span 8;
+  }
+}
+
+/*
+ * Bound standard dashboard cards so long content scrolls internally instead of
+ * growing one card and breaking the rhythm of the surrounding rows.
+ */
+.product-page-grid > .module-frame {
+  min-height: 0;
+  max-height: var(--content-card-max-height);
+  overflow: hidden;
+}
+
+.product-page-grid > .module-frame > [data-slot='collapsible'],
+.product-page-grid > .module-frame [data-slot='collapsible-content'] {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.product-page-grid > .module-frame .module-content {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/*
+ * World Monitor has one intentionally full-width map followed by paired modules.
+ * Small cards are promoted to half-width so the final row cannot stop at 8/12.
+ */
+.world-page .module-grid > .module-wide {
+  grid-column: 1 / -1;
+}
+
+.world-page .module-grid > .module-medium,
+.world-page .module-grid > .module-small {
+  grid-column: span 6;
+}
+
+.world-page .module-grid > .module-frame:not(.module-wide) {
+  min-height: 0;
+  max-height: var(--content-card-max-height);
+  overflow: hidden;
+}
+
+.world-page .module-grid > .module-frame:not(.module-wide) > [data-slot='collapsible'],
+.world-page .module-grid > .module-frame:not(.module-wide) [data-slot='collapsible-content'] {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.world-page .module-grid > .module-frame:not(.module-wide) .module-content {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* Standardize card internals while preserving component-specific content layouts. */
+.module-header {
+  padding: 16px var(--content-card-padding);
+}
+
+.module-content {
+  min-width: 0;
+  padding: var(--content-card-padding);
+}
+
+.module-footer {
+  padding: 12px var(--content-card-padding);
+}
+
+/* Full-bleed map/chart workspaces intentionally cancel the module-content padding. */
+.map-workspace {
+  margin: calc(-1 * var(--content-card-padding));
+}
+
+/* Keep the KPI strip visually separated from the module grid. */
+.kpi-strip {
+  margin-block-end: var(--content-grid-gap);
+}
+
+.management-sheet-body {
+  padding-inline: 20px;
+}
+
+@media (min-width: 1600px) {
+  .app-shell {
+    --shell-inline-gutter: 24px;
+    --content-grid-gap: 20px;
+  }
+}
+
+/* Medium desktop: two equal cards per row is more resilient than 8/4. */
+@media (max-width: 1200px) {
+  .app-shell {
+    --content-card-max-height: min(520px, calc(100dvh - 160px));
+  }
+
+  .product-page-grid > .module-frame:not(.module-wide),
+  .world-page .module-grid > .module-frame:not(.module-wide) {
+    grid-column: span 6 !important;
+  }
+
+  .product-page-grid > .module-frame:nth-child(odd):last-child {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    --shell-inline-gutter: 20px;
+    --content-grid-gap: 16px;
+    --content-card-padding: 16px;
+    --content-card-max-height: min(500px, calc(100dvh - 140px));
+  }
+
+  .global-topbar {
+    padding-inline: var(--shell-inline-gutter);
+  }
+
+  .product-canvas {
+    padding: 20px;
+  }
+
+  .context-bar {
+    padding-inline: var(--shell-inline-gutter);
+  }
+
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    inset-inline: 20px;
+    padding: 20px;
+    gap: 12px;
+  }
+
+  /* Tablet and mobile use one fill-width card per row. */
+  .product-page-grid > .module-frame,
+  .world-page .module-grid > .module-frame {
+    grid-column: 1 / -1 !important;
+  }
+
+  .module-header {
+    padding: 16px;
+  }
+
+  .module-footer {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    --shell-inline-gutter: 20px;
+    --content-grid-gap: 12px;
+    --content-card-padding: 16px;
+    --content-card-max-height: min(460px, calc(100dvh - 120px));
+  }
+
+  .global-topbar {
+    padding-inline: var(--shell-inline-gutter);
+  }
+
+  .product-canvas {
+    padding: 20px;
+  }
+
+  .context-bar {
+    padding-inline: var(--shell-inline-gutter);
+  }
+
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    inset-inline: 20px;
+    padding: 20px;
+  }
+
+  .module-grid,
+  .product-page-grid {
+    gap: var(--content-grid-gap);
+  }
+
+  .module-header,
+  .module-content,
+  .module-footer {
+    padding-inline: var(--content-card-padding);
+  }
+
+  .module-content {
+    padding-block: var(--content-card-padding);
+  }
+}
