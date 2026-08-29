@@ -2,19 +2,19 @@ import Highcharts from 'highcharts'
 import type { ChartOptions } from '@highcharts/react'
 
 export const highchartsTokens = {
-  amber: 'var(--temp-viz-amber)',
+  amber: 'var(--chart-secondary, var(--temp-viz-amber))',
   border: 'var(--border)',
-  critical: 'var(--temp-viz-critical)',
+  critical: 'var(--chart-critical, var(--temp-viz-critical))',
   foreground: 'var(--foreground)',
-  forecast: 'var(--temp-viz-forecast)',
-  high: 'var(--temp-viz-high)',
+  forecast: 'var(--chart-forecast, var(--temp-viz-forecast))',
+  high: 'var(--chart-warning, var(--temp-viz-high))',
   land: 'var(--temp-viz-land)',
-  low: 'var(--temp-viz-low)',
-  medium: 'var(--temp-viz-medium)',
+  low: 'var(--chart-positive, var(--temp-viz-low))',
+  medium: 'var(--chart-secondary, var(--temp-viz-medium))',
   muted: 'var(--muted-foreground)',
-  negative: 'var(--destructive)',
-  positive: 'var(--temp-viz-teal)',
-  primary: 'var(--temp-viz-blue)',
+  negative: 'var(--chart-critical, var(--destructive))',
+  positive: 'var(--chart-positive, var(--temp-viz-teal))',
+  primary: 'var(--chart-primary, var(--temp-viz-blue))',
   surface: 'var(--surface)',
   water: 'var(--temp-viz-water)',
 } as const
