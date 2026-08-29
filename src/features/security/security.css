@@ -1,0 +1,335 @@
+.module-header-accessory {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: var(--space-1);
+}
+
+.security-continent-toolbar-filter {
+  width: 156px;
+  min-height: 40px;
+  border-color: var(--border);
+  background: var(--surface);
+  font-size: var(--type-control-size);
+}
+
+.security-page .kpi-strip {
+  margin-block-end: 24px;
+}
+
+.security-page .product-page-grid {
+  gap: 24px;
+}
+
+.security-page .kpi-icon {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  place-items: center;
+  border-radius: var(--radius-lg);
+}
+
+.security-page .kpi-strip article {
+  min-height: 88px;
+  align-items: center;
+}
+
+.security-page .module-controls button {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease;
+}
+
+.security-page .module-controls button:hover,
+.security-page .module-controls button:focus-visible {
+  border-color: var(--border);
+  background: var(--accent);
+}
+
+.security-page .module-footer time {
+  display: none;
+}
+
+/* Keep the two analytical cards in one grid row without forcing their
+   internal wrappers to 100% height. The previous descendant height rule
+   stretched Collapsible wrappers and pushed chart content outside the cards. */
+.security-page [data-module-id='regional-bars'],
+.security-page [data-module-id='threat-timeline'] {
+  align-self: stretch;
+}
+
+.security-page [data-module-id='regional-bars'] .module-content,
+.security-page [data-module-id='threat-timeline'] .module-content {
+  min-height: 0;
+}
+
+.security-strategic-summary {
+  display: grid;
+  max-width: 1120px;
+  gap: var(--space-3);
+}
+
+.security-strategic-summary p {
+  margin: 0;
+  color: var(--foreground);
+  font-size: var(--type-body-size);
+  line-height: 1.9;
+}
+
+.security-strategic-summary .text-action {
+  width: fit-content;
+  padding-inline: 0;
+}
+
+[data-module-id='security-map'] .module-content {
+  padding: 0 !important;
+}
+
+.security-map-workspace {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.security-map-shell {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: 600px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+
+.security-world-map {
+  width: 100%;
+  min-width: 0;
+  height: 600px;
+  direction: ltr;
+  background: #fff;
+}
+
+.security-world-map .highcharts-background {
+  fill: #fff;
+}
+
+.security-world-map .highcharts-map-series .highcharts-point {
+  transition: fill 140ms ease, stroke 140ms ease, opacity 140ms ease;
+}
+
+.security-world-map .highcharts-map-series .highcharts-point:hover {
+  cursor: pointer;
+}
+
+.security-world-map .security-map-pulse-series .highcharts-point,
+.security-world-map .security-map-pulse-point {
+  animation: security-map-pulse 1.3s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes security-map-pulse {
+  0% {
+    opacity: 0.12;
+    transform: scale(0.72);
+  }
+  48% {
+    opacity: 0.88;
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.38);
+  }
+}
+
+.security-map-state {
+  display: grid;
+  min-height: 600px;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  color: var(--muted-foreground);
+  background: #fff;
+  text-align: center;
+}
+
+.security-map-state strong {
+  color: var(--foreground);
+  font-size: var(--type-body-size);
+  font-weight: 600;
+}
+
+.security-map-state span {
+  max-width: 480px;
+  font-size: var(--type-caption-size);
+}
+
+.security-world-map .highcharts-map-navigation {
+  filter: none;
+}
+
+.security-world-map .highcharts-map-navigation .highcharts-button-box {
+  filter: drop-shadow(0 2px 6px rgb(15 23 42 / 10%));
+}
+
+.security-world-map .highcharts-data-label text,
+.security-world-map .highcharts-tooltip text,
+.security-world-map .highcharts-data-label span,
+.security-world-map .highcharts-tooltip span {
+  font-family: inherit;
+}
+
+.security-assessment-page {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.security-assessment-back {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.security-assessment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: -8px;
+}
+
+.security-assessment-meta span {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  background: var(--surface);
+  font-size: var(--type-caption-size);
+}
+
+.security-assessment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.security-assessment-grid > [data-slot='card'] {
+  min-width: 0;
+}
+
+.security-assessment-overview,
+.security-assessment-scope-card {
+  grid-column: 1 / -1;
+}
+
+.security-assessment-grid h2 {
+  margin: 0;
+  font-size: var(--type-widget-title-size);
+  font-weight: 600;
+}
+
+.security-assessment-grid p,
+.security-assessment-grid li {
+  font-size: var(--type-body-size);
+  line-height: 1.9;
+}
+
+.security-assessment-overview [data-slot='card-content'] {
+  display: grid;
+  max-width: 1120px;
+  gap: var(--space-3);
+}
+
+.security-assessment-overview p {
+  margin: 0;
+}
+
+.security-evidence-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.security-evidence-list article {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.security-evidence-list article > strong {
+  font-size: var(--type-body-size);
+  font-weight: 600;
+}
+
+.security-evidence-list article > p {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.security-evidence-status {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--type-caption-size);
+  font-weight: 600;
+}
+
+.security-evidence-status.supporting {
+  color: var(--temp-viz-teal);
+}
+
+.security-evidence-status.uncertain {
+  color: var(--temp-viz-amber);
+}
+
+.security-assessment-scope-card ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+@media (max-width: 960px) {
+  .security-assessment-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .security-assessment-overview,
+  .security-assessment-scope-card {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .module-header-accessory {
+    order: -1;
+  }
+
+  .security-continent-toolbar-filter {
+    width: 132px;
+  }
+
+  .security-page .kpi-icon {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+  }
+
+  .security-page .product-page-grid {
+    gap: 16px;
+  }
+
+  .security-map-shell,
+  .security-world-map,
+  .security-map-state {
+    min-height: 460px;
+    height: 460px;
+  }
+}

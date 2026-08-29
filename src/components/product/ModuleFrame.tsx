@@ -39,6 +39,7 @@ export interface ModuleFrameProps {
   onExpand?: () => void
   children: ReactNode
   footerAction?: () => void
+  headerAccessory?: ReactNode
 }
 
 const stateKeys: Record<
@@ -74,6 +75,7 @@ export function ModuleFrame({
   onExpand,
   children,
   footerAction,
+  headerAccessory,
 }: ModuleFrameProps) {
   const copy = useProductCopy()
   const { locale } = usePreferences()
@@ -105,6 +107,7 @@ export function ModuleFrame({
           {description && !collapsed && <p title={description}>{description}</p>}
         </div>
         <div className="module-controls">
+          {headerAccessory ? <div className="module-header-accessory">{headerAccessory}</div> : null}
           {!editing && (
             <ModuleIconButton
               label={copy.analyze}

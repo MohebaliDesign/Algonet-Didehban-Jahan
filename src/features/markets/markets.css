@@ -1,4 +1,4 @@
-.market-watchlist button {
+﻿.market-watchlist button {
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr) 70px auto;
   align-items: center;
@@ -66,7 +66,6 @@
 /* Economy & Markets follows the Pattern card/chart rhythm without changing other pages. */
 .markets-page {
   --markets-positive: #16a34a;
-  --markets-card-height: 440px;
   font-size: 14px;
 }
 
@@ -74,9 +73,15 @@
   --markets-positive: #4ade80;
 }
 
+/* The legacy PageGrid is retained in source for now, but hidden here so the
+ * Highcharts workspace is the single rendered version of these sections. */
+.markets-page > .product-page-grid {
+  display: none;
+}
+
 .markets-page .page-header,
 .markets-page .kpi-strip {
-  margin-block-end: 16px;
+  margin-block-end: var(--space-6);
 }
 
 .markets-page .page-eyebrow,
@@ -91,45 +96,31 @@
 }
 
 .markets-page .kpi-strip {
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .markets-page .kpi-strip article {
-  gap: 16px;
-  padding: 16px;
+  gap: var(--space-4);
+  padding: var(--space-4);
 }
 
 .markets-page .kpi-strip article > div {
-  gap: 8px;
+  gap: var(--space-2);
 }
 
-/*
- * MarketsPage currently contains a legacy PageGrid and the newer markets workspace.
- * Only the workspace is the active layout; suppress the duplicate legacy grid so the
- * same cards are not rendered twice in the visual flow.
- */
-.markets-page > .product-page-grid {
-  display: none;
-}
-
-/*
- * One shared grid owns both rows. This guarantees aligned row heights and creates
- * an alternating desktop rhythm while keeping visualization cards visually dominant.
- */
 .markets-workspace {
   direction: ltr;
   display: grid;
-  width: 100%;
-  min-width: 0;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-template-rows: repeat(2, var(--markets-card-height));
-  gap: 16px;
-  align-items: stretch;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  gap: var(--space-6);
+  align-items: start;
 }
 
-/* Preserve semantic grouping in JSX while letting all four cards share one CSS grid. */
 .markets-stack {
-  display: contents;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-6);
 }
 
 [dir='rtl'] .markets-stack {
@@ -140,89 +131,23 @@
   direction: ltr;
 }
 
-/* Row 1: large detail chart + compact watchlist. */
-.markets-workspace [data-module-id='market-detail'] {
-  grid-column: 1 / span 8;
-  grid-row: 1;
-}
-
-.markets-workspace [data-module-id='watchlist'] {
-  grid-column: 9 / span 4;
-  grid-row: 1;
-}
-
-/* Row 2 mirrors the position while keeping the comparison chart larger than AI copy. */
-.markets-workspace [data-module-id='market-ai'] {
-  grid-column: 1 / span 4;
-  grid-row: 2;
-}
-
-.markets-workspace [data-module-id='market-comparison'] {
-  grid-column: 5 / span 8;
-  grid-row: 2;
-}
-
-/* Every card in the markets grid has a controlled row height. */
-.markets-workspace .module-frame {
-  display: flex;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-  overflow: hidden;
-  flex-direction: column;
-}
-
-.markets-workspace .module-header,
-.markets-workspace .module-footer {
-  flex: 0 0 auto;
-}
-
-/* Let the collapsible body consume the remaining card height without growing the card. */
-.markets-workspace .module-frame > [data-slot='collapsible'] {
-  display: flex;
-  min-height: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.markets-workspace [data-slot='collapsible-content'] {
-  display: flex;
-  min-height: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* Long content scrolls inside the card instead of changing the grid row height. */
-.markets-workspace .module-content {
-  min-height: 0;
-  flex: 1 1 auto;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-}
-
 .markets-page .module-frame {
   width: 100%;
 }
 
 .markets-page .module-header {
   min-height: 0;
-  padding: 16px 20px;
-  gap: 16px;
+  padding: var(--space-4);
+  gap: var(--space-4);
   align-items: flex-start;
 }
 
 .markets-page .module-title {
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .markets-page .module-title-line {
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
@@ -233,7 +158,7 @@
 }
 
 .markets-page .module-title p {
-  margin-block-start: 8px;
+  margin-block-start: var(--space-2);
   font-size: 16px;
   font-weight: 500;
   line-height: 1.5;
@@ -241,21 +166,21 @@
 
 .markets-page .state-badge {
   min-height: 24px;
-  padding-inline: 8px;
+  padding-inline: var(--space-2);
   font-size: 14px;
 }
 
 .markets-page .module-content {
-  padding: 20px;
+  padding: var(--space-6);
 }
 
 .markets-page .module-footer {
-  padding: 12px 20px;
-  gap: 16px;
+  padding: var(--space-4) var(--space-6);
+  gap: var(--space-4);
 }
 
 .markets-page .chart-view-header {
-  margin-block-end: 16px;
+  margin-block-end: var(--space-4);
 }
 
 .markets-page .chart-view-header > strong {
@@ -270,18 +195,31 @@
 }
 
 .markets-page .market-watchlist {
-  gap: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
 }
 
 .markets-page .market-watchlist button {
-  grid-template-columns: 48px minmax(0, 1fr) 96px auto;
-  gap: 16px;
+  grid-template-columns: 48px minmax(0, 1fr) auto 120px;
+  gap: var(--space-4);
   min-height: 72px;
-  padding: 8px 16px;
+  padding: var(--space-2) var(--space-4);
 }
 
 .markets-page .market-watchlist .market-row-copy {
-  gap: 8px;
+  gap: var(--space-2);
+}
+
+.markets-page .market-watchlist .markets-sparkline {
+  order: 4;
+  width: 120px;
+  justify-self: end;
+}
+
+.markets-page .market-watchlist b {
+  order: 3;
+  white-space: nowrap;
 }
 
 .markets-page .market-watchlist strong,
@@ -298,90 +236,30 @@
 }
 
 .markets-page .daily-brief {
-  gap: 16px;
+  gap: var(--space-4);
 }
 
-/* Medium desktop/tablet: equal-width two-card rows are more stable than 8/4. */
-@media (max-width: 1200px) {
-  .markets-page {
-    --markets-card-height: 420px;
-  }
-
-  .markets-workspace {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(2, var(--markets-card-height));
-    gap: 16px;
-  }
-
-  .markets-workspace [data-module-id='market-detail'],
-  .markets-workspace [data-module-id='market-comparison'] {
-    grid-column: 1;
-  }
-
-  .markets-workspace [data-module-id='watchlist'],
-  .markets-workspace [data-module-id='market-ai'] {
-    grid-column: 2;
-  }
-
-  .markets-workspace [data-module-id='market-detail'],
-  .markets-workspace [data-module-id='watchlist'] {
-    grid-row: 1;
-  }
-
-  .markets-workspace [data-module-id='market-comparison'],
-  .markets-workspace [data-module-id='market-ai'] {
-    grid-row: 2;
-  }
+.markets-page .markets-comparison-chart {
+  min-height: 300px;
 }
 
-/* Narrow tablet/mobile: one card per row, still with bounded heights and internal scrolling. */
 @media (max-width: 900px) {
-  .markets-page {
-    --markets-card-height: 420px;
-  }
-
   .markets-workspace {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: repeat(4, var(--markets-card-height));
-    gap: 16px;
-  }
-
-  .markets-workspace [data-module-id='market-detail'],
-  .markets-workspace [data-module-id='watchlist'],
-  .markets-workspace [data-module-id='market-comparison'],
-  .markets-workspace [data-module-id='market-ai'] {
-    grid-column: 1;
-  }
-
-  .markets-workspace [data-module-id='market-detail'] {
-    grid-row: 1;
-  }
-
-  .markets-workspace [data-module-id='watchlist'] {
-    grid-row: 2;
-  }
-
-  .markets-workspace [data-module-id='market-comparison'] {
-    grid-row: 3;
-  }
-
-  .markets-workspace [data-module-id='market-ai'] {
-    grid-row: 4;
   }
 
   .markets-page .market-watchlist button {
-    grid-template-columns: 48px minmax(0, 1fr) 112px auto;
+    grid-template-columns: 48px minmax(0, 1fr) auto 112px;
+  }
+
+  .markets-page .market-watchlist .markets-sparkline {
+    width: 112px;
   }
 }
 
 @media (max-width: 640px) {
   .markets-page {
-    --markets-card-height: 400px;
     font-size: 12px;
-  }
-
-  .markets-workspace {
-    gap: 12px;
   }
 
   .markets-page .page-eyebrow,
@@ -404,11 +282,11 @@
 
   .markets-page .module-header,
   .markets-page .module-content {
-    padding: 16px;
+    padding: var(--space-4);
   }
 
   .markets-page .module-footer {
-    padding: 12px 16px;
+    padding: var(--space-4);
   }
 
   .markets-page .module-title h2 {
@@ -420,10 +298,12 @@
   }
 
   .markets-page .market-watchlist button {
-    grid-template-columns: 48px minmax(0, 1fr) 80px auto;
+    grid-template-columns: 48px minmax(0, 1fr) auto 80px;
   }
 
   .markets-page .market-watchlist .markets-sparkline {
     display: block;
+    width: 80px;
   }
 }
+
