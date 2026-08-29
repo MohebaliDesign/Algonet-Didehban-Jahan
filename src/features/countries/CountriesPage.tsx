@@ -9,6 +9,7 @@ import { ModuleFrame } from '@/components/product/ModuleFrame'
 import { PageHeader } from '@/components/product/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { corridors, countries } from '@/data/mock/visualMvpData'
 import { CountryComparisonRaceChart, CountryRiskSemiDonut } from './CountriesCharts'
 
@@ -99,14 +100,17 @@ export function CountriesPage() {
       >
         <div className="country-overview-layout">
           <div className="country-directory-pane">
-            <label className="country-search">
-              <span>{local(locale, 'جست‌وجوی کشور', 'Search countries')}</span>
+            <div className="country-search">
+              <Label htmlFor="country-search-input">
+                {local(locale, 'جست‌وجوی کشور', 'Search countries')}
+              </Label>
               <Input
+                id="country-search-input"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder={local(locale, 'نام کشور یا منطقه…', 'Country or region…')}
               />
-            </label>
+            </div>
 
             <div className="country-list-v2">
               {filtered.map((country) => (
@@ -201,8 +205,9 @@ export function CountriesPage() {
         >
           <div className="corridor-list-v2">
             {corridors.map((corridor) => (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 className="corridor-row-v2"
                 key={corridor.id}
                 onClick={() =>
@@ -233,7 +238,7 @@ export function CountriesPage() {
                     `${corridor.delayHours}h delay`,
                   )}
                 </span>
-              </button>
+              </Button>
             ))}
           </div>
         </ModuleFrame>
