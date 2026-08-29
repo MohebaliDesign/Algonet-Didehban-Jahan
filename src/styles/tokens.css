@@ -14,7 +14,7 @@
   --brand-primary-700: #375dd9;
   --brand-secondary-600: #ff4000;
 
-  --background: #f6f7f9;
+  --background: #f7f8fa;
   --foreground: #172033;
   --surface: #ffffff;
   --surface-subtle: #fafbfc;
@@ -31,8 +31,8 @@
   --accent-foreground: #273142;
   --muted: #f2f4f7;
   --muted-foreground: #667085;
-  --border: #e5e9ef;
-  --border-subtle: #edf0f4;
+  --border: #e6eaf0;
+  --border-subtle: #eef1f5;
   --input: #ffffff;
   --ring: #416dff;
   --destructive: #c84a4a;
@@ -73,10 +73,13 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  --shadow-sm: 0 1px 2px rgb(15 23 42 / 4%), 0 4px 12px rgb(15 23 42 / 3%);
-  --shadow-md: 0 8px 24px rgb(15 23 42 / 8%);
-  --shadow-lg: 0 16px 40px rgb(15 23 42 / 12%);
-  --shadow-popover: 0 12px 32px rgb(15 23 42 / 12%);
+  /* Gray-tinted elevation: no black shadow ink. */
+  --shadow-card: 0 1px 2px rgb(100 116 139 / 6%), 0 8px 24px rgb(148 163 184 / 10%);
+  --shadow-card-hover: 0 2px 4px rgb(100 116 139 / 7%), 0 10px 28px rgb(148 163 184 / 12%);
+  --shadow-sm: 0 1px 2px rgb(100 116 139 / 6%), 0 4px 12px rgb(148 163 184 / 8%);
+  --shadow-md: 0 8px 24px rgb(100 116 139 / 12%);
+  --shadow-lg: 0 18px 48px rgb(71 85 105 / 16%);
+  --shadow-popover: 0 12px 32px rgb(71 85 105 / 15%);
 
   /* Existing prototype state mappings. */
   --temp-ai: #416dff;
@@ -127,6 +130,12 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border-subtle);
   --sidebar-ring: var(--ring);
+  --shadow-card: 0 1px 2px rgb(148 163 184 / 4%), 0 8px 24px rgb(71 85 105 / 13%);
+  --shadow-card-hover: 0 2px 4px rgb(148 163 184 / 5%), 0 10px 28px rgb(71 85 105 / 16%);
+  --shadow-sm: 0 1px 2px rgb(148 163 184 / 4%), 0 4px 12px rgb(71 85 105 / 10%);
+  --shadow-md: 0 8px 24px rgb(71 85 105 / 18%);
+  --shadow-lg: 0 18px 48px rgb(71 85 105 / 24%);
+  --shadow-popover: 0 12px 32px rgb(71 85 105 / 22%);
 }
 
 @theme inline {
