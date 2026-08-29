@@ -22,9 +22,9 @@ export type SecurityRiskPoint = {
 }
 
 const PULSE_THRESHOLD = 85
-const BASE_COUNTRY_COLOR = '#F1F3F5'
-const MAP_BACKGROUND = '#FFFFFF'
-const COUNTRY_BORDER = '#FFFFFF'
+const BASE_COUNTRY_COLOR = 'var(--map-neutral-country, var(--surface-subtle))'
+const MAP_BACKGROUND = 'var(--surface)'
+const COUNTRY_BORDER = 'var(--map-country-border, var(--surface))'
 
 const continentViews: Record<Continent, { center?: [number, number]; zoom?: number }> = {
   all: {},
@@ -46,9 +46,9 @@ function severityLabel(locale: 'fa' | 'en', severity: Severity) {
 }
 
 function severityColor(severity: Severity) {
-  if (severity === 'critical') return 'var(--temp-viz-critical)'
-  if (severity === 'high') return 'var(--temp-viz-high)'
-  return 'var(--temp-viz-medium)'
+  if (severity === 'critical') return 'var(--chart-critical, var(--temp-viz-critical))'
+  if (severity === 'high') return 'var(--chart-warning, var(--temp-viz-high))'
+  return 'var(--chart-secondary, var(--temp-viz-medium))'
 }
 
 export function SecurityWorldMap({
@@ -58,7 +58,7 @@ export function SecurityWorldMap({
   items: SecurityRiskPoint[]
   continent: Continent
 }) {
-  const { locale } = usePreferences()
+  const { locale, theme: colorTheme } = usePreferences()
   const theme = highchartsTokens
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [topology, setTopology] = useState<object | null>(null)
@@ -146,7 +146,7 @@ export function SecurityWorldMap({
         marker: {
           radius: 18 + Math.round(item.impact / 18),
           fillColor: 'transparent',
-          lineColor: 'var(--temp-viz-critical)',
+          lineColor: 'var(--chart-critical, var(--temp-viz-critical))',
           lineWidth: 2,
         },
       }))
@@ -180,7 +180,7 @@ export function SecurityWorldMap({
             y: -12,
             theme: {
               fill: MAP_BACKGROUND,
-              stroke: '#E5E7EB',
+              stroke: theme.border,
               'stroke-width': 1,
               r: 8,
               style: { color: theme.foreground, fontSize: '14px' },
@@ -261,10 +261,10 @@ export function SecurityWorldMap({
                 return point.properties?.['country-abbrev'] || point.name
               },
               style: {
-                color: '#667085',
+                color: theme.muted,
                 fontSize: '10px',
                 fontWeight: '500',
-                textOutline: '2px #FFFFFF',
+                textOutline: `2px ${MAP_BACKGROUND}`,
               },
             },
           },
@@ -291,7 +291,7 @@ export function SecurityWorldMap({
       setLoadState('error')
       return undefined
     }
-  }, [continent, loadState, locale, numberFormatter, theme, topology, visibleItems])
+  }, [colorTheme, continent, loadState, locale, numberFormatter, theme, topology, visibleItems])
 
   return (
     <div className="security-map-workspace" dir={locale === 'fa' ? 'rtl' : 'ltr'}>
