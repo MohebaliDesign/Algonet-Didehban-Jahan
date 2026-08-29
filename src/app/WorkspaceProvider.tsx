@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import type { IntelligenceDomain, Role } from '@/types/domain'
@@ -46,6 +47,7 @@ const WorkspaceContext = createContext<WorkspaceValue | null>(null)
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // DEMO ONLY: local React state previews role-dependent interfaces. It is not
   // authentication, is deliberately not persisted, and grants no production permission.
+  const navigate = useNavigate()
   const [role, setRole] = useState<Role>(PROTOTYPE_CURRENT_USER.defaultRole)
   const [filters, setFilters] = useState(defaults)
   const [inspector, setInspector] = useState<InspectorItem | null>(null)
@@ -55,6 +57,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     <K extends keyof ContextFilters>(key: K, value: ContextFilters[K]) =>
       setFilters((current) => ({ ...current, [key]: value })),
     [],
+  )
+
+  const openInspector = useCallback(
+    (item: InspectorItem) => {
+      setInspector(null)
+      navigate(`/details/${item.kind}/${encodeURIComponent(item.id)}`, { state: item })
+    },
+    [navigate],
   )
 
   const notify = useCallback((message: string) => {
@@ -69,13 +79,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setFilter,
       resetFilters: () => setFilters(defaults),
       inspector,
-      openInspector: setInspector,
+      openInspector,
       closeInspector: () => setInspector(null),
       searchOpen,
       setSearchOpen,
       notify,
     }),
-    [filters, inspector, notify, role, searchOpen, setFilter],
+    [filters, inspector, notify, openInspector, role, searchOpen, setFilter],
   )
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>
