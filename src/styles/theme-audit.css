@@ -115,27 +115,27 @@
   stroke: var(--chart-grid);
 }
 
-/* Native document scrollbar stays available for orientation, but is deliberately
- * quieter than content. Internal scroll surfaces use scroll-fade instead. */
-html {
+/* Any native scrollbar that remains visible is deliberately quiet. Internal
+ * analytical scrollers are hidden by the scroll-fade layer that follows. */
+* {
   scrollbar-color: var(--scrollbar-thumb) transparent;
   scrollbar-width: thin;
 }
 
-html::-webkit-scrollbar {
+*::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-html::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
   background: transparent;
 }
 
-html::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: var(--scrollbar-thumb);
 }
 
-html::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
 }
