@@ -1,0 +1,292 @@
+/*
+ * Scroll affordance based on shadcn/ui scroll-fade.
+ * The mask dissolves content at the scroll edge instead of drawing a heavy
+ * scrollbar over the interface. Scrollbars remain functional via wheel,
+ * trackpad, touch, keyboard, and programmatic scrolling.
+ */
+
+@property --scroll-fade-t {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --scroll-fade-b {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --scroll-fade-s {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --scroll-fade-e {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --scroll-fade-mask {
+  syntax: '*';
+  inherits: false;
+}
+
+@keyframes scroll-fade-reveal-t {
+  from {
+    --scroll-fade-t: 0px;
+  }
+  to {
+    --scroll-fade-t: var(
+      --_scroll-fade-size-t,
+      var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+    );
+  }
+}
+
+@keyframes scroll-fade-reveal-b {
+  from {
+    --scroll-fade-b: var(
+      --_scroll-fade-size-b,
+      var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+    );
+  }
+  to {
+    --scroll-fade-b: 0px;
+  }
+}
+
+@keyframes scroll-fade-reveal-s {
+  from {
+    --scroll-fade-s: 0px;
+  }
+  to {
+    --scroll-fade-s: var(
+      --_scroll-fade-size-s,
+      var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+    );
+  }
+}
+
+@keyframes scroll-fade-reveal-e {
+  from {
+    --scroll-fade-e: var(
+      --_scroll-fade-size-e,
+      var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+    );
+  }
+  to {
+    --scroll-fade-e: 0px;
+  }
+}
+
+/* Vertical scroll-fade. Apply to the actual scrolling element. */
+.scroll-fade,
+.scroll-fade-y,
+[data-slot='scroll-area-viewport'],
+[data-slot='command-list'],
+[data-slot='select-content'],
+.markets-workspace .module-content {
+  --_scroll-fade-size-t: var(
+    --scroll-fade-t-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --_scroll-fade-size-b: var(
+    --scroll-fade-b-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-block: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--scroll-fade-t, 0px),
+    #000 calc(100% - var(--scroll-fade-b, 0px)),
+    transparent 100%
+  );
+  -webkit-mask-image: var(--scroll-fade-mask, var(--scroll-fade-block));
+  mask-image: var(--scroll-fade-mask, var(--scroll-fade-block));
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-fade,
+  .scroll-fade-y,
+  [data-slot='scroll-area-viewport'],
+  [data-slot='command-list'],
+  [data-slot='select-content'],
+  .markets-workspace .module-content {
+    animation:
+      scroll-fade-reveal-t 1ms ease-in-out,
+      scroll-fade-reveal-b 1ms ease-in-out;
+    animation-timeline: scroll(self y), scroll(self y);
+    animation-range:
+      0 var(--scroll-fade-reveal, calc(var(--spacing) * 24)),
+      calc(100% - var(--scroll-fade-reveal, calc(var(--spacing) * 24))) 100%;
+    animation-fill-mode: both;
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  .scroll-fade,
+  .scroll-fade-y,
+  [data-slot='scroll-area-viewport'],
+  [data-slot='command-list'],
+  [data-slot='select-content'],
+  .markets-workspace .module-content {
+    --scroll-fade-t: var(--_scroll-fade-size-t);
+    --scroll-fade-b: var(--_scroll-fade-size-b);
+  }
+}
+
+/* Horizontal scroll-fade. Logical start/end automatically mirror in RTL. */
+.scroll-fade-x,
+[data-slot='table-container'] {
+  --_scroll-fade-size-s: var(
+    --scroll-fade-s-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --_scroll-fade-size-e: var(
+    --scroll-fade-e-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-inline: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--scroll-fade-s, 0px),
+    #000 calc(100% - var(--scroll-fade-e, 0px)),
+    transparent 100%
+  );
+  -webkit-mask-image: var(--scroll-fade-mask, var(--scroll-fade-inline));
+  mask-image: var(--scroll-fade-mask, var(--scroll-fade-inline));
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+[dir='rtl'] .scroll-fade-x,
+[dir='rtl'] [data-slot='table-container'],
+.scroll-fade-x[dir='rtl'],
+[data-slot='table-container'][dir='rtl'] {
+  --scroll-fade-inline: linear-gradient(
+    to left,
+    transparent 0,
+    #000 var(--scroll-fade-s, 0px),
+    #000 calc(100% - var(--scroll-fade-e, 0px)),
+    transparent 100%
+  );
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-fade-x,
+  [data-slot='table-container'] {
+    animation:
+      scroll-fade-reveal-s 1ms ease-in-out,
+      scroll-fade-reveal-e 1ms ease-in-out;
+    animation-timeline: scroll(self inline), scroll(self inline);
+    animation-range:
+      0 var(--scroll-fade-reveal, calc(var(--spacing) * 24)),
+      calc(100% - var(--scroll-fade-reveal, calc(var(--spacing) * 24))) 100%;
+    animation-fill-mode: both;
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  .scroll-fade-x,
+  [data-slot='table-container'] {
+    --scroll-fade-s: var(--_scroll-fade-size-s);
+    --scroll-fade-e: var(--_scroll-fade-size-e);
+  }
+}
+
+/* Hide the visual scrollbar on faded internal surfaces, matching shadcn's
+ * recommended scroll-fade + no-scrollbar combination. */
+.scroll-fade,
+.scroll-fade-y,
+.scroll-fade-x,
+[data-slot='scroll-area-viewport'],
+[data-slot='command-list'],
+[data-slot='select-content'],
+[data-slot='table-container'],
+.markets-workspace .module-content {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scroll-fade::-webkit-scrollbar,
+.scroll-fade-y::-webkit-scrollbar,
+.scroll-fade-x::-webkit-scrollbar,
+[data-slot='scroll-area-viewport']::-webkit-scrollbar,
+[data-slot='command-list']::-webkit-scrollbar,
+[data-slot='select-content']::-webkit-scrollbar,
+[data-slot='table-container']::-webkit-scrollbar,
+.markets-workspace .module-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* Radix ScrollArea's custom track is redundant once its viewport uses fade. */
+[data-slot='scroll-area-scrollbar'],
+[data-slot='scroll-area-corner'] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The global toolbar becomes horizontally scrollable at medium widths. Give it
+ * the same direction-aware end hint without exposing a chunky scrollbar. */
+@media (min-width: 901px) and (max-width: 1200px) {
+  .context-bar {
+    --_scroll-fade-size-s: min(12%, calc(var(--spacing) * 10));
+    --_scroll-fade-size-e: min(12%, calc(var(--spacing) * 10));
+    --scroll-fade-inline: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--scroll-fade-s, 0px),
+      #000 calc(100% - var(--scroll-fade-e, 0px)),
+      transparent 100%
+    );
+    -webkit-mask-image: var(--scroll-fade-inline);
+    mask-image: var(--scroll-fade-inline);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  [dir='rtl'] .context-bar {
+    --scroll-fade-inline: linear-gradient(
+      to left,
+      transparent 0,
+      #000 var(--scroll-fade-s, 0px),
+      #000 calc(100% - var(--scroll-fade-e, 0px)),
+      transparent 100%
+    );
+  }
+
+  .context-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .context-bar {
+      animation:
+        scroll-fade-reveal-s 1ms ease-in-out,
+        scroll-fade-reveal-e 1ms ease-in-out;
+      animation-timeline: scroll(self inline), scroll(self inline);
+      animation-range:
+        0 var(--scroll-fade-reveal, calc(var(--spacing) * 24)),
+        calc(100% - var(--scroll-fade-reveal, calc(var(--spacing) * 24))) 100%;
+      animation-fill-mode: both;
+    }
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    .context-bar {
+      --scroll-fade-s: var(--_scroll-fade-size-s);
+      --scroll-fade-e: var(--_scroll-fade-size-e);
+    }
+  }
+}
