@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
 import { Icon } from '@/components/Icon'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   CommandDialog,
@@ -24,10 +23,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -36,7 +37,6 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
@@ -53,7 +53,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { countries, events, reportTitlesEn, reports, sources } from '@/data/mock/visualMvpData'
 import { PROTOTYPE_CURRENT_USER } from '@/data/mock/prototypeCurrentUser'
@@ -100,8 +99,7 @@ export function AppShell() {
 function AppShellContent() {
   const copy = useProductCopy()
   const { locale, setLocale, theme, setTheme } = usePreferences()
-  const { role, filters, setFilter, resetFilters, setSearchOpen, inspector, closeInspector } =
-    useWorkspace()
+  const { role, filters, setFilter, resetFilters, setSearchOpen } = useWorkspace()
   const { state, isMobile } = useSidebar()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [managementOpen, setManagementOpen] = useState(false)
@@ -327,7 +325,6 @@ function AppShellContent() {
       </SidebarInset>
 
       <GlobalSearch />
-      {inspector && <Inspector onClose={closeInspector} />}
       {isManagementAuthorized && (
         <Sheet open={managementOpen} onOpenChange={setManagementOpen}>
           <SheetContent
@@ -482,23 +479,29 @@ function Filter({
   options: string[][]
   meta?: string
 }) {
+  const fieldId = useId()
+
   return (
-    <div className="context-filter">
-      <span>{label}</span>
+    <Field className="context-filter">
+      <FieldLabel htmlFor={fieldId} className="context-filter-label">
+        <span>{label}</span>
+        {meta ? <small>{meta}</small> : null}
+      </FieldLabel>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger aria-label={label}>
+        <SelectTrigger id={fieldId} aria-label={label}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {options.map(([key, text]) => (
-            <SelectItem key={key} value={key}>
-              {text}
-            </SelectItem>
-          ))}
+          <SelectGroup>
+            {options.map(([key, text]) => (
+              <SelectItem key={key} value={key}>
+                {text}
+              </SelectItem>
+            ))}
+          </SelectGroup>
         </SelectContent>
       </Select>
-      {meta && <small>{meta}</small>}
-    </div>
+    </Field>
   )
 }
 
@@ -508,9 +511,11 @@ function GlobalSearch() {
   const { searchOpen, setSearchOpen, openInspector } = useWorkspace()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+
   const results = useMemo(() => {
     const q = query.trim().toLocaleLowerCase()
     if (!q) return []
+
     return [
       ...events.map((item) => ({
         id: item.id,
@@ -540,6 +545,7 @@ function GlobalSearch() {
       .filter((item) => item.title.toLocaleLowerCase().includes(q))
       .slice(0, 8)
   }, [locale, query])
+
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -550,6 +556,7 @@ function GlobalSearch() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [setSearchOpen])
+
   return (
     <CommandDialog
       open={searchOpen}
@@ -595,310 +602,5 @@ function GlobalSearch() {
         ))}
       </CommandList>
     </CommandDialog>
-  )
-}
-
-function Inspector({ onClose }: { onClose: () => void }) {
-  const { locale } = usePreferences()
-  const copy = useProductCopy()
-  const { inspector, notify } = useWorkspace()
-  const [tab, setTab] = useState('overview')
-  const returnFocus = useRef<HTMLElement | SVGElement | null>(
-    document.activeElement instanceof HTMLElement || document.activeElement instanceof SVGElement
-      ? document.activeElement
-      : null,
-  )
-  if (!inspector) return null
-  const event = events.find((item) => item.id === inspector.id)
-  const title = locale === 'fa' ? inspector.title : (inspector.titleEn ?? inspector.title)
-  const tabs = [
-    ['overview', copy.overview],
-    ['evidence', copy.evidence],
-    ['ai', copy.aiAnalysis],
-    ['timeline', copy.timeline],
-    ['sources', copy.inspectorSources],
-  ]
-  return (
-    <Sheet open onOpenChange={(open) => !open && onClose()}>
-      <SheetContent
-        side={locale === 'fa' ? 'left' : 'right'}
-        className="inspector"
-        showCloseButton={false}
-        aria-label={title}
-        onCloseAutoFocus={(event) => {
-          event.preventDefault()
-          const target = returnFocus.current?.isConnected
-            ? returnFocus.current
-            : document.querySelector<HTMLElement>('.global-search-trigger')
-          target?.focus()
-        }}
-      >
-        <SheetHeader>
-          <div>
-            <Badge variant="outline" className="inspector-kind">
-              <Icon name={inspector.kind === 'ai' ? 'magic-star' : 'radar-2'} size={15} />
-              {inspector.kind === 'ai' ? copy.generated : copy.overview}
-            </Badge>
-            <SheetTitle>{title}</SheetTitle>
-            <SheetDescription>
-              {event
-                ? locale === 'fa'
-                  ? event.region
-                  : event.regionEn
-                : locale === 'fa'
-                  ? 'جزئیات مرتبط با نمای فعلی'
-                  : 'Details related to the current view'}
-            </SheetDescription>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="icon-button"
-            onClick={onClose}
-            aria-label={copy.close}
-          >
-            <Icon name="close-circle" />
-          </Button>
-        </SheetHeader>
-        <Tabs value={tab} onValueChange={setTab} className="inspector-tabs-root">
-          <TabsList className="inspector-tabs">
-            {tabs.map(([key, label]) => (
-              <TabsTrigger key={key} value={key}>
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <ScrollArea className="inspector-body">
-            <TabsContent value="overview">
-              <InspectorOverview event={event} />
-            </TabsContent>
-            <TabsContent value="evidence">
-              <EvidencePanel />
-            </TabsContent>
-            <TabsContent value="ai">
-              <AIAnalysis />
-            </TabsContent>
-            <TabsContent value="timeline">
-              <TimelinePanel />
-            </TabsContent>
-            <TabsContent value="sources">
-              <SourcePanel />
-            </TabsContent>
-          </ScrollArea>
-        </Tabs>
-        <SheetFooter>
-          <Button
-            variant="outline"
-            onClick={() =>
-              notify(
-                locale === 'fa' ? 'به گزارش نمایشی افزوده شد.' : 'Added to the prototype report.',
-              )
-            }
-          >
-            <Icon name="document-download" />
-            {copy.addToReport}
-          </Button>
-          <Button onClick={() => setTab('ai')}>
-            <Icon name="magic-star" />
-            {copy.analyze}
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-  )
-}
-
-function InspectorOverview({ event }: { event?: (typeof events)[number] }) {
-  const { locale } = usePreferences()
-  const copy = useProductCopy()
-  return (
-    <div className="inspector-stack">
-      <section className="narrative-callout">
-        <span>{locale === 'fa' ? 'آنچه مشاهده شده' : 'Observed'}</span>
-        <p>
-          {event
-            ? locale === 'fa'
-              ? event.summary
-              : event.summaryEn
-            : locale === 'fa'
-              ? 'این جزئیات از دادهٔ قطعی نمونه و تحلیل ساختگی تشکیل شده است.'
-              : 'These details combine deterministic demo data and simulated analysis.'}
-        </p>
-      </section>
-      <div className="trust-grid">
-        <Metric label={copy.confidence} value={`${event?.confidence ?? 78}%`} />
-        <Metric label={copy.sourcesLabel} value={String(event?.sourceCount ?? 7)} />
-        <Metric label={copy.freshness} value={copy.fresh} />
-      </div>
-      <section>
-        <h3>{locale === 'fa' ? 'چرا مهم است؟' : 'Why it matters'}</h3>
-        <p>
-          {locale === 'fa'
-            ? 'این تحول می‌تواند بر زمان‌بندی مسیرها و ارزیابی ریسک منطقه‌ای اثر بگذارد؛ اثر نهایی هنوز قطعی نیست.'
-            : 'This development may affect route timing and regional risk; the final impact is not yet certain.'}
-        </p>
-      </section>
-      <section>
-        <h3>{locale === 'fa' ? 'محدوده و زمان' : 'Scope and time'}</h3>
-        <code dir="ltr">2026-08-24 11:42 UTC · 26.56 N, 56.25 E</code>
-      </section>
-    </div>
-  )
-}
-function EvidencePanel() {
-  const { locale } = usePreferences()
-  return (
-    <div className="evidence-list">
-      {[1, 2, 3].map((n) => (
-        <article key={n}>
-          <span>{n}</span>
-          <div>
-            <strong>
-              {locale === 'fa'
-                ? ['گزارش مستقل تردد دریایی', 'اطلاعیه اپراتور بندری', 'تصویر ماهواره‌ای باز'][
-                    n - 1
-                  ]
-                : ['Independent maritime report', 'Port operator notice', 'Open satellite imagery'][
-                    n - 1
-                  ]}
-            </strong>
-            <p>
-              {locale === 'fa'
-                ? 'شاهد پشتیبان · بازیابی‌شده در نمونهٔ محلی'
-                : 'Supporting evidence · retrieved in the local prototype'}
-            </p>
-            <code dir="ltr">
-              SRC-00{n} · 2026-08-24T11:{40 + n}:00Z
-            </code>
-          </div>
-        </article>
-      ))}
-    </div>
-  )
-}
-function AIAnalysis() {
-  const { locale } = usePreferences()
-  const copy = useProductCopy()
-  const { notify } = useWorkspace()
-  return (
-    <div className="ai-analysis">
-      <div className="ai-label">
-        <Icon name="magic-star" />
-        {copy.generated}
-        <span>v1.4</span>
-      </div>
-      <section>
-        <h3>{copy.executiveSummary}</h3>
-        <p>
-          {locale === 'fa'
-            ? 'هم‌گرایی چند منبع مستقل از افزایش فشار عملیاتی خبر می‌دهد، اما برای نتیجه‌گیری دربارهٔ تداوم آن دادهٔ بیشتری لازم است.'
-            : 'Multiple independent sources indicate increased operational pressure, but more data is needed to conclude that it will persist.'}
-        </p>
-      </section>
-      <section>
-        <h3>{copy.keyFindings}</h3>
-        <ul>
-          <li>
-            {locale === 'fa'
-              ? 'افزایش زمان عبور در دو نقطه مشاهده شده است.'
-              : 'Transit time increased at two observed points.'}
-          </li>
-          <li>
-            {locale === 'fa'
-              ? 'تنوع منابع متوسط رو به بالاست.'
-              : 'Source diversity is medium-high.'}
-          </li>
-        </ul>
-      </section>
-      <div className="analysis-facts">
-        <Metric label={copy.confidence} value="76%" />
-        <Metric label={copy.diversity} value={locale === 'fa' ? '۵ نوع' : '5 types'} />
-        <Metric label={copy.freshness} value={locale === 'fa' ? '۲ دقیقه' : '2 min'} />
-      </div>
-      <section className="contradiction">
-        <h3>{copy.contradictory}</h3>
-        <p>
-          {locale === 'fa'
-            ? 'یک منبع محلی کاهش تأخیر را گزارش کرده؛ استقلال آن هنوز تأیید نشده است.'
-            : 'One local source reports declining delays; its independence is not confirmed.'}
-        </p>
-      </section>
-      <section>
-        <h3>{copy.assumptions}</h3>
-        <p>
-          {locale === 'fa'
-            ? 'الگوی تردد گزارش‌شده با عملیات تجاری عادی قابل مقایسه فرض شده است.'
-            : 'Reported traffic patterns are assumed comparable with normal commercial operation.'}
-        </p>
-      </section>
-      <section>
-        <h3>{copy.limitations}</h3>
-        <p>
-          {locale === 'fa'
-            ? 'دادهٔ دو بندر با تأخیر رسیده و این تحلیل پیش‌بینی قطعی نیست.'
-            : 'Data from two ports is delayed; this analysis is not a certain forecast.'}
-        </p>
-      </section>
-      <Button
-        variant="outline"
-        onClick={() =>
-          notify(
-            locale === 'fa'
-              ? 'تحلیل نمایشی دوباره اجرا شد؛ خروجی ثابت است.'
-              : 'Prototype analysis re-run; output is deterministic.',
-          )
-        }
-      >
-        <Icon name="refresh-circle" />
-        {copy.rerun}
-      </Button>
-    </div>
-  )
-}
-function TimelinePanel() {
-  const { locale } = usePreferences()
-  return (
-    <ol className="detail-timeline">
-      {['11:42', '10:56', '09:20'].map((time, index) => (
-        <li key={time}>
-          <time dir="ltr">{time} UTC</time>
-          <span>
-            {locale === 'fa'
-              ? ['ثبت تغییر زمان عبور', 'تأیید دومین منبع مستقل', 'شروع پایش الگوی تردد'][index]
-              : [
-                  'Transit-time change recorded',
-                  'Second independent source confirmed',
-                  'Traffic-pattern watch started',
-                ][index]}
-          </span>
-        </li>
-      ))}
-    </ol>
-  )
-}
-function SourcePanel() {
-  const { locale } = usePreferences()
-  return (
-    <div className="source-mini-list">
-      {sources.slice(0, 4).map((source) => (
-        <article key={source.id}>
-          <span className={`state-dot ${source.state}`} />
-          <div>
-            <strong>{locale === 'fa' ? source.name : source.nameEn}</strong>
-            <code dir="ltr">
-              {source.kind.toUpperCase()} · {source.latencyMs} ms
-            </code>
-          </div>
-        </article>
-      ))}
-    </div>
-  )
-}
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="metric-cell">
-      <small>{label}</small>
-      <strong dir="auto">{value}</strong>
-    </div>
   )
 }
