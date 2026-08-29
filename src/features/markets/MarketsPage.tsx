@@ -201,10 +201,6 @@ export function MarketsPage() {
 
           <div className="selected-market-panel">
             <div className="selected-market-summary">
-              <div className="selected-market-title">
-                <strong>{selected.name[locale]}</strong>
-                <MarketSubtitle item={selected} locale={locale} />
-              </div>
               <div className="selected-market-metrics">
                 <b dir="auto">{formatMarketValue(selected.value, locale)}</b>
                 <span
@@ -214,6 +210,11 @@ export function MarketsPage() {
                   {formatChange(selected.change, locale)}
                 </span>
               </div>
+              <div className="selected-market-title">
+                <strong>{selected.name[locale]}</strong>
+                <MarketSubtitle item={selected} locale={locale} />
+              </div>
+              
             </div>
 
             <Tabs
