@@ -1,0 +1,200 @@
+/*
+ * Context toolbar refinement based on Figma node 46:2098.
+ * The visual composition mirrors the approved Figma controls while reusing
+ * the existing shadcn Field + Select implementation already in the product.
+ */
+
+.context-bar {
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+}
+
+/* Each filter is one 48px control. The FieldLabel is visually placed inside
+ * the trigger to match the Figma component: muted label above, value below. */
+.context-filter[data-slot='field'] {
+  position: relative;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+  flex: 0 0 180px;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.context-filter-label[data-slot='field-label'] {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: 7px;
+  inset-inline-end: 12px;
+  display: block;
+  width: calc(100% - 48px);
+  min-height: 12px;
+  overflow: hidden;
+  color: #818181;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.context-filter-label > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The compact source count is not part of the approved visible 48px control. */
+.context-filter-label small {
+  display: none;
+}
+
+.context-filter [data-slot='select-trigger'] {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  height: 48px;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px 5px;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  color: #353535;
+  background: #fffffc;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.context-filter [data-slot='select-value'] {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  flex: 1;
+  color: #353535;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context-filter [data-slot='select-trigger'] > [aria-hidden='true'],
+.context-filter [data-slot='select-trigger'] > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: #818181;
+  opacity: 1;
+}
+
+.context-filter [data-slot='select-trigger']:hover {
+  border-color: #e7e7e7;
+  background: #fffffc;
+}
+
+.context-filter [data-slot='select-trigger']:focus-visible {
+  border-color: color-mix(in srgb, var(--ring) 44%, #f0f0f0);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 8%, transparent);
+  outline: 0;
+}
+
+.context-filter[data-invalid='true'] [data-slot='field-label'] {
+  color: var(--destructive);
+}
+
+.context-filter [aria-invalid='true'] {
+  color: #353535;
+  border-color: color-mix(in srgb, var(--destructive) 62%, #f0f0f0);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 9%, transparent);
+}
+
+.context-filter [data-slot='field-error'] {
+  color: var(--destructive);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Reset control mirrors the Figma component: 163×48, 12px radius,
+ * 16px refresh glyph, quiet neutral border and no elevation. */
+.context-bar > [data-slot='button']:last-child {
+  min-width: 163px;
+  width: 163px;
+  min-height: 48px;
+  height: 48px;
+  align-self: center;
+  margin-inline-start: auto;
+  gap: 8px;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  color: #353535;
+  background: #fffffc;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.context-bar > [data-slot='button']:last-child:hover {
+  border-color: #e7e7e7;
+  background: #fffffc;
+}
+
+.context-bar > [data-slot='button']:last-child svg,
+.context-bar > [data-slot='button']:last-child iconsax-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: #818181;
+}
+
+@media (max-width: 1200px) {
+  .context-bar {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .context-filter[data-slot='field'] {
+    width: 172px;
+    min-width: 172px;
+    max-width: 172px;
+    flex-basis: 172px;
+  }
+
+  .context-bar > [data-slot='button']:last-child {
+    min-width: 150px;
+    width: 150px;
+  }
+}
+
+@media (max-width: 900px) {
+  .context-bar {
+    align-items: stretch;
+  }
+
+  .context-bar.open .context-filter[data-slot='field'] {
+    width: auto;
+    min-width: min(100%, 180px);
+    max-width: none;
+    flex: 1 1 180px;
+  }
+
+  .context-bar.open > [data-slot='button']:last-child {
+    min-width: 0;
+    width: auto;
+    margin-inline-start: 0;
+  }
+}
