@@ -5,6 +5,7 @@
  */
 
 .context-bar {
+  inset-block-start: 72px;
   min-height: 48px;
   height: 48px;
   align-items: center;
@@ -215,5 +216,13 @@
     min-width: 0;
     width: auto;
     margin-inline-start: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .context-bar,
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    inset-block-start: 64px;
   }
 }
