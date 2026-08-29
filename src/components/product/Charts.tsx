@@ -44,10 +44,10 @@ interface Series {
 
 const seriesColor = (kind?: Series['kind']) =>
   kind === 'forecast'
-    ? 'var(--temp-viz-forecast)'
+    ? 'var(--chart-forecast, var(--temp-viz-forecast))'
     : kind === 'secondary'
-      ? 'var(--temp-viz-amber)'
-      : 'var(--temp-viz-blue)'
+      ? 'var(--chart-secondary, var(--temp-viz-amber))'
+      : 'var(--chart-primary, var(--temp-viz-blue))'
 
 export function LineChart({
   title,
@@ -139,8 +139,11 @@ export function BarChart({
   const { locale } = usePreferences()
   const hasSecondary = items.some((item) => item.secondary != null)
   const config = {
-    value: { label: title, color: 'var(--temp-viz-blue)' },
-    secondary: { label: locale === 'fa' ? 'مقایسه' : 'Comparison', color: 'var(--temp-viz-amber)' },
+    value: { label: title, color: 'var(--chart-primary, var(--temp-viz-blue))' },
+    secondary: {
+      label: locale === 'fa' ? 'مقایسه' : 'Comparison',
+      color: 'var(--chart-secondary, var(--temp-viz-amber))',
+    },
   } satisfies ChartConfig
 
   return (
@@ -187,13 +190,16 @@ export function MatrixChart({
     z: item.severity === 'critical' ? 180 : item.severity === 'high' ? 140 : 100,
   }))
   const config = {
-    risk: { label: locale === 'fa' ? 'ریسک' : 'Risk', color: 'var(--temp-viz-red)' },
+    risk: {
+      label: locale === 'fa' ? 'ریسک' : 'Risk',
+      color: 'var(--chart-critical, var(--temp-viz-red))',
+    },
   } satisfies ChartConfig
   const severityColor: Record<string, string> = {
-    critical: 'var(--temp-viz-critical)',
-    high: 'var(--temp-viz-high)',
-    medium: 'var(--temp-viz-medium)',
-    low: 'var(--temp-viz-low)',
+    critical: 'var(--chart-critical, var(--temp-viz-critical))',
+    high: 'var(--chart-warning, var(--temp-viz-high))',
+    medium: 'var(--chart-secondary, var(--temp-viz-medium))',
+    low: 'var(--chart-positive, var(--temp-viz-low))',
   }
 
   return (
@@ -247,7 +253,9 @@ export function Sparkline({ values, positive }: { values: number[]; positive?: b
   const config = {
     value: {
       label: locale === 'fa' ? 'مقدار' : 'Value',
-      color: positive ? 'var(--temp-viz-teal)' : 'var(--temp-viz-red)',
+      color: positive
+        ? 'var(--chart-positive, var(--temp-viz-teal))'
+        : 'var(--chart-critical, var(--temp-viz-red))',
     },
   } satisfies ChartConfig
   return (
@@ -287,7 +295,7 @@ export function Sparkline({ values, positive }: { values: number[]; positive?: b
 
 export function RadialKpi({ value, label }: { value: number; label: string }) {
   const config = {
-    value: { label, color: 'var(--temp-viz-high)' },
+    value: { label, color: 'var(--chart-warning, var(--temp-viz-high))' },
   } satisfies ChartConfig
   const data = [{ label, value, fill: 'var(--color-value)' }]
 
