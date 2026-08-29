@@ -73,4 +73,8 @@
   [dir='rtl'] .context-bar.open {
     padding: 20px;
   }
+
+  .kpi-strip article {
+    padding: 9px;
+  }
 }
