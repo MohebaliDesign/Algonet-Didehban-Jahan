@@ -13,10 +13,11 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:shadcn": "vitest run src/test/shadcn-usage.test.ts",
     "shadcn:info": "npx --yes shadcn@latest info",
     "shadcn:add": "npx --yes shadcn@latest add",
     "shadcn:mcp": "npx --yes shadcn@latest mcp",
-    "check:ci": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "check:shadcn": "npm run lint && npm run test:shadcn",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
