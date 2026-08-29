@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { refineModuleTitle } from '@/localization/moduleTitles'
 import { useProductCopy } from '@/localization/productCopy'
 import type { DataState } from '@/types/domain'
 
@@ -83,10 +84,11 @@ export function ModuleFrame({
   const { openInspector } = useWorkspace()
   const navigate = useNavigate()
   const showState = state !== 'fresh'
+  const displayTitle = refineModuleTitle(title)
 
   const openSources = () =>
     navigate(`/details/module/${encodeURIComponent(id)}?tab=sources`, {
-      state: { kind: 'ai', id, title },
+      state: { kind: 'ai', id, title: displayTitle },
     })
 
   return (
@@ -94,7 +96,7 @@ export function ModuleFrame({
       className={`module-frame module-${size} ${expanded ? 'module-expanded' : ''} ${collapsed ? 'module-collapsed' : ''}`}
       data-module-id={id}
       role="region"
-      aria-label={title}
+      aria-label={displayTitle}
     >
       <CardHeader className="module-header">
         <div className="module-title">
@@ -107,7 +109,7 @@ export function ModuleFrame({
                 <Icon name="menu" size={18} />
               </span>
             )}
-            <h2 title={title}>{title}</h2>
+            <h2 title={displayTitle}>{displayTitle}</h2>
             {showState ? (
               <Badge variant="outline" className={`state-badge state-${state}`}>
                 <i />
@@ -122,7 +124,7 @@ export function ModuleFrame({
           {!editing && (
             <ModuleIconButton
               label={copy.analyze}
-              onClick={() => openInspector({ kind: 'ai', id, title })}
+              onClick={() => openInspector({ kind: 'ai', id, title: displayTitle })}
             >
               <Icon name="document-filter" size={20} />
             </ModuleIconButton>
@@ -145,7 +147,7 @@ export function ModuleFrame({
               <TooltipContent>{copy.more}</TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="end" className="module-menu">
-              <DropdownMenuItem onSelect={() => openInspector({ kind: 'ai', id, title })}>
+              <DropdownMenuItem onSelect={() => openInspector({ kind: 'ai', id, title: displayTitle })}>
                 <Icon name="document-filter" />
                 {copy.analyze}
               </DropdownMenuItem>
