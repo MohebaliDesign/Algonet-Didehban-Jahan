@@ -125,21 +125,26 @@ export function ModuleFrame({
               label={copy.analyze}
               onClick={() => openInspector({ kind: 'ai', id, title: displayTitle })}
             >
-              <Icon name="document-filter" size={20} />
+              <Icon name="document-filter" size={40} />
             </ModuleIconButton>
           )}
           <ModuleIconButton label={copy.collapse} onClick={onCollapse}>
-            <Icon name={collapsed ? 'arrow-down-02' : 'minus'} size={20} />
+            <Icon name={collapsed ? 'arrow-down-02' : 'minus'} size={40} />
           </ModuleIconButton>
           <ModuleIconButton label={copy.expand} onClick={onExpand}>
-            <Icon name={expanded ? 'maximize-3' : 'maximize-4'} size={20} />
+            <Icon name={expanded ? 'maximize-3' : 'maximize-4'} size={40} />
           </ModuleIconButton>
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label={copy.more}>
-                    <Icon name="more" size={20} />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="module-icon-button"
+                    aria-label={copy.more}
+                  >
+                    <Icon name="more" size={40} />
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
@@ -230,7 +235,13 @@ function ModuleIconButton({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={label} onClick={onClick}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="module-icon-button"
+          aria-label={label}
+          onClick={onClick}
+        >
           {children}
         </Button>
       </TooltipTrigger>
