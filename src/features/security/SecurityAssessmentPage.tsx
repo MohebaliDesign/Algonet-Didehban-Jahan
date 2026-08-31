@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { usePreferences } from '@/app/PreferencesProvider'
 import { Icon } from '@/components/Icon'
 import { InternalPageToolbar, InternalSection } from '@/components/product/InternalPage'
+import { Badge } from '@/components/ui/badge'
 
 function local<T>(locale: 'fa' | 'en', fa: T, en: T): T {
   return locale === 'fa' ? fa : en
@@ -21,6 +22,7 @@ export function SecurityAssessmentPage() {
         onBack={() => navigate('/security')}
         pageLabel={local(locale, 'جزئیات تحلیل', 'Analysis details')}
         breadcrumbLabel={local(locale, 'مسیر صفحه', 'Breadcrumb')}
+        direction={locale === 'fa' ? 'rtl' : 'ltr'}
         breadcrumbs={[
           {
             label: local(locale, 'امنیت و ژئوپلیتیک', 'Security & geopolitics'),
@@ -28,6 +30,12 @@ export function SecurityAssessmentPage() {
           },
           { label: local(locale, 'شواهد ارزیابی راهبردی', 'Strategic assessment evidence') },
         ]}
+        actions={
+          <Badge variant="outline" className="internal-page-source-badge">
+            <Icon name="document" size={14} />
+            {local(locale, '۴۱ منبع', '41 sources')}
+          </Badge>
+        }
       />
 
       <header className="internal-page-heading security-assessment-heading">
@@ -51,13 +59,6 @@ export function SecurityAssessmentPage() {
           <span>
             <small>{local(locale, 'حوزه', 'Domain')}</small>
             <strong>{local(locale, 'امنیت و ژئوپلیتیک', 'Security & geopolitics')}</strong>
-          </span>
-        </div>
-        <div className="internal-page-meta-item sources">
-          <Icon name="document" size={20} />
-          <span>
-            <small>{local(locale, 'منابع مستقل', 'Independent sources')}</small>
-            <strong>{local(locale, '۴۱ منبع', '41 sources')}</strong>
           </span>
         </div>
         <div className="internal-page-meta-item confidence">
