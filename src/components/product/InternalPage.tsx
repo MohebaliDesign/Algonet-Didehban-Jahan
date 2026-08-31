@@ -55,9 +55,7 @@ export function InternalSection({
   return (
     <Card className={cn('internal-section', className)}>
       <CardHeader className="internal-section-header">
-        <CardTitle asChild>
-          <h2>{title}</h2>
-        </CardTitle>
+        <CardTitle className="internal-section-title">{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
       <CardContent className="internal-section-content">{children}</CardContent>
