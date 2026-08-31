@@ -437,7 +437,8 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
         shadow: true,
         style: { color: palette.foreground, fontSize: '14px' },
         formatter() {
-          const options = this.options as {
+          const point = this as Highcharts.Point
+          const options = point.options as {
             countryCode?: string
             custom?: IntelligenceMapEvent
           }
@@ -445,9 +446,9 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
             const event = options.custom
             return `<div class="highcharts-map-tooltip" dir="${isFa ? 'rtl' : 'ltr'}"><strong>${escapeHtml(isFa ? event.titleFa : event.titleEn)}</strong><span>${escapeHtml(riskLabels[event.severity])} · ${event.sourceCount} ${isFa ? 'منبع' : 'sources'}</span><span dir="ltr">${escapeHtml(formatDate(event.occurredAt))} UTC</span></div>`
           }
-          const code = options.countryCode ?? getPointCountryCode(this.point as Highcharts.Point)
-          const country = countryByCode.get(String(code ?? ''))
-          if (!country) return escapeHtml(this.name ?? '')
+          if (!options.countryCode) return escapeHtml(point.name ?? '')
+          const country = countryByCode.get(options.countryCode)
+          if (!country) return escapeHtml(point.name ?? '')
           const trend =
             country.trend === 'up'
               ? isFa
