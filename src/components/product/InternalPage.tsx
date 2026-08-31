@@ -24,6 +24,7 @@ export function InternalPageToolbar({
   breadcrumbLabel,
   breadcrumbs = [],
   actions,
+  direction = 'ltr',
 }: {
   backLabel: string
   onBack: () => void
@@ -31,9 +32,13 @@ export function InternalPageToolbar({
   breadcrumbLabel: string
   breadcrumbs?: InternalBreadcrumbItem[]
   actions?: ReactNode
+  direction?: 'rtl' | 'ltr'
 }) {
+  const backIcon = direction === 'rtl' ? 'arrow-right-01' : 'arrow-left-01'
+  const separatorIcon = direction === 'rtl' ? 'arrow-left-01' : 'arrow-right-01'
+
   return (
-    <div className="internal-page-toolbar" role="toolbar" aria-label={pageLabel}>
+    <div className="internal-page-toolbar" role="toolbar" aria-label={pageLabel} dir={direction}>
       <div className="internal-page-toolbar-leading">
         <Button
           type="button"
@@ -44,21 +49,18 @@ export function InternalPageToolbar({
           title={backLabel}
           onClick={onBack}
         >
-          <Icon name="arrow-left-01" size={20} className="directional-icon" />
+          <Icon name={backIcon} size={20} />
         </Button>
 
         <div className="internal-page-toolbar-context">
           <strong className="internal-page-toolbar-title">{pageLabel}</strong>
           {breadcrumbs.length ? (
-            <nav className="internal-breadcrumb" aria-label={breadcrumbLabel}>
+            <nav className="internal-breadcrumb" aria-label={breadcrumbLabel} dir={direction}>
               <ol>
                 {breadcrumbs.map((item, index) => {
                   const current = index === breadcrumbs.length - 1
                   return (
                     <li key={`${item.label}-${index}`}>
-                      {index > 0 ? (
-                        <Icon name="arrow-left-01" size={14} className="internal-breadcrumb-separator directional-icon" />
-                      ) : null}
                       {item.onSelect && !current ? (
                         <button type="button" onClick={item.onSelect} className="internal-breadcrumb-link">
                           {item.label}
@@ -66,6 +68,9 @@ export function InternalPageToolbar({
                       ) : (
                         <span aria-current={current ? 'page' : undefined}>{item.label}</span>
                       )}
+                      {!current ? (
+                        <Icon name={separatorIcon} size={14} className="internal-breadcrumb-separator" />
+                      ) : null}
                     </li>
                   )
                 })}
