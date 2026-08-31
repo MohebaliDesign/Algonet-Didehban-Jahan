@@ -126,7 +126,8 @@
   box-shadow: var(--shadow-popover);
 }
 
-/* Dark theme uses surface contrast first; shadow remains gray-tinted rather than black. */
+/* Dark theme restores the shared section border while keeping the light theme borderless. */
 :root[data-theme='dark'] .module-frame {
+  border: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface) 98%, var(--surface-elevated));
 }

@@ -982,7 +982,8 @@ kbd {
   display: grid;
   max-height: 250px;
   overflow: auto;
-  padding: 0 7px 7px;
+  padding: 0 8px 8px;
+  grid-row-gap: 8px;
 }
 .layer-panel > div > label {
   display: grid;
