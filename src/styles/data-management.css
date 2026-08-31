@@ -1,5 +1,13 @@
 /* Dedicated Sources & Data workspace. Uses existing semantic tokens for both themes. */
 
+html[lang^='fa'] :where(.data-management-page, .data-health-dialog, .data-add-source-dialog) {
+  font-family: var(--font-sans-fa);
+}
+
+html[lang^='en'] :where(.data-management-page, .data-health-dialog, .data-add-source-dialog) {
+  font-family: var(--font-sans-en);
+}
+
 .data-management-topbar-cta {
   min-width: max-content;
   margin-inline-start: 6px;
@@ -250,36 +258,63 @@
   gap: 2px;
 }
 
+/*
+ * Keep the source directory on the native shadcn Table anatomy. A fixed table
+ * layout gives every header/cell pair the same column contract while the long
+ * source identity column absorbs the remaining width.
+ */
 .data-source-table-wrap {
+  width: 100%;
+  overflow: hidden;
+}
+
+.data-source-table-wrap > [data-slot='table-container'] {
   width: 100%;
   overflow-x: auto;
 }
 
+.data-source-table,
+.data-health-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
 .data-source-table {
-  min-width: 920px;
+  min-width: 1040px;
+}
+
+.data-health-table {
+  min-width: 960px;
 }
 
 .data-source-table [data-slot='table-head'],
 .data-health-table [data-slot='table-head'] {
-  height: 44px;
+  height: 48px;
+  padding: 12px 16px;
   color: var(--muted-foreground);
   background: var(--surface-subtle);
-  font-size: 12px;
+  font-size: var(--type-metadata-size);
+  line-height: var(--type-metadata-leading);
   font-weight: 500;
+  vertical-align: middle;
 }
 
 .data-source-table [data-slot='table-cell'],
 .data-health-table [data-slot='table-cell'] {
-  min-height: 58px;
-  padding-block: 10px;
+  height: 64px;
+  padding: 12px 16px;
+  vertical-align: middle;
 }
 
-.data-source-table [data-slot='table-row'] {
+.data-source-table [data-slot='table-row'],
+.data-health-table [data-slot='table-row'] {
   border-color: var(--border-subtle);
   transition: background-color 150ms ease;
 }
 
-.data-source-table [data-slot='table-row']:hover {
+.data-source-table [data-slot='table-row']:hover,
+.data-health-table [data-slot='table-row']:hover {
   background: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
@@ -287,27 +322,82 @@
   background: color-mix(in srgb, var(--primary) 4%, var(--surface));
 }
 
+.data-source-table :is(th, td):nth-child(1) {
+  width: 56px;
+}
+
+.data-source-table :is(th, td):nth-child(2) {
+  width: auto;
+}
+
+.data-source-table :is(th, td):nth-child(3) {
+  width: 168px;
+}
+
+.data-source-table :is(th, td):nth-child(4) {
+  width: 104px;
+}
+
+.data-source-table :is(th, td):nth-child(5) {
+  width: 144px;
+}
+
+.data-source-table :is(th, td):nth-child(6) {
+  width: 168px;
+}
+
+.data-source-table :is(th, td):nth-child(7) {
+  width: 56px;
+}
+
+.data-health-table :is(th, td):nth-child(1) {
+  width: 36%;
+}
+
+.data-health-table :is(th, td):nth-child(2) {
+  width: 16%;
+}
+
+.data-health-table :is(th, td):nth-child(3) {
+  width: 10%;
+}
+
+.data-health-table :is(th, td):nth-child(4) {
+  width: 16%;
+}
+
+.data-health-table :is(th, td):nth-child(5) {
+  width: 10%;
+}
+
+.data-health-table :is(th, td):nth-child(6) {
+  width: 12%;
+}
+
 .data-col-select {
-  width: 52px;
-  min-width: 52px;
+  width: 56px;
+  min-width: 56px;
   text-align: center;
 }
 
 .data-col-actions {
-  width: 60px;
-  min-width: 60px;
-  text-align: end;
+  width: 56px;
+  min-width: 56px;
+  text-align: center;
 }
 
 .data-source-identity {
   display: grid;
   min-width: 0;
-  gap: 3px;
+  max-width: 100%;
+  gap: 4px;
 }
 
 .data-source-identity strong {
+  max-width: 100%;
   overflow: hidden;
   color: var(--foreground);
+  font-family: 'Inter', 'Vazir FD-WOL', sans-serif;
   font-size: var(--type-body-compact-size);
   line-height: var(--type-body-compact-leading);
   font-weight: 600;
@@ -316,19 +406,19 @@
 }
 
 .data-source-identity span {
-  max-width: 460px;
+  max-width: 100%;
   overflow: hidden;
   color: var(--muted-foreground);
   font-family: var(--font-sans-en);
-  font-size: 11px;
-  line-height: 1.45;
+  font-size: var(--type-metadata-size);
+  line-height: var(--type-metadata-leading);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .data-source-category {
   display: grid;
-  gap: 2px;
+  gap: 4px;
   color: var(--foreground);
   font-size: var(--type-caption-size);
   line-height: var(--type-caption-leading);
@@ -337,7 +427,8 @@
 .data-source-category small {
   color: var(--muted-foreground);
   font-family: var(--font-sans-en);
-  font-size: 10px;
+  font-size: var(--type-metadata-size);
+  line-height: var(--type-metadata-leading);
 }
 
 .source-health-badge {
@@ -346,7 +437,8 @@
   padding-inline: 8px;
   border: 0;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--type-metadata-size);
+  line-height: var(--type-metadata-leading);
   font-weight: 500;
 }
 
@@ -444,8 +536,8 @@
   border-block-end: 1px solid var(--border-subtle);
 }
 
-.data-health-table {
-  min-width: 920px;
+.data-health-table-wrap > [data-slot='table-container'] {
+  overflow: visible;
 }
 
 .data-health-table [data-slot='table-header'] {
