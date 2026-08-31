@@ -13,7 +13,6 @@ import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   countryMapData,
   intelligenceMapEvents,
@@ -58,6 +57,27 @@ function escapeHtml(value: string | number) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;')
+}
+
+function getPointProperties(point: Highcharts.Point) {
+  return (point as Highcharts.Point & {
+    properties?: Record<string, string | number | undefined>
+  }).properties
+}
+
+function getPointCountryCode(point: Highcharts.Point) {
+  const options = point.options as { countryCode?: string }
+  const properties = getPointProperties(point)
+  return String(options.countryCode ?? properties?.['iso-a3'] ?? '').toUpperCase()
+}
+
+function getPointAbbreviation(point: Highcharts.Point) {
+  const properties = getPointProperties(point)
+  const isoA2 = String(properties?.['iso-a2'] ?? '').toUpperCase()
+  if (isoA2 && isoA2 !== '-99') return isoA2
+
+  const abbreviation = String(properties?.['country-abbrev'] ?? '').toUpperCase()
+  return abbreviation && abbreviation !== '-99' ? abbreviation : ''
 }
 
 export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) {
@@ -146,6 +166,9 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
   }, [])
 
   const closeDetails = useCallback(() => {
+    const chart = chartRef.current?.chart as Highcharts.MapChart | undefined
+    chart?.getSelectedPoints().forEach((point) => point.select(false, false))
+    chart?.redraw()
     setSelectedCountryCode(null)
     setSelectedEventId(null)
     setTimelineNotice(false)
@@ -154,13 +177,12 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
 
   const palette = useMemo(
     () => ({
-      water: cssToken('--temp-viz-water', theme === 'dark' ? '#101722' : '#f3f7fb'),
-      land: cssToken('--temp-viz-land', theme === 'dark' ? '#273242' : '#dce5ee'),
-      border: cssToken('--border', theme === 'dark' ? '#465268' : '#aab8c8'),
+      land: cssToken('--map-neutral-country', theme === 'dark' ? '#222832' : '#f1f3f5'),
+      border: cssToken('--map-country-border', theme === 'dark' ? '#3a424d' : '#c2c8d0'),
       foreground: cssToken('--foreground', theme === 'dark' ? '#f5f7fa' : '#172033'),
       muted: cssToken('--muted-foreground', '#657086'),
-      surface: cssToken('--surface', theme === 'dark' ? '#171f2d' : '#ffffff'),
-      primary: cssToken('--brand-primary-600', '#315efb'),
+      surface: cssToken('--surface', theme === 'dark' ? '#161616' : '#ffffff'),
+      primary: cssToken('--primary', theme === 'dark' ? '#7f9cff' : '#416dff'),
       route: cssToken('--temp-viz-route', '#f47b45'),
       low: cssToken('--temp-viz-low', '#278c77'),
       medium: cssToken('--temp-viz-medium', '#b87709'),
@@ -207,6 +229,9 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
         timeStyle: 'short',
         timeZone: 'UTC',
       }).format(new Date(value))
+    const pulseEvents = visibleEvents.filter(
+      (event) => event.severity === 'critical' || (event.severity === 'high' && event.confidence >= 80),
+    )
 
     const series: Highcharts.SeriesOptionsType[] = [
       {
@@ -219,34 +244,59 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
         color: palette.land,
         nullColor: palette.land,
         borderColor: palette.border,
-        borderWidth: 0.7,
+        borderWidth: 0.75,
         allowPointSelect: true,
         animation: !reducedMotion,
         showInLegend: false,
         states: {
-          hover: { color: palette.land, borderColor: palette.primary, borderWidth: 1.5, brightness: 0.08 },
-          select: { color: palette.primary, borderColor: palette.foreground, borderWidth: 2 },
+          hover: {
+            color: palette.land,
+            borderColor: palette.border,
+            borderWidth: 0.75,
+            brightness: 0,
+          },
+          select: { color: palette.primary, borderColor: palette.primary, borderWidth: 1 },
         },
         dataLabels: {
+          allowOverlap: false,
           enabled: true,
-          format: '{point.countryCode}',
-          filter: { property: 'value', operator: '>', value: 68 },
+          formatter() {
+            const point = this.point as Highcharts.Point
+            const properties = getPointProperties(point)
+            const code = getPointCountryCode(point)
+            const abbreviation = getPointAbbreviation(point)
+            const country = countryByCode.get(code)
+            const zoom = this.series.chart.mapView?.zoom ?? 0
+            const labelRank = Number(properties?.labelrank ?? 9)
+
+            if (point.selected) return country?.countryNameEn ?? String(point.name ?? abbreviation)
+            if (!abbreviation) return ''
+            if (zoom < 1.55 && labelRank > 4) return ''
+            if (zoom < 2.2 && labelRank > 6) return ''
+            return abbreviation
+          },
           style: {
             color: palette.foreground,
-            fontFamily: isFa ? 'var(--font-sans-fa)' : 'var(--font-sans-en)',
+            fontFamily: 'var(--font-sans-en)',
             fontSize: '12px',
-            fontWeight: '400',
-            textOutline: 'none',
+            fontWeight: '500',
+            textOutline: `2px ${palette.surface}`,
           },
         },
         point: {
           events: {
             click() {
-              const code = String((this.options as { countryCode?: string }).countryCode ?? '')
-              if (code) {
-                selectCountry(code)
-                if ('zoomTo' in this && typeof this.zoomTo === 'function') this.zoomTo()
-              }
+              const chart = this.series.chart as Highcharts.MapChart
+              chart.getSelectedPoints().forEach((point) => {
+                if (point !== this) point.select(false, false)
+              })
+              this.select(true, false)
+              chart.redraw()
+
+              const code = getPointCountryCode(this)
+              if (code) selectCountry(code)
+              if ('zoomTo' in this && typeof this.zoomTo === 'function') this.zoomTo()
+              return false
             },
           },
         },
@@ -273,9 +323,32 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
       },
       {
         type: 'mappoint',
+        name: isFa ? 'کانون‌های پرتنش' : 'High-tension hotspots',
+        className: 'world-map-pulse-series',
+        animation: false,
+        enableMouseTracking: false,
+        showInLegend: false,
+        zIndex: 4,
+        dataLabels: { enabled: false },
+        data: pulseEvents.map((event) => ({
+          id: `pulse-${event.id}`,
+          name: isFa ? event.titleFa : event.titleEn,
+          lat: event.latitude,
+          lon: event.longitude,
+          marker: {
+            radius: event.severity === 'critical' ? 22 : 18,
+            fillColor: 'transparent',
+            lineColor: palette[event.severity],
+            lineWidth: 2,
+          },
+        })),
+      },
+      {
+        type: 'mappoint',
         name: isFa ? 'رویدادهای اطلاعاتی' : 'Intelligence events',
         animation: !reducedMotion,
         showInLegend: false,
+        zIndex: 5,
         data: visibleEvents.map((event) => ({
           id: event.id,
           name: isFa ? event.titleFa : event.titleEn,
@@ -314,7 +387,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
     return {
       chart: {
         map: topology,
-        backgroundColor: palette.water,
+        backgroundColor: palette.surface,
         animation: !reducedMotion,
         height: 560,
         spacing: [16, 16, 16, 16],
@@ -372,7 +445,8 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
             const event = options.custom
             return `<div class="highcharts-map-tooltip" dir="${isFa ? 'rtl' : 'ltr'}"><strong>${escapeHtml(isFa ? event.titleFa : event.titleEn)}</strong><span>${escapeHtml(riskLabels[event.severity])} · ${event.sourceCount} ${isFa ? 'منبع' : 'sources'}</span><span dir="ltr">${escapeHtml(formatDate(event.occurredAt))} UTC</span></div>`
           }
-          const country = countryByCode.get(String(options.countryCode ?? ''))
+          const code = options.countryCode ?? getPointCountryCode(this.point as Highcharts.Point)
+          const country = countryByCode.get(String(code ?? ''))
           if (!country) return escapeHtml(this.name ?? '')
           const trend =
             country.trend === 'up'
@@ -392,8 +466,8 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
       accessibility: {
         enabled: true,
         description: isFa
-          ? 'نقشه تعاملی رویدادهای جهان با خوشه‌بندی نقاط، مسیرهای پایش‌شده و نمای فهرست جایگزین.'
-          : 'Interactive world event map with marker clustering, monitored routes, and an alternative list view.',
+          ? 'نقشه تعاملی رویدادهای جهان با انتخاب کشور، خوشه‌بندی نقاط، کانون‌های پرتنش و نمای فهرست جایگزین.'
+          : 'Interactive world event map with country selection, marker clustering, high-tension hotspots, and an alternative list view.',
         keyboardNavigation: { enabled: true },
       },
       plotOptions: { series: { animation: !reducedMotion } },
@@ -422,15 +496,8 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
       return next
     })
 
-  const resetView = () => {
-    const chart = chartRef.current?.chart as Highcharts.MapChart | undefined
-    chart?.mapView?.setView(undefined, 0, true, !reducedMotion)
-  }
-
   return (
     <div className="map-workspace" dir={isFa ? 'rtl' : 'ltr'}>
-      
-
       {!listView && (
         <div className="map-stage">
           {topologyError ? (
