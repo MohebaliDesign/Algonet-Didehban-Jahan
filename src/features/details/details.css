@@ -3,22 +3,33 @@
   min-width: 0;
 }
 
+/* The title area stays open; a restrained accent rail carries page identity instead of a tinted panel. */
 .detail-page-hero {
   display: grid;
   width: 100%;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
   align-items: end;
   gap: 24px;
-  padding: 24px;
-  border: 1px solid color-mix(in srgb, var(--primary) 12%, var(--border-subtle));
-  border-radius: var(--radius-card-lg);
-  background: color-mix(in srgb, var(--primary) 4%, var(--surface));
+  padding: 8px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .detail-page-heading {
   width: 100%;
   min-width: 0;
+}
+
+[dir='rtl'] .detail-page-heading {
+  padding-inline-end: 16px;
+  border-inline-end: 3px solid var(--primary);
+}
+
+[dir='ltr'] .detail-page-heading {
+  padding-inline-start: 16px;
+  border-inline-start: 3px solid var(--primary);
 }
 
 .detail-page-kicker {
@@ -60,7 +71,7 @@
   padding: 16px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
-  background: color-mix(in srgb, var(--surface) 88%, var(--detail-tint));
+  background: var(--surface);
 }
 
 .detail-score-card > div:first-child {
@@ -249,12 +260,23 @@
 
 .detail-link-arrow {
   color: var(--muted-foreground);
+  transition: transform 140ms ease;
+}
+
+/* Forward navigation follows reading direction: Persian points left, English points right. */
+.intelligence-detail-page[dir='rtl'] .detail-quick-links .detail-link-arrow {
+  transform: none !important;
+}
+
+.intelligence-detail-page[dir='ltr'] .detail-quick-links .detail-link-arrow {
+  transform: rotate(180deg) !important;
 }
 
 .detail-source-list,
 .detail-related-list {
   display: grid;
   min-width: 0;
+  gap: 8px;
 }
 
 .detail-linked-row {
@@ -265,22 +287,21 @@
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
-  border: 0;
-  border-block-end: 1px solid var(--border-subtle);
+  padding: 12px 16px;
+  border: 1px solid transparent;
+  border-radius: 16px;
   color: var(--foreground);
   background: transparent;
   text-align: start;
   cursor: pointer;
-  transition: background-color 140ms ease;
-}
-
-.detail-linked-row:last-child {
-  border-block-end: 0;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
 }
 
 .detail-linked-row:hover {
-  background: color-mix(in srgb, var(--primary) 4%, transparent);
+  border-color: var(--border-subtle);
+  background: color-mix(in srgb, var(--primary) 4%, var(--surface));
 }
 
 .detail-linked-copy {
@@ -289,10 +310,35 @@
   gap: 4px;
 }
 
-.detail-linked-value {
+.detail-linked-value,
+.detail-linked-row [data-slot='badge'] {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   color: var(--status-info);
-  font-size: 14px;
+  background: var(--surface-subtle);
+  font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
+}
+
+/* The navigation arrow lives inside the compact status/value badge instead of floating at the row edge. */
+.intelligence-detail-page[dir='rtl'] .detail-linked-row [data-slot='badge']::after,
+.intelligence-detail-page[dir='rtl'] .detail-linked-value::after {
+  content: '←';
+}
+
+.intelligence-detail-page[dir='ltr'] .detail-linked-row [data-slot='badge']::after,
+.intelligence-detail-page[dir='ltr'] .detail-linked-value::after {
+  content: '→';
+}
+
+.detail-linked-row > .detail-link-arrow {
+  display: none;
 }
 
 .detail-technical-list {
@@ -413,7 +459,7 @@
 @media (max-width: 720px) {
   .detail-page-hero {
     gap: 20px;
-    padding: 20px;
+    padding-block: 4px;
   }
 
   .detail-page-heading h1 {
@@ -434,11 +480,6 @@
   .detail-linked-value {
     grid-column: 2;
     justify-self: start;
-  }
-
-  .detail-link-arrow {
-    grid-column: 3;
-    grid-row: 1 / span 2;
   }
 
   .detail-technical-list > div {
