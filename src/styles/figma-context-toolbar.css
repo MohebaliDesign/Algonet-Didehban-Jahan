@@ -6,7 +6,6 @@
 
 .context-bar {
   inset-block-start: 72px;
-  min-height: 48px;
   height: 48px;
   align-items: center;
   gap: 16px;
