@@ -2,14 +2,11 @@ import { Navigate, Route, Routes } from 'react-router'
 
 import { AppShell } from '@/components/product/AppShell'
 import { CountriesPage } from '@/features/countries/CountriesPage'
+import { DataManagementPage } from '@/features/data/DataManagementPage'
 import { IntelligenceDetailPage } from '@/features/details/IntelligenceDetailPage'
 import { FoundationDiagnostic } from '@/features/foundation/FoundationDiagnostic'
 import { MarketsPage } from '@/features/markets/MarketsPage'
-import {
-  DataManagementPage,
-  DevelopmentsPage,
-  ReportsPage,
-} from '@/features/pages/ProductPages'
+import { DevelopmentsPage, ReportsPage } from '@/features/pages/ProductPages'
 import { SecurityAssessmentPage } from '@/features/security/SecurityAssessmentPage'
 import { SecurityPage } from '@/features/security/SecurityPage'
 import { WorldMonitorPage } from '@/features/world/WorldMonitorPage'
