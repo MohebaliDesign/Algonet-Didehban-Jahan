@@ -235,7 +235,6 @@ html[lang^='en'] :where(.data-management-page, .data-health-dialog, .data-add-so
   padding: 6px 24px;
   border-block-start: 1px solid var(--border-subtle);
   border-block-end: 1px solid var(--border-subtle);
-  background: #ffffff;
 }
 
 .data-selection-toolbar > span {
