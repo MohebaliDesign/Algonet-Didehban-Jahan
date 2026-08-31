@@ -1,8 +1,8 @@
 import './security.css'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-
 import Highcharts from 'highcharts/es-modules/masters/highmaps.src.js'
+
 import { usePreferences } from '@/app/PreferencesProvider'
 import {
   Dialog,
@@ -66,14 +66,14 @@ function severityColor(severity: Severity) {
   return 'var(--chart-secondary, var(--temp-viz-medium))'
 }
 
-function getPointProperties(point: Highcharts.Point) {
+function pointProperties(point: Highcharts.Point) {
   return (point as Highcharts.Point & {
     properties?: Record<string, string | number | undefined>
   }).properties
 }
 
-function getCountryAbbreviation(point: Highcharts.Point) {
-  const properties = getPointProperties(point)
+function countryAbbreviation(point: Highcharts.Point) {
+  const properties = pointProperties(point)
   const isoA2 = String(properties?.['iso-a2'] ?? '').toUpperCase()
   if (isoA2 && isoA2 !== '-99') return isoA2
 
@@ -81,7 +81,7 @@ function getCountryAbbreviation(point: Highcharts.Point) {
   return abbreviation && abbreviation !== '-99' ? abbreviation : ''
 }
 
-function getCountryName(language: 'fa' | 'en', isoA2: string, fallback: string) {
+function regionName(language: 'fa' | 'en', isoA2: string, fallback: string) {
   if (!isoA2 || isoA2 === '-99') return fallback
   try {
     return new Intl.DisplayNames([language], { type: 'region' }).of(isoA2) ?? fallback
@@ -115,7 +115,6 @@ export function SecurityWorldMap({
 
   useEffect(() => {
     const controller = new AbortController()
-
     fetch('/world.topo.json', { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error('World map failed to load')
@@ -129,7 +128,6 @@ export function SecurityWorldMap({
         if (error instanceof DOMException && error.name === 'AbortError') return
         setLoadState('error')
       })
-
     return () => controller.abort()
   }, [])
 
@@ -157,7 +155,6 @@ export function SecurityWorldMap({
       name: locale === 'fa' ? item.label : item.labelEn,
       value: item.impact,
     }))
-
     const alertDots = visibleItems.map((item) => ({
       name: locale === 'fa' ? item.label : item.labelEn,
       lat: item.lat,
@@ -175,7 +172,6 @@ export function SecurityWorldMap({
         severity: item.severity,
       },
     }))
-
     const pulsePoints = visibleItems
       .filter((item) => item.severity === 'critical' || item.likelihood >= PULSE_THRESHOLD)
       .map((item) => ({
@@ -245,15 +241,12 @@ export function SecurityWorldMap({
             }
             const dir = locale === 'fa' ? 'rtl' : 'ltr'
             const align = locale === 'fa' ? 'right' : 'left'
-
             if (!point.custom) {
               return `<div dir="${dir}" style="min-width:120px;text-align:${align};font-size:14px"><strong>${point.name ?? ''}</strong></div>`
             }
-
             const likelihood = numberFormatter.format(point.custom.likelihood)
             const impact = numberFormatter.format(point.custom.impact)
             const percent = locale === 'fa' ? '٪' : '%'
-
             return `<div dir="${dir}" style="min-width:176px;text-align:${align};font-size:14px"><strong>${point.name ?? ''}</strong><br/><span style="color:${theme.muted}">${local(locale, 'احتمال', 'Likelihood')}</span> · ${likelihood}${percent}<br/><span style="color:${theme.muted}">${local(locale, 'پیامد', 'Impact')}</span> · ${impact}${percent}<br/><span style="color:${theme.muted}">${local(locale, 'شدت', 'Severity')}</span> · ${severityLabel(locale, point.custom.severity)}</div>`
           },
         },
@@ -303,15 +296,15 @@ export function SecurityWorldMap({
                   this.select(true, false)
                   chartInstance.redraw()
 
-                  const properties = getPointProperties(this)
-                  const isoA2 = getCountryAbbreviation(this)
+                  const properties = pointProperties(this)
+                  const isoA2 = countryAbbreviation(this)
                   const hcKey = String(properties?.['hc-key'] ?? '').toLowerCase()
-                  const fallback = String(this.name ?? isoA2 || 'Country')
+                  const fallback = String((this.name ?? isoA2) || 'Country')
                   const risk = riskByKey.get(hcKey)
                   setSelectedCountry({
                     isoA2,
-                    nameEn: risk?.labelEn ?? getCountryName('en', isoA2, fallback),
-                    nameFa: risk?.label ?? getCountryName('fa', isoA2, fallback),
+                    nameEn: risk?.labelEn ?? regionName('en', isoA2, fallback),
+                    nameFa: risk?.label ?? regionName('fa', isoA2, fallback),
                     risk,
                   })
 
@@ -325,13 +318,13 @@ export function SecurityWorldMap({
               enabled: true,
               formatter() {
                 const point = this.point as Highcharts.Point
-                const properties = getPointProperties(point)
+                const properties = pointProperties(point)
                 const zoom = this.series.chart.mapView?.zoom ?? 0
                 const labelRank = Number(properties?.labelrank ?? 9)
-                const abbreviation = getCountryAbbreviation(point)
+                const abbreviation = countryAbbreviation(point)
 
                 if (point.selected) {
-                  return getCountryName('en', abbreviation, String(point.name ?? abbreviation))
+                  return regionName('en', abbreviation, String(point.name ?? abbreviation))
                 }
                 if (!abbreviation) return ''
                 if (zoom < 1.55 && labelRank > 4) return ''
@@ -421,7 +414,7 @@ export function SecurityWorldMap({
           <DialogHeader>
             <DialogTitle className="security-country-dialog-title">
               <span dir="ltr">{selectedCountry?.nameEn}</span>
-              <span aria-hidden="true"> · </span>
+              <span aria-hidden="true">·</span>
               <span dir="rtl">{selectedCountry?.nameFa}</span>
             </DialogTitle>
             <DialogDescription>
