@@ -1,0 +1,178 @@
+/* Dedicated drill-down pages use a compact local toolbar instead of the global filter bar. */
+.shell-main:has(.internal-page-shell) .context-bar {
+  display: none;
+}
+
+.shell-main:has(.internal-page-shell) .product-canvas {
+  padding-block-start: 16px;
+}
+
+.internal-page-shell {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+}
+
+.internal-page-toolbar {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--surface-subtle);
+}
+
+.internal-page-back-button {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--foreground);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.internal-page-back-button:hover {
+  background: var(--accent);
+}
+
+.internal-page-toolbar-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.internal-page-toolbar-actions > button {
+  min-height: 40px;
+}
+
+.internal-page-shell .page-header {
+  align-items: flex-start;
+  margin-block: 0 8px;
+}
+
+.internal-page-shell .page-header > div:first-child {
+  max-width: 920px;
+}
+
+.internal-page-shell .page-header h1 {
+  font-size: 28px;
+  line-height: 1.4;
+}
+
+.internal-page-shell .page-header p {
+  max-width: 840px;
+  margin-block-start: 4px;
+}
+
+.internal-section {
+  gap: 0;
+  overflow: hidden;
+  padding-block: 0;
+  border-color: var(--border-subtle);
+  background: var(--surface);
+}
+
+.internal-section-header {
+  gap: 4px;
+  padding: 24px 24px 0;
+}
+
+.internal-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.internal-section-content {
+  padding: 16px 24px 24px;
+}
+
+.internal-section-footer {
+  min-height: 40px;
+  gap: 8px;
+  padding: 0 24px 24px;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+/* Tabs fill the available page width while each label keeps a content-driven width. */
+.internal-page-shell [data-slot='tabs-list'][data-variant='line'],
+.internal-page-shell .detail-tabs-list {
+  position: sticky;
+  z-index: 22;
+  inset-block-start: 76px;
+  width: 100%;
+  max-width: 100%;
+  justify-content: flex-start;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0;
+  border-block-end: 1px solid var(--border-subtle);
+  background: var(--background);
+}
+
+.internal-page-shell [data-slot='tabs-list'][data-variant='line']::after,
+.internal-page-shell .detail-tabs-list::after {
+  display: none;
+}
+
+.internal-page-shell [data-slot='tabs-list'][data-variant='line'] [data-slot='tabs-trigger'] {
+  min-height: 40px;
+  flex: 0 0 auto;
+  padding-inline: 16px;
+  padding-block: 8px;
+}
+
+.internal-page-shell [data-slot='tabs-list'][data-variant='line'] [data-slot='tabs-trigger']::after {
+  inset-block-end: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--primary);
+}
+
+.internal-page-shell [data-slot='tabs-list'][data-variant='line'] [data-slot='tabs-trigger'][data-state='active'] {
+  color: var(--foreground);
+}
+
+@media (max-width: 640px) {
+  .shell-main:has(.internal-page-shell) .product-canvas {
+    padding-block-start: 12px;
+  }
+
+  .internal-page-shell {
+    gap: 12px;
+  }
+
+  .internal-page-toolbar {
+    min-height: 48px;
+  }
+
+  .internal-page-shell .page-header h1 {
+    font-size: 24px;
+  }
+
+  .internal-section-header {
+    padding: 20px 16px 0;
+  }
+
+  .internal-section-content {
+    padding: 16px 16px 20px;
+  }
+
+  .internal-section-footer {
+    padding: 0 16px 20px;
+  }
+
+  .internal-page-shell [data-slot='tabs-list'][data-variant='line'],
+  .internal-page-shell .detail-tabs-list {
+    position: static;
+  }
+}
