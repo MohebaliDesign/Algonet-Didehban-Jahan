@@ -1,0 +1,72 @@
+/*
+ * Global component contract for bilingual tables and analytical module toolbars.
+ * This layer is intentionally loaded last so page-specific legacy overrides do not
+ * break the shared RTL/LTR alignment or the approved 48px toolbar target size.
+ */
+
+/* Tables follow the active product language consistently. */
+:root[dir='rtl'] [data-slot='table-head'],
+:root[dir='rtl'] [data-slot='table-cell'],
+:root[dir='rtl'] [data-slot='table-caption'] {
+  text-align: right;
+}
+
+:root[dir='ltr'] [data-slot='table-head'],
+:root[dir='ltr'] [data-slot='table-cell'],
+:root[dir='ltr'] [data-slot='table-caption'] {
+  text-align: left;
+}
+
+/*
+ * Module toolbar actions use a 48px interactive frame with a 40px glyph.
+ * The frame remains quiet at rest and becomes visible only on hover/focus.
+ */
+.module-frame .module-controls {
+  align-items: center;
+}
+
+.module-frame .module-controls .module-icon-button {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  min-height: 48px;
+  flex: 0 0 48px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--muted-foreground);
+  background: transparent;
+  box-shadow: none;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.module-frame .module-controls .module-icon-button > span {
+  display: inline-flex !important;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+}
+
+.module-frame .module-controls .module-icon-button iconsax-icon {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.module-frame .module-controls .module-icon-button:hover,
+.module-frame .module-controls .module-icon-button:focus-visible {
+  color: var(--foreground);
+  border-color: var(--border);
+  background: var(--accent);
+}
+
+.module-frame .module-controls .module-icon-button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 12%, transparent);
+}
