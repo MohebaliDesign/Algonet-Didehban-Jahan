@@ -54,13 +54,8 @@ export function WorldMapDetailPanel({
   useEffect(() => setTab(event ? 'events' : 'overview'), [event])
   if (!country) return null
 
-  const title = event
-    ? isFa
-      ? event.titleFa
-      : event.titleEn
-    : isFa
-      ? country.countryNameFa
-      : country.countryNameEn
+  const countryTitle = `${country.countryNameEn} · ${country.countryNameFa}`
+  const title = event ? (isFa ? event.titleFa : event.titleEn) : countryTitle
   const countryEvents = events.filter((item) => item.countryCode === country.countryCode)
 
   return (
@@ -80,7 +75,15 @@ export function WorldMapDetailPanel({
               {riskLabels[country.riskLevel]}
             </Badge>
             <SheetTitle ref={titleRef} tabIndex={-1}>
-              {title}
+              {event ? (
+                title
+              ) : (
+                <>
+                  <span dir="ltr">{country.countryNameEn}</span>
+                  <span aria-hidden="true"> · </span>
+                  <span dir="rtl">{country.countryNameFa}</span>
+                </>
+              )}
             </SheetTitle>
             <SheetDescription>
               <code dir="ltr">{country.countryCode}</code> ·{' '}
