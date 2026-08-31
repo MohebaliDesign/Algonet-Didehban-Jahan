@@ -24,7 +24,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Field, FieldLabel } from '@/components/ui/field'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
   SelectContent,
@@ -33,13 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
 import {
   Sidebar,
   SidebarContent,
@@ -56,7 +48,6 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { countries, events, reportTitlesEn, reports, sources } from '@/data/mock/visualMvpData'
 import { PROTOTYPE_CURRENT_USER } from '@/data/mock/prototypeCurrentUser'
-import { DataManagementPage } from '@/features/pages/ProductPages'
 import { useProductCopy } from '@/localization/productCopy'
 import type { IntelligenceDomain, Role } from '@/types/domain'
 
@@ -101,15 +92,13 @@ function AppShellContent() {
   const { locale, setLocale, theme, setTheme } = usePreferences()
   const { role, filters, setFilter, resetFilters, setSearchOpen } = useWorkspace()
   const { state, isMobile } = useSidebar()
-  const [filtersOpen, setFiltersOpen] = useState(false)
-  const [managementOpen, setManagementOpen] = useState(false)
+  const navigate = useNavigate()
   const location = useLocation()
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const isManagementAuthorized = role === 'org-admin' || role === 'data-manager'
+  const isDataManagementPage = location.pathname === '/data'
 
   useEffect(() => setFiltersOpen(false), [location.pathname])
-  useEffect(() => {
-    if (!isManagementAuthorized) setManagementOpen(false)
-  }, [isManagementAuthorized])
 
   return (
     <div className="app-shell">
@@ -167,7 +156,7 @@ function AppShellContent() {
           </nav>
         </SidebarContent>
         <SidebarFooter className="product-sidebar-footer">
-          <SidebarProfileMenu onOpenManagement={() => setManagementOpen(true)} />
+          <SidebarProfileMenu onOpenManagement={() => navigate('/data')} />
           <SidebarMenu>
             <SidebarMenuItem>
               <Tooltip>
@@ -252,72 +241,85 @@ function AppShellContent() {
             >
               {locale === 'fa' ? 'EN' : 'فا'}
             </Button>
+            {isManagementAuthorized && (
+              <Button
+                variant={isDataManagementPage ? 'secondary' : 'outline'}
+                className="data-management-topbar-cta"
+                onClick={() => navigate('/data')}
+                aria-current={isDataManagementPage ? 'page' : undefined}
+              >
+                <Icon name="data" size={18} />
+                <span>{copy.sourcesData}</span>
+              </Button>
+            )}
           </div>
         </header>
 
-        <div className={`context-bar ${filtersOpen ? 'open' : ''}`}>
-          <Button
-            variant="ghost"
-            className="compact-filter-toggle"
-            onClick={() => setFiltersOpen((value) => !value)}
-            aria-expanded={filtersOpen}
-          >
-            <Icon name="filter" />
-            {locale === 'fa' ? 'فیلترها' : 'Filters'}
-          </Button>
-          <Filter
-            label={copy.geography}
-            value={filters.geography}
-            onChange={(value) => setFilter('geography', value)}
-            options={[
-              ['global', copy.global],
-              ['mena', locale === 'fa' ? 'خاورمیانه' : 'Middle East'],
-              ['europe', locale === 'fa' ? 'اروپا' : 'Europe'],
-              ['asia', locale === 'fa' ? 'آسیا' : 'Asia'],
-            ]}
-          />
-          <Filter
-            label={copy.time}
-            value={filters.timeRange}
-            onChange={(value) => setFilter('timeRange', value)}
-            options={[
-              ['24h', locale === 'fa' ? '۲۴ ساعت' : '24 hours'],
-              ['7d', locale === 'fa' ? '۷ روز' : '7 days'],
-              ['30d', locale === 'fa' ? '۳۰ روز' : '30 days'],
-            ]}
-          />
-          <Filter
-            label={copy.domain}
-            value={filters.domain}
-            onChange={(value) => setFilter('domain', value as IntelligenceDomain | 'all')}
-            options={domains.map((item) => [item.value, locale === 'fa' ? item.fa : item.en])}
-          />
-          <Filter
-            label={copy.sources}
-            value={filters.sourceSet}
-            onChange={(value) => setFilter('sourceSet', value)}
-            options={[
-              ['verified', copy.verifiedSources],
-              ['all', locale === 'fa' ? 'همه منابع' : 'All sources'],
-              ['watch', locale === 'fa' ? 'مجموعه پایش' : 'Watch set'],
-            ]}
-            meta={copy.sourceCount}
-          />
-          <Filter
-            label={copy.savedView}
-            value={filters.savedView}
-            onChange={(value) => setFilter('savedView', value)}
-            options={[
-              ['daily', copy.dailyView],
-              ['routes', locale === 'fa' ? 'ریسک مسیرها' : 'Route risk'],
-              ['markets', locale === 'fa' ? 'پایش بازار' : 'Market watch'],
-            ]}
-          />
-          <Button variant="ghost" size="sm" onClick={resetFilters}>
-            <Icon name="refresh-circle" size={16} />
-            {copy.reset}
-          </Button>
-        </div>
+        {!isDataManagementPage && (
+          <div className={`context-bar ${filtersOpen ? 'open' : ''}`}>
+            <Button
+              variant="ghost"
+              className="compact-filter-toggle"
+              onClick={() => setFiltersOpen((value) => !value)}
+              aria-expanded={filtersOpen}
+            >
+              <Icon name="filter" />
+              {locale === 'fa' ? 'فیلترها' : 'Filters'}
+            </Button>
+            <Filter
+              label={copy.geography}
+              value={filters.geography}
+              onChange={(value) => setFilter('geography', value)}
+              options={[
+                ['global', copy.global],
+                ['mena', locale === 'fa' ? 'خاورمیانه' : 'Middle East'],
+                ['europe', locale === 'fa' ? 'اروپا' : 'Europe'],
+                ['asia', locale === 'fa' ? 'آسیا' : 'Asia'],
+              ]}
+            />
+            <Filter
+              label={copy.time}
+              value={filters.timeRange}
+              onChange={(value) => setFilter('timeRange', value)}
+              options={[
+                ['24h', locale === 'fa' ? '۲۴ ساعت' : '24 hours'],
+                ['7d', locale === 'fa' ? '۷ روز' : '7 days'],
+                ['30d', locale === 'fa' ? '۳۰ روز' : '30 days'],
+              ]}
+            />
+            <Filter
+              label={copy.domain}
+              value={filters.domain}
+              onChange={(value) => setFilter('domain', value as IntelligenceDomain | 'all')}
+              options={domains.map((item) => [item.value, locale === 'fa' ? item.fa : item.en])}
+            />
+            <Filter
+              label={copy.sources}
+              value={filters.sourceSet}
+              onChange={(value) => setFilter('sourceSet', value)}
+              options={[
+                ['verified', copy.verifiedSources],
+                ['all', locale === 'fa' ? 'همه منابع' : 'All sources'],
+                ['watch', locale === 'fa' ? 'مجموعه پایش' : 'Watch set'],
+              ]}
+              meta={copy.sourceCount}
+            />
+            <Filter
+              label={copy.savedView}
+              value={filters.savedView}
+              onChange={(value) => setFilter('savedView', value)}
+              options={[
+                ['daily', copy.dailyView],
+                ['routes', locale === 'fa' ? 'ریسک مسیرها' : 'Route risk'],
+                ['markets', locale === 'fa' ? 'پایش بازار' : 'Market watch'],
+              ]}
+            />
+            <Button variant="ghost" size="sm" onClick={resetFilters}>
+              <Icon name="refresh-circle" size={16} />
+              {copy.reset}
+            </Button>
+          </div>
+        )}
 
         <main className="product-canvas">
           <Outlet />
@@ -325,23 +327,6 @@ function AppShellContent() {
       </SidebarInset>
 
       <GlobalSearch />
-      {isManagementAuthorized && (
-        <Sheet open={managementOpen} onOpenChange={setManagementOpen}>
-          <SheetContent
-            side={locale === 'fa' ? 'left' : 'right'}
-            className="management-sheet"
-            aria-label={copy.sourcesDataTitle}
-          >
-            <SheetHeader>
-              <SheetTitle>{copy.sourcesDataTitle}</SheetTitle>
-              <SheetDescription>{copy.devOnly}</SheetDescription>
-            </SheetHeader>
-            <ScrollArea className="management-sheet-body">
-              <DataManagementPage embedded />
-            </ScrollArea>
-          </SheetContent>
-        </Sheet>
-      )}
     </div>
   )
 }
