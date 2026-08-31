@@ -5,7 +5,10 @@ import type Highcharts from 'highcharts/es-modules/masters/highmaps.src.js'
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
 import { Icon } from '@/components/Icon'
-import { WorldMapDetailPanel } from '@/components/product/WorldMapDetailPanel'
+import {
+  WorldMapDetailPanel,
+  type WorldMapCountryIdentity,
+} from '@/components/product/WorldMapDetailPanel'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -80,6 +83,15 @@ function getPointAbbreviation(point: Highcharts.Point) {
   return abbreviation && abbreviation !== '-99' ? abbreviation : ''
 }
 
+function getCountryName(language: 'fa' | 'en', isoA2: string, fallback: string) {
+  if (!isoA2 || isoA2 === '-99') return fallback
+  try {
+    return new Intl.DisplayNames([language], { type: 'region' }).of(isoA2) ?? fallback
+  } catch {
+    return fallback
+  }
+}
+
 export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) {
   const { locale, theme } = usePreferences()
   const { filters } = useWorkspace()
@@ -94,6 +106,8 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
   )
   const [listView, setListView] = useState(false)
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null)
+  const [selectedCountryIdentity, setSelectedCountryIdentity] =
+    useState<WorldMapCountryIdentity | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const [timelineNotice, setTimelineNotice] = useState(false)
   const [now, setNow] = useState(() => new Date())
@@ -151,16 +165,25 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
     }
   }, [selectedEventId, visibleEvents])
 
-  const selectCountry = useCallback((code: string, trigger?: HTMLElement | null) => {
-    selectionTriggerRef.current = trigger ?? null
-    setSelectedCountryCode(code)
-    setSelectedEventId(null)
-    setTimelineNotice(false)
-  }, [])
+  const selectCountry = useCallback(
+    (
+      code: string,
+      trigger?: HTMLElement | null,
+      identity: WorldMapCountryIdentity | null = null,
+    ) => {
+      selectionTriggerRef.current = trigger ?? null
+      setSelectedCountryCode(code)
+      setSelectedCountryIdentity(identity)
+      setSelectedEventId(null)
+      setTimelineNotice(false)
+    },
+    [],
+  )
 
   const selectEvent = useCallback((event: IntelligenceMapEvent, trigger?: HTMLElement | null) => {
     selectionTriggerRef.current = trigger ?? null
     setSelectedCountryCode(event.countryCode)
+    setSelectedCountryIdentity(null)
     setSelectedEventId(event.id)
     setTimelineNotice(false)
   }, [])
@@ -170,6 +193,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
     chart?.getSelectedPoints().forEach((point) => point.select(false, false))
     chart?.redraw()
     setSelectedCountryCode(null)
+    setSelectedCountryIdentity(null)
     setSelectedEventId(null)
     setTimelineNotice(false)
     requestAnimationFrame(() => selectionTriggerRef.current?.focus())
@@ -269,7 +293,9 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
             const zoom = this.series.chart.mapView?.zoom ?? 0
             const labelRank = Number(properties?.labelrank ?? 9)
 
-            if (point.selected) return country?.countryNameEn ?? String(point.name ?? abbreviation)
+            if (point.selected) {
+              return country?.countryNameEn ?? getCountryName('en', abbreviation, String(point.name ?? abbreviation))
+            }
             if (!abbreviation) return ''
             if (zoom < 1.55 && labelRank > 4) return ''
             if (zoom < 2.2 && labelRank > 6) return ''
@@ -294,7 +320,22 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
               chart.redraw()
 
               const code = getPointCountryCode(this)
-              if (code) selectCountry(code)
+              const abbreviation = getPointAbbreviation(this)
+              const fallback = String((this.name ?? abbreviation ?? code) || 'Country')
+              const trackedCountry = countryByCode.get(code)
+              const identity: WorldMapCountryIdentity = trackedCountry
+                ? {
+                    countryCode: trackedCountry.countryCode,
+                    countryNameFa: trackedCountry.countryNameFa,
+                    countryNameEn: trackedCountry.countryNameEn,
+                  }
+                : {
+                    countryCode: code || abbreviation,
+                    countryNameFa: getCountryName('fa', abbreviation, fallback),
+                    countryNameEn: getCountryName('en', abbreviation, fallback),
+                  }
+
+              if (identity.countryCode) selectCountry(identity.countryCode, null, identity)
               if ('zoomTo' in this && typeof this.zoomTo === 'function') this.zoomTo()
               return false
             },
@@ -685,6 +726,7 @@ export function WorldMap({ topologyLoader = loadWorldTopology }: WorldMapProps) 
 
       <WorldMapDetailPanel
         country={selectedCountry}
+        countryIdentity={selectedCountryIdentity}
         event={selectedEvent}
         events={visibleEvents}
         timelineNotice={timelineNotice}
