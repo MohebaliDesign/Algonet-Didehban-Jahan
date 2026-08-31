@@ -24,5 +24,7 @@
 /* shadcn-style scroll-edge fade for internal scrolling surfaces. */
 @import './scroll-fade.css';
 @import './scroll-fade-surfaces.css';
+/* Final bilingual table alignment and module-toolbar interaction contract. */
+@import './global-component-alignment.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
