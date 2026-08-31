@@ -3,10 +3,15 @@
  * Product controls stay in shadcn surfaces while Highcharts owns geographic navigation.
  */
 
+.world-page [data-module-id='map'] .module-content {
+  background: var(--surface);
+}
+
 .map-workspace {
   --map-overlay-inset: 16px;
   position: relative;
   min-width: 0;
+  background: var(--surface);
 }
 
 .map-stage {
@@ -17,7 +22,7 @@
   height: 560px;
   min-height: 560px;
   overflow: hidden;
-  background: var(--temp-viz-water);
+  background: var(--surface);
 }
 
 .highcharts-world-map-shell,
@@ -25,11 +30,60 @@
   width: 100%;
   height: 560px;
   min-width: 0;
+  background: var(--surface);
 }
 
 .highcharts-map-container .highcharts-container,
 .highcharts-map-container svg {
   max-width: 100%;
+}
+
+.highcharts-map-container .highcharts-background {
+  fill: var(--surface) !important;
+}
+
+.highcharts-world-map-shell .highcharts-map-series .highcharts-point {
+  fill: var(--map-neutral-country) !important;
+  stroke: var(--map-country-border) !important;
+  transition: fill 140ms ease, stroke 140ms ease, opacity 140ms ease;
+}
+
+.highcharts-world-map-shell .highcharts-map-series .highcharts-point:hover {
+  cursor: pointer;
+}
+
+/* 4% primary keeps hover discoverable without turning the map into a choropleth. */
+.highcharts-world-map-shell
+  .highcharts-map-series
+  .highcharts-point-hover:not(.highcharts-point-select) {
+  fill: color-mix(in srgb, var(--primary) 4%, var(--map-neutral-country)) !important;
+  stroke: var(--map-country-border) !important;
+}
+
+.highcharts-world-map-shell .highcharts-map-series .highcharts-point-select {
+  fill: var(--primary) !important;
+  stroke: var(--primary) !important;
+}
+
+.highcharts-world-map-shell .world-map-pulse-series .highcharts-point {
+  animation: world-map-pulse 1.45s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes world-map-pulse {
+  0% {
+    opacity: 0.12;
+    transform: scale(0.76);
+  }
+  52% {
+    opacity: 0.62;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.34);
+  }
 }
 
 /* Passive timestamp: centered, readable, and deliberately not interactive. */
@@ -286,6 +340,7 @@
 .map-state-surface,
 .map-loading {
   min-height: 560px;
+  background: var(--surface);
 }
 
 @media (max-width: 1100px) {
@@ -357,5 +412,11 @@
     display: grid;
     gap: 0;
     text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highcharts-world-map-shell .world-map-pulse-series .highcharts-point {
+    animation: none;
   }
 }
