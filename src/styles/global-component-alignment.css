@@ -4,13 +4,20 @@
  * break the shared RTL/LTR alignment or the approved 48px toolbar target size.
  */
 
-/* Tables follow the active product language consistently. */
+/* Tables follow the active product language consistently, including any legacy
+ * native tables that do not yet use the shadcn Table wrapper. */
+:root[dir='rtl'] table th,
+:root[dir='rtl'] table td,
+:root[dir='rtl'] table caption,
 :root[dir='rtl'] [data-slot='table-head'],
 :root[dir='rtl'] [data-slot='table-cell'],
 :root[dir='rtl'] [data-slot='table-caption'] {
   text-align: right;
 }
 
+:root[dir='ltr'] table th,
+:root[dir='ltr'] table td,
+:root[dir='ltr'] table caption,
 :root[dir='ltr'] [data-slot='table-head'],
 :root[dir='ltr'] [data-slot='table-cell'],
 :root[dir='ltr'] [data-slot='table-caption'] {
