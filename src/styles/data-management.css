@@ -235,7 +235,7 @@ html[lang^='en'] :where(.data-management-page, .data-health-dialog, .data-add-so
   padding: 6px 24px;
   border-block-start: 1px solid var(--border-subtle);
   border-block-end: 1px solid var(--border-subtle);
-  background: var(--surface-subtle);
+  background: #ffffff;
 }
 
 .data-selection-toolbar > span {
@@ -319,7 +319,7 @@ html[lang^='en'] :where(.data-management-page, .data-health-dialog, .data-add-so
 }
 
 .data-source-table [data-slot='table-row'][data-selected='true'] {
-  background: color-mix(in srgb, var(--primary) 4%, var(--surface));
+  background: color-mix(in srgb, var(--primary) 3%, var(--surface));
 }
 
 .data-source-table :is(th, td):nth-child(1) {
@@ -347,7 +347,7 @@ html[lang^='en'] :where(.data-management-page, .data-health-dialog, .data-add-so
 }
 
 .data-source-table :is(th, td):nth-child(7) {
-  width: 56px;
+  width: 80px;
 }
 
 .data-health-table :is(th, td):nth-child(1) {

@@ -591,22 +591,6 @@ export function DataManagementPage() {
               <strong>{numberFormatter.format(selectedCount)}</strong>{' '}
               {local(locale, 'منبع انتخاب شده', 'sources selected')}
             </span>
-            <div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setVisibleSelection(true)}
-                disabled={isCrawling || !filteredSources.length}
-              >
-                {local(locale, 'انتخاب همه نتایج', 'Select all results')}
-              </Button>
-              <Button variant="ghost" size="sm" onClick={selectHealthySources} disabled={isCrawling}>
-                {local(locale, 'فقط منابع سالم', 'Healthy sources only')}
-              </Button>
-              <Button variant="ghost" size="sm" onClick={clearSelection} disabled={isCrawling || !selectedCount}>
-                {local(locale, 'پاک‌کردن انتخاب', 'Clear selection')}
-              </Button>
-            </div>
           </div>
 
           <div className="data-source-table-wrap">
