@@ -24,5 +24,7 @@
 /* shadcn-style scroll-edge fade for internal scrolling surfaces. */
 @import './scroll-fade.css';
 @import './scroll-fade-surfaces.css';
+/* Role-gated full-page source selection, health checks, and collection states. */
+@import './data-management.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
