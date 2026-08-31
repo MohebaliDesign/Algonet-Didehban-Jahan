@@ -112,8 +112,8 @@ export function IntelligenceDetailPage() {
         : source
           ? local(
               locale,
-              `وضعیت منبع، حوزه پوشش، آخرین موفقیت و کیفیت پاسخ آن را بدون نیاز به خواندن داده خام بررسی کنید.`,
-              `Review source status, coverage, last success, and response quality without having to interpret raw data.`,
+              'وضعیت منبع، حوزه پوشش، آخرین موفقیت و کیفیت پاسخ آن را بدون نیاز به خواندن داده خام بررسی کنید.',
+              'Review source status, coverage, last success, and response quality without having to interpret raw data.',
             )
           : report
             ? local(
@@ -134,7 +134,7 @@ export function IntelligenceDetailPage() {
       ? local(locale, 'ریسک ترکیبی', 'Composite risk')
       : undefined
   const secondaryMetricLabel = event
-    ? local(locale, 'تعداد منابع', 'Sources')
+    ? undefined
     : country
       ? local(locale, 'رویدادهای ثبت‌شده', 'Recorded events')
       : source
@@ -145,7 +145,7 @@ export function IntelligenceDetailPage() {
             ? local(locale, 'نسخه گزارش', 'Report version')
             : undefined
   const secondaryMetricValue = event
-    ? formatNumber(event.sourceCount, locale)
+    ? undefined
     : country
       ? formatNumber(country.events, locale)
       : source
@@ -244,10 +244,23 @@ export function IntelligenceDetailPage() {
         onBack={() => navigate(-1)}
         pageLabel={local(locale, 'جزئیات', 'Details')}
         breadcrumbLabel={local(locale, 'مسیر صفحه', 'Breadcrumb')}
+        direction={locale === 'fa' ? 'rtl' : 'ltr'}
         breadcrumbs={[
           { label: parentLabel, onSelect: () => navigate(parentPath) },
           { label: title ?? id },
         ]}
+        actions={
+          event ? (
+            <Badge variant="outline" className="internal-page-source-badge">
+              <Icon name="document" size={14} />
+              {local(
+                locale,
+                `${formatNumber(event.sourceCount, locale)} منبع`,
+                `${formatNumber(event.sourceCount, locale)} sources`,
+              )}
+            </Badge>
+          ) : undefined
+        }
       />
 
       <header className="detail-page-hero">
