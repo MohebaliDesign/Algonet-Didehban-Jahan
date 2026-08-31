@@ -71,6 +71,8 @@ const domains: { value: IntelligenceDomain | 'all'; fa: string; en: string }[] =
   { value: 'cyber', fa: 'سایبری', en: 'Cyber' },
 ]
 
+const DATA_MANAGEMENT_RETURN_PATH_KEY = 'didehban.navigation.data-return-path'
+
 export function AppShell() {
   return (
     <SidebarProvider
@@ -97,8 +99,31 @@ function AppShellContent() {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const isManagementAuthorized = role === 'org-admin' || role === 'data-manager'
   const isDataManagementPage = location.pathname === '/data'
+  const currentLocation = `${location.pathname}${location.search}${location.hash}`
 
   useEffect(() => setFiltersOpen(false), [location.pathname])
+
+  useEffect(() => {
+    if (!isDataManagementPage) {
+      sessionStorage.setItem(DATA_MANAGEMENT_RETURN_PATH_KEY, currentLocation)
+    }
+  }, [currentLocation, isDataManagementPage])
+
+  const toggleDataManagementPage = () => {
+    if (isDataManagementPage) {
+      navigate(sessionStorage.getItem(DATA_MANAGEMENT_RETURN_PATH_KEY) || '/world')
+      return
+    }
+
+    sessionStorage.setItem(DATA_MANAGEMENT_RETURN_PATH_KEY, currentLocation)
+    navigate('/data')
+  }
+
+  const dataManagementButtonLabel = isDataManagementPage
+    ? locale === 'fa'
+      ? 'بازگشت به صفحه قبل'
+      : 'Return to previous page'
+    : copy.sourcesData
 
   return (
     <div className="app-shell">
@@ -156,7 +181,7 @@ function AppShellContent() {
           </nav>
         </SidebarContent>
         <SidebarFooter className="product-sidebar-footer">
-          <SidebarProfileMenu onOpenManagement={() => navigate('/data')} />
+          <SidebarProfileMenu onOpenManagement={toggleDataManagementPage} />
           <SidebarMenu>
             <SidebarMenuItem>
               <Tooltip>
@@ -245,8 +270,10 @@ function AppShellContent() {
               <Button
                 variant={isDataManagementPage ? 'secondary' : 'outline'}
                 className="data-management-topbar-cta"
-                onClick={() => navigate('/data')}
+                onClick={toggleDataManagementPage}
                 aria-current={isDataManagementPage ? 'page' : undefined}
+                aria-label={dataManagementButtonLabel}
+                title={dataManagementButtonLabel}
               >
                 <Icon name="data" size={18} />
                 <span>{copy.sourcesData}</span>
