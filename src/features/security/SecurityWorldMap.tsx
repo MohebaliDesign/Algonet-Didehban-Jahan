@@ -236,7 +236,7 @@ export function SecurityWorldMap({
           shadow: false,
           useHTML: true,
           formatter() {
-            const point = this.point as Highcharts.Point & {
+            const point = this as Highcharts.Point & {
               custom?: { impact: number; likelihood: number; severity: Severity }
             }
             const dir = locale === 'fa' ? 'rtl' : 'ltr'
