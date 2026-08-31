@@ -4,6 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import Highcharts from 'highcharts/es-modules/masters/highmaps.src.js'
 import { usePreferences } from '@/app/PreferencesProvider'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { highchartsTokens } from '@/lib/highchartsTheme'
 
 export type Continent = 'all' | 'asia' | 'europe' | 'africa' | 'americas' | 'oceania'
@@ -21,10 +28,18 @@ export type SecurityRiskPoint = {
   continents: Exclude<Continent, 'all'>[]
 }
 
+type SelectedCountry = {
+  isoA2: string
+  nameEn: string
+  nameFa: string
+  risk?: SecurityRiskPoint
+}
+
 const PULSE_THRESHOLD = 85
 const BASE_COUNTRY_COLOR = 'var(--map-neutral-country, var(--surface-subtle))'
 const MAP_BACKGROUND = 'var(--surface)'
-const COUNTRY_BORDER = 'var(--map-country-border, var(--surface))'
+const COUNTRY_BORDER = 'var(--map-country-border, var(--border))'
+const PRIMARY_COLOR = 'var(--primary)'
 
 const continentViews: Record<Continent, { center?: [number, number]; zoom?: number }> = {
   all: {},
@@ -51,6 +66,30 @@ function severityColor(severity: Severity) {
   return 'var(--chart-secondary, var(--temp-viz-medium))'
 }
 
+function getPointProperties(point: Highcharts.Point) {
+  return (point as Highcharts.Point & {
+    properties?: Record<string, string | number | undefined>
+  }).properties
+}
+
+function getCountryAbbreviation(point: Highcharts.Point) {
+  const properties = getPointProperties(point)
+  const isoA2 = String(properties?.['iso-a2'] ?? '').toUpperCase()
+  if (isoA2 && isoA2 !== '-99') return isoA2
+
+  const abbreviation = String(properties?.['country-abbrev'] ?? '').toUpperCase()
+  return abbreviation && abbreviation !== '-99' ? abbreviation : ''
+}
+
+function getCountryName(language: 'fa' | 'en', isoA2: string, fallback: string) {
+  if (!isoA2 || isoA2 === '-99') return fallback
+  try {
+    return new Intl.DisplayNames([language], { type: 'region' }).of(isoA2) ?? fallback
+  } catch {
+    return fallback
+  }
+}
+
 export function SecurityWorldMap({
   items,
   continent,
@@ -61,8 +100,10 @@ export function SecurityWorldMap({
   const { locale, theme: colorTheme } = usePreferences()
   const theme = highchartsTokens
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const chartRef = useRef<Highcharts.MapChart | null>(null)
   const [topology, setTopology] = useState<object | null>(null)
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [selectedCountry, setSelectedCountry] = useState<SelectedCountry | null>(null)
 
   const numberFormatter = useMemo(
     () =>
@@ -75,9 +116,7 @@ export function SecurityWorldMap({
   useEffect(() => {
     const controller = new AbortController()
 
-    fetch('https://code.highcharts.com/mapdata/custom/world.topo.json', {
-      signal: controller.signal,
-    })
+    fetch('/world.topo.json', { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error('World map failed to load')
         return response.json()
@@ -106,9 +145,10 @@ export function SecurityWorldMap({
     if (loadState !== 'ready' || !topology || !containerRef.current) return
 
     const view = continentViews[continent]
+    const riskByKey = new Map(visibleItems.map((item) => [item.hcKey.toLowerCase(), item]))
     const countryData = visibleItems.map((item) => ({
       'hc-key': item.hcKey,
-      color: severityColor(item.severity),
+      color: BASE_COUNTRY_COLOR,
       custom: {
         impact: item.impact,
         likelihood: item.likelihood,
@@ -180,7 +220,7 @@ export function SecurityWorldMap({
             y: -12,
             theme: {
               fill: MAP_BACKGROUND,
-              stroke: theme.border,
+              stroke: COUNTRY_BORDER,
               'stroke-width': 1,
               r: 8,
               style: { color: theme.foreground, fontSize: '14px' },
@@ -219,11 +259,17 @@ export function SecurityWorldMap({
         },
         plotOptions: {
           map: {
-            borderWidth: 1,
+            allowPointSelect: true,
+            borderWidth: 0.75,
             states: {
               hover: {
-                brightness: -0.03,
+                brightness: 0,
                 borderColor: COUNTRY_BORDER,
+                borderWidth: 0.75,
+              },
+              select: {
+                color: PRIMARY_COLOR,
+                borderColor: PRIMARY_COLOR,
                 borderWidth: 1,
               },
             },
@@ -240,29 +286,61 @@ export function SecurityWorldMap({
             data: countryData as never,
             joinBy: 'hc-key',
             allAreas: true,
+            color: BASE_COUNTRY_COLOR,
             nullColor: BASE_COUNTRY_COLOR,
             borderColor: COUNTRY_BORDER,
-            borderWidth: 1,
+            borderWidth: 0.75,
+            allowPointSelect: true,
             enableMouseTracking: true,
             showInLegend: false,
+            point: {
+              events: {
+                click() {
+                  const chartInstance = this.series.chart as Highcharts.MapChart
+                  chartInstance.getSelectedPoints().forEach((point) => {
+                    if (point !== this) point.select(false, false)
+                  })
+                  this.select(true, false)
+                  chartInstance.redraw()
+
+                  const properties = getPointProperties(this)
+                  const isoA2 = getCountryAbbreviation(this)
+                  const hcKey = String(properties?.['hc-key'] ?? '').toLowerCase()
+                  const fallback = String(this.name ?? isoA2 || 'Country')
+                  const risk = riskByKey.get(hcKey)
+                  setSelectedCountry({
+                    isoA2,
+                    nameEn: risk?.labelEn ?? getCountryName('en', isoA2, fallback),
+                    nameFa: risk?.label ?? getCountryName('fa', isoA2, fallback),
+                    risk,
+                  })
+
+                  if ('zoomTo' in this && typeof this.zoomTo === 'function') this.zoomTo()
+                  return false
+                },
+              },
+            },
             dataLabels: {
               allowOverlap: false,
               enabled: true,
               formatter() {
-                const point = this.point as Highcharts.Point & {
-                  properties?: { labelrank?: string | number; 'country-abbrev'?: string }
-                }
+                const point = this.point as Highcharts.Point
+                const properties = getPointProperties(point)
                 const zoom = this.series.chart.mapView?.zoom ?? 0
-                const labelRank = Number(point.properties?.labelrank ?? 9)
+                const labelRank = Number(properties?.labelrank ?? 9)
+                const abbreviation = getCountryAbbreviation(point)
 
-                if (!point.name || zoom < 1.55) return ''
-                if (zoom < 2.2 && labelRank > 4) return ''
-
-                return point.properties?.['country-abbrev'] || point.name
+                if (point.selected) {
+                  return getCountryName('en', abbreviation, String(point.name ?? abbreviation))
+                }
+                if (!abbreviation) return ''
+                if (zoom < 1.55 && labelRank > 4) return ''
+                if (zoom < 2.2 && labelRank > 6) return ''
+                return abbreviation
               },
               style: {
-                color: theme.muted,
-                fontSize: '10px',
+                color: theme.foreground,
+                fontSize: '12px',
                 fontWeight: '500',
                 textOutline: `2px ${MAP_BACKGROUND}`,
               },
@@ -286,12 +364,34 @@ export function SecurityWorldMap({
         ],
       } as Highcharts.Options)
 
-      return () => chart.destroy()
+      chartRef.current = chart
+      return () => {
+        chartRef.current = null
+        chart.destroy()
+      }
     } catch {
       setLoadState('error')
       return undefined
     }
   }, [colorTheme, continent, loadState, locale, numberFormatter, theme, topology, visibleItems])
+
+  const closeCountryDetails = () => {
+    chartRef.current?.getSelectedPoints().forEach((point) => point.select(false, false))
+    chartRef.current?.redraw()
+    setSelectedCountry(null)
+  }
+
+  const selectedDescription = selectedCountry?.risk
+    ? local(
+        locale,
+        `${severityLabel(locale, selectedCountry.risk.severity)} · احتمال ${numberFormatter.format(selectedCountry.risk.likelihood)}٪ · پیامد ${numberFormatter.format(selectedCountry.risk.impact)}٪`,
+        `${severityLabel(locale, selectedCountry.risk.severity)} · ${numberFormatter.format(selectedCountry.risk.likelihood)}% likelihood · ${numberFormatter.format(selectedCountry.risk.impact)}% impact`,
+      )
+    : local(
+        locale,
+        'برای این کشور در دادهٔ نمونهٔ فعلی کانون تنش ثبت نشده است.',
+        'No tension hotspot is mapped for this country in the current sample data.',
+      )
 
   return (
     <div className="security-map-workspace" dir={locale === 'fa' ? 'rtl' : 'ltr'}>
@@ -315,6 +415,23 @@ export function SecurityWorldMap({
           <div ref={containerRef} className="security-world-map" />
         )}
       </div>
+
+      <Dialog open={Boolean(selectedCountry)} onOpenChange={(open) => !open && closeCountryDetails()}>
+        <DialogContent className="security-country-dialog">
+          <DialogHeader>
+            <DialogTitle className="security-country-dialog-title">
+              <span dir="ltr">{selectedCountry?.nameEn}</span>
+              <span aria-hidden="true"> · </span>
+              <span dir="rtl">{selectedCountry?.nameFa}</span>
+            </DialogTitle>
+            <DialogDescription>
+              {selectedCountry?.isoA2 ? <code dir="ltr">{selectedCountry.isoA2}</code> : null}
+              {selectedCountry?.isoA2 ? <span aria-hidden="true"> · </span> : null}
+              {selectedDescription}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
