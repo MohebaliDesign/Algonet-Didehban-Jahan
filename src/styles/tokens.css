@@ -95,10 +95,10 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --background: #111318;
+  --background: #0a0a0a;
   --foreground: #f3f5f7;
-  --surface: #171a20;
-  --surface-subtle: #14171c;
+  --surface: #161616;
+  --surface-subtle: #181818;
   --surface-elevated: #1d2128;
   --card: var(--surface);
   --card-foreground: var(--foreground);
@@ -112,8 +112,8 @@
   --accent-foreground: #f3f5f7;
   --muted: #20242b;
   --muted-foreground: #9aa4b2;
-  --border: #2b3038;
-  --border-subtle: #242930;
+  --border: #232323;
+  --border-subtle: #232323;
   --input: #1b1f25;
   --ring: #7f9cff;
   --destructive: #d36a6a;
@@ -122,7 +122,7 @@
   --status-warning: #d29a4a;
   --status-positive: #62a881;
   --status-info: #7f9cff;
-  --sidebar: #14171c;
+  --sidebar: #161616;
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
