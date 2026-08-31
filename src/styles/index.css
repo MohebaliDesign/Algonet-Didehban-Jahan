@@ -26,5 +26,7 @@
 @import './scroll-fade-surfaces.css';
 /* Final bilingual table alignment and module-toolbar interaction contract. */
 @import './global-component-alignment.css';
+/* Dedicated drill-down page toolbar, full-width tabs, and section composition. */
+@import './internal-pages.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
