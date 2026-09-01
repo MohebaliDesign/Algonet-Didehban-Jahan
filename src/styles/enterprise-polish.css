@@ -91,6 +91,7 @@
 .global-topbar {
   min-height: 72px;
   gap: 16px;
+  margin-bottom: 24px;
   padding-inline: var(--shell-inline-gutter);
   border-color: var(--border-subtle);
   background: var(--surface);

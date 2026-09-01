@@ -463,7 +463,8 @@ kbd {
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 .product-canvas {
-  padding: 24px;
+  padding: 24px 24px 24px 24px;
+
 }
 .page-view {
   max-width: 1560px;
