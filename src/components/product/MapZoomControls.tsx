@@ -7,6 +7,24 @@ import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
+export interface MapCountrySelection {
+  countryCode: string
+  countryNameFa: string
+  countryNameEn: string
+}
+
+type CountryPointCustom = {
+  level?: string
+  nameFa?: string
+  nameEn?: string
+  isoA2?: string
+  isoA3?: string
+}
+
+type MapPointWithProperties = Highcharts.Point & {
+  properties?: Record<string, string | number | null | undefined>
+}
+
 function resolveMapChart(scope: HTMLElement | null) {
   const renderTo = scope?.querySelector<HTMLElement>('.map-collection-chart') ?? null
   if (!renderTo) return undefined
@@ -15,7 +33,31 @@ function resolveMapChart(scope: HTMLElement | null) {
     | undefined
 }
 
-export function MapZoomControls({ isFa }: { isFa: boolean }) {
+function countrySelectionFromPoint(point: Highcharts.Point): MapCountrySelection | null {
+  const custom = (point.options as { custom?: CountryPointCustom }).custom
+  if (custom?.level !== 'country') return null
+
+  const properties = (point as MapPointWithProperties).properties
+  const hcKey = String(properties?.['hc-key'] ?? '').toUpperCase()
+  const isoA3 = String(custom.isoA3 ?? properties?.['iso-a3'] ?? '').toUpperCase()
+  const countryCode = isoA3 && isoA3 !== '-99' ? isoA3 : hcKey
+  if (!countryCode) return null
+
+  const countryNameEn = custom.nameEn ?? String(point.name ?? countryCode)
+  return {
+    countryCode,
+    countryNameFa: custom.nameFa ?? countryNameEn,
+    countryNameEn,
+  }
+}
+
+export function MapZoomControls({
+  isFa,
+  onCountryDrilldown,
+}: {
+  isFa: boolean
+  onCountryDrilldown?: (country: MapCountrySelection) => void
+}) {
   const rootRef = useRef<HTMLDivElement | null>(null)
 
   const getScope = () => rootRef.current?.parentElement ?? null
@@ -43,6 +85,37 @@ export function MapZoomControls({ isFa }: { isFa: boolean }) {
       observer.disconnect()
     }
   }, [])
+
+  useEffect(() => {
+    const scope = getScope()
+    if (!scope || !onCountryDrilldown || typeof MutationObserver === 'undefined') return
+
+    let attachedChart: Highcharts.MapChart | undefined
+    let detachCountryListener: (() => void) | undefined
+
+    const attachToChart = () => {
+      const chart = resolveMapChart(scope)
+      if (!chart || chart === attachedChart) return
+
+      detachCountryListener?.()
+      attachedChart = chart
+      detachCountryListener = Highcharts.addEvent(chart, 'drilldown', (event) => {
+        const point = (event as unknown as { point?: Highcharts.Point }).point
+        if (!point) return
+        const selection = countrySelectionFromPoint(point)
+        if (selection) onCountryDrilldown(selection)
+      })
+    }
+
+    const observer = new MutationObserver(attachToChart)
+    observer.observe(scope, { childList: true, subtree: true })
+    attachToChart()
+
+    return () => {
+      detachCountryListener?.()
+      observer.disconnect()
+    }
+  }, [onCountryDrilldown])
 
   return (
     <div ref={rootRef} className="map-zoom-control">
