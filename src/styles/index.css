@@ -28,5 +28,7 @@
 @import './global-component-alignment.css';
 /* Dedicated drill-down page toolbar, full-width tabs, and section composition. */
 @import './internal-pages.css';
+/* Final detail-page chrome, linked-row and JSON disclosure refinements. */
+@import '../features/details/detail-refinement.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
