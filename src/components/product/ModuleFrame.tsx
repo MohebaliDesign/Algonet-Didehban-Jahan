@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState, type DragEvent, type ReactNode } from 'react'
-import { flushSync } from 'react-dom'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 
 import { usePreferences } from '@/app/PreferencesProvider'
@@ -44,14 +43,6 @@ export interface ModuleFrameProps {
   headerAccessory?: ReactNode
 }
 
-interface ModuleReorderDetail {
-  sourceId: string
-  targetId: string
-}
-
-const MODULE_REORDER_EVENT = 'didehban:module-reorder'
-let activeDraggedModuleId: string | null = null
-
 const stateKeys: Record<
   DataState,
   'loading' | 'fresh' | 'cached' | 'stale' | 'partial' | 'empty' | 'error' | 'restricted'
@@ -64,43 +55,6 @@ const stateKeys: Record<
   empty: 'empty',
   error: 'error',
   restricted: 'restricted',
-}
-
-function captureModuleRects() {
-  const rects = new Map<string, DOMRect>()
-  document.querySelectorAll<HTMLElement>('.module-frame[data-module-id]').forEach((element) => {
-    const id = element.dataset.moduleId
-    if (id) rects.set(id, element.getBoundingClientRect())
-  })
-  return rects
-}
-
-function animateModuleReflow(before: Map<string, DOMRect>) {
-  requestAnimationFrame(() => {
-    document.querySelectorAll<HTMLElement>('.module-frame[data-module-id]').forEach((element) => {
-      const id = element.dataset.moduleId
-      if (!id) return
-      const previous = before.get(id)
-      if (!previous) return
-
-      const current = element.getBoundingClientRect()
-      const deltaX = previous.left - current.left
-      const deltaY = previous.top - current.top
-
-      if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) return
-
-      element.animate(
-        [
-          { transform: `translate(${deltaX}px, ${deltaY}px)`, opacity: 0.9 },
-          { transform: 'translate(0, 0)', opacity: 1 },
-        ],
-        {
-          duration: 260,
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-        },
-      )
-    })
-  })
 }
 
 export function ModuleFrame({
@@ -130,77 +84,18 @@ export function ModuleFrame({
   const navigate = useNavigate()
   const showState = state !== 'fresh'
   const displayTitle = refineModuleTitle(title)
-  const [isDragging, setIsDragging] = useState(false)
-  const [isDragOver, setIsDragOver] = useState(false)
 
   const openSources = () =>
     navigate(`/details/module/${encodeURIComponent(id)}?tab=sources`, {
       state: { kind: 'ai', id, title: displayTitle },
     })
 
-  const handleDragStart = (event: DragEvent<HTMLElement>) => {
-    if (!editing || !(event.target as HTMLElement).closest('.drag-handle')) {
-      event.preventDefault()
-      return
-    }
-
-    activeDraggedModuleId = id
-    setIsDragging(true)
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('application/x-didehban-module', id)
-    event.dataTransfer.setData('text/plain', id)
-  }
-
-  const handleDragOver = (event: DragEvent<HTMLElement>) => {
-    if (!editing || !activeDraggedModuleId || activeDraggedModuleId === id) return
-    event.preventDefault()
-    event.dataTransfer.dropEffect = 'move'
-    setIsDragOver(true)
-  }
-
-  const handleDragLeave = (event: DragEvent<HTMLElement>) => {
-    const nextTarget = event.relatedTarget
-    if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return
-    setIsDragOver(false)
-  }
-
-  const handleDrop = (event: DragEvent<HTMLElement>) => {
-    if (!editing) return
-    event.preventDefault()
-
-    const sourceId =
-      activeDraggedModuleId ||
-      event.dataTransfer.getData('application/x-didehban-module') ||
-      event.dataTransfer.getData('text/plain')
-
-    setIsDragOver(false)
-    if (!sourceId || sourceId === id) return
-
-    window.dispatchEvent(
-      new CustomEvent<ModuleReorderDetail>(MODULE_REORDER_EVENT, {
-        detail: { sourceId, targetId: id },
-      }),
-    )
-  }
-
-  const handleDragEnd = () => {
-    activeDraggedModuleId = null
-    setIsDragging(false)
-    setIsDragOver(false)
-  }
-
   return (
     <Card
-      className={`module-frame module-${size} ${expanded ? 'module-expanded' : ''} ${collapsed ? 'module-collapsed' : ''} ${editing ? 'module-draggable' : ''} ${isDragging ? 'module-dragging' : ''} ${isDragOver ? 'module-drag-over' : ''}`}
+      className={`module-frame module-${size} ${expanded ? 'module-expanded' : ''} ${collapsed ? 'module-collapsed' : ''}`}
       data-module-id={id}
       role="region"
       aria-label={displayTitle}
-      draggable={Boolean(editing)}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      onDragEnd={handleDragEnd}
     >
       <CardHeader className="module-header">
         <div className="module-title">
@@ -208,9 +103,9 @@ export function ModuleFrame({
             {editing && (
               <span
                 className="drag-handle"
-                title={locale === 'fa' ? 'برای جابه‌جایی بکشید' : 'Drag to rearrange'}
+                title={locale === 'fa' ? 'دستگیره جابه‌جایی' : 'Drag handle'}
               >
-                <Icon name="menu" size={20} />
+                <Icon name="menu" size={18} />
               </span>
             )}
             <h2 title={displayTitle}>{displayTitle}</h2>
@@ -230,26 +125,21 @@ export function ModuleFrame({
               label={copy.analyze}
               onClick={() => openInspector({ kind: 'ai', id, title: displayTitle })}
             >
-              <Icon name="document-filter" size={40} />
+              <Icon name="document-filter" size={20} />
             </ModuleIconButton>
           )}
           <ModuleIconButton label={copy.collapse} onClick={onCollapse}>
-            <Icon name={collapsed ? 'arrow-down-02' : 'minus'} size={40} />
+            <Icon name={collapsed ? 'arrow-down-02' : 'minus'} size={20} />
           </ModuleIconButton>
           <ModuleIconButton label={copy.expand} onClick={onExpand}>
-            <Icon name={expanded ? 'maximize-3' : 'maximize-4'} size={40} />
+            <Icon name={expanded ? 'maximize-3' : 'maximize-4'} size={20} />
           </ModuleIconButton>
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="module-icon-button"
-                    aria-label={copy.more}
-                  >
-                    <Icon name="more" size={40} />
+                  <Button variant="ghost" size="icon" aria-label={copy.more}>
+                    <Icon name="more" size={20} />
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
@@ -340,13 +230,7 @@ function ModuleIconButton({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="module-icon-button"
-          aria-label={label}
-          onClick={onClick}
-        >
+        <Button variant="ghost" size="icon" aria-label={label} onClick={onClick}>
           {children}
         </Button>
       </TooltipTrigger>
@@ -371,49 +255,9 @@ export function usePersistentLayout(page: string, role: string, defaults: Layout
       return defaults
     }
   })
-
   useEffect(() => localStorage.setItem(key, JSON.stringify(items)), [items, key])
-
-  const updateWithAnimation = useCallback((updater: (current: LayoutItem[]) => LayoutItem[]) => {
-    const canAnimate =
-      typeof document !== 'undefined' &&
-      typeof window !== 'undefined' &&
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    if (!canAnimate) {
-      setItems(updater)
-      return
-    }
-
-    const before = captureModuleRects()
-    flushSync(() => setItems(updater))
-    animateModuleReflow(before)
-  }, [])
-
-  useEffect(() => {
-    const handleReorder = (event: Event) => {
-      const { sourceId, targetId } = (event as CustomEvent<ModuleReorderDetail>).detail
-      if (!sourceId || !targetId || sourceId === targetId) return
-
-      updateWithAnimation((current) => {
-        const sourceIndex = current.findIndex((item) => item.id === sourceId)
-        if (sourceIndex < 0 || !current.some((item) => item.id === targetId)) return current
-
-        const next = [...current]
-        const [moved] = next.splice(sourceIndex, 1)
-        const targetIndex = next.findIndex((item) => item.id === targetId)
-        if (targetIndex < 0) return current
-        next.splice(targetIndex, 0, moved)
-        return next
-      })
-    }
-
-    window.addEventListener(MODULE_REORDER_EVENT, handleReorder)
-    return () => window.removeEventListener(MODULE_REORDER_EVENT, handleReorder)
-  }, [updateWithAnimation])
-
   const move = (id: string, direction: -1 | 1) =>
-    updateWithAnimation((current) => {
+    setItems((current) => {
       const index = current.findIndex((item) => item.id === id)
       const target = index + direction
       if (index < 0 || target < 0 || target >= current.length) return current
@@ -421,9 +265,8 @@ export function usePersistentLayout(page: string, role: string, defaults: Layout
       ;[next[index], next[target]] = [next[target], next[index]]
       return next
     })
-
   const resize = (id: string) =>
-    updateWithAnimation((current) =>
+    setItems((current) =>
       current.map((item) =>
         item.id === id
           ? {
@@ -440,13 +283,10 @@ export function usePersistentLayout(page: string, role: string, defaults: Layout
           : item,
       ),
     )
-
   const collapse = (id: string) =>
-    updateWithAnimation((current) =>
+    setItems((current) =>
       current.map((item) => (item.id === id ? { ...item, collapsed: !item.collapsed } : item)),
     )
-
-  const reset = () => updateWithAnimation(() => defaults)
-
+  const reset = () => setItems(defaults)
   return { items, move, resize, collapse, reset }
 }
