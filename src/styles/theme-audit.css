@@ -8,8 +8,8 @@
 
 :root {
   --chart-grid: #e7ebf0;
-  --map-neutral-country: #f1f3f5;
-  --map-country-border: #ffffff;
+  --map-neutral-country: #dce5ef;
+  --map-country-border: #c2c8d0;
   --scrollbar-thumb: #cbd3de;
   --scrollbar-thumb-hover: #aeb8c5;
 }
@@ -64,8 +64,8 @@
 
 :root[data-theme='dark'] {
   --chart-grid: #303640;
-  --map-neutral-country: #222832;
-  --map-country-border: #171a20;
+  --map-neutral-country: #263341;
+  --map-country-border: #3a424d;
   --scrollbar-thumb: #444c59;
   --scrollbar-thumb-hover: #5b6574;
 }

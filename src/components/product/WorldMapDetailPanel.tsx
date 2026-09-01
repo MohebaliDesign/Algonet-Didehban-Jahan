@@ -17,8 +17,15 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { CountryMapDatum, IntelligenceMapEvent } from '@/types/domain'
 
+export interface WorldMapCountryIdentity {
+  countryCode: string
+  countryNameFa: string
+  countryNameEn: string
+}
+
 interface WorldMapDetailPanelProps {
   country: CountryMapDatum | null
+  countryIdentity?: WorldMapCountryIdentity | null
   event: IntelligenceMapEvent | null
   events: IntelligenceMapEvent[]
   timelineNotice: boolean
@@ -28,6 +35,7 @@ interface WorldMapDetailPanelProps {
 
 export function WorldMapDetailPanel({
   country,
+  countryIdentity,
   event,
   events,
   timelineNotice,
@@ -39,6 +47,7 @@ export function WorldMapDetailPanel({
   const titleRef = useRef<HTMLHeadingElement>(null)
   const [tab, setTab] = useState('overview')
   const isFa = locale === 'fa'
+  const identity = country ?? countryIdentity
   const riskLabels = {
     low: isFa ? 'کم' : 'Low',
     medium: isFa ? 'متوسط' : 'Medium',
@@ -52,16 +61,11 @@ export function WorldMapDetailPanel({
   }
 
   useEffect(() => setTab(event ? 'events' : 'overview'), [event])
-  if (!country) return null
+  if (!identity) return null
 
-  const title = event
-    ? isFa
-      ? event.titleFa
-      : event.titleEn
-    : isFa
-      ? country.countryNameFa
-      : country.countryNameEn
-  const countryEvents = events.filter((item) => item.countryCode === country.countryCode)
+  const countryTitle = `${identity.countryNameEn} · ${identity.countryNameFa}`
+  const title = event ? (isFa ? event.titleFa : event.titleEn) : countryTitle
+  const countryEvents = events.filter((item) => item.countryCode === identity.countryCode)
 
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
@@ -76,20 +80,35 @@ export function WorldMapDetailPanel({
       >
         <SheetHeader className="map-detail-header">
           <div>
-            <Badge variant="outline" className={`risk-badge risk-${country.riskLevel}`}>
-              {riskLabels[country.riskLevel]}
-            </Badge>
+            {country && (
+              <Badge variant="outline" className={`risk-badge risk-${country.riskLevel}`}>
+                {riskLabels[country.riskLevel]}
+              </Badge>
+            )}
             <SheetTitle ref={titleRef} tabIndex={-1}>
-              {title}
+              {event ? (
+                title
+              ) : (
+                <>
+                  <span dir="ltr">{identity.countryNameEn}</span>
+                  <span aria-hidden="true"> · </span>
+                  <span dir="rtl">{identity.countryNameFa}</span>
+                </>
+              )}
             </SheetTitle>
             <SheetDescription>
-              <code dir="ltr">{country.countryCode}</code> ·{' '}
-              {new Intl.DateTimeFormat(isFa ? 'fa-IR' : 'en', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-                timeZone: 'UTC',
-              }).format(new Date(event?.occurredAt ?? country.updatedAt))}{' '}
-              <span dir="ltr">UTC</span>
+              <code dir="ltr">{identity.countryCode}</code>
+              {country ? (
+                <>
+                  {' · '}
+                  {new Intl.DateTimeFormat(isFa ? 'fa-IR' : 'en', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                    timeZone: 'UTC',
+                  }).format(new Date(event?.occurredAt ?? country.updatedAt))}{' '}
+                  <span dir="ltr">UTC</span>
+                </>
+              ) : null}
             </SheetDescription>
           </div>
         </SheetHeader>
@@ -107,7 +126,19 @@ export function WorldMapDetailPanel({
               </AlertDescription>
             </Alert>
           )}
-          {event ? (
+          {!country ? (
+            <div className="map-detail-stack">
+              <Alert>
+                <Icon name="info-circle" />
+                <AlertTitle>{isFa ? 'جزئیات داده در دسترس نیست' : 'No data detail available'}</AlertTitle>
+                <AlertDescription>
+                  {isFa
+                    ? 'این کشور روی نقشه قابل انتخاب است، اما در دادهٔ نمونهٔ فعلی پروفایل ریسک یا رویداد ثبت‌شده‌ای برای آن وجود ندارد.'
+                    : 'This country can be selected on the map, but the current sample data has no risk profile or recorded event for it.'}
+                </AlertDescription>
+              </Alert>
+            </div>
+          ) : event ? (
             <EventDetail
               event={event}
               isFa={isFa}

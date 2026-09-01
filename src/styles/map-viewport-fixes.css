@@ -1,0 +1,135 @@
+/* Final viewport contract for the two Highcharts map modules. */
+.world-page [data-module-id='map'],
+.security-page [data-module-id='security-map'] {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow: hidden !important;
+}
+
+/* The world map keeps the normal 16px analytical inset after the full-width reflow fix. */
+.world-page [data-module-id='map'] .module-content {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  padding: 16px !important;
+  overflow: hidden !important;
+}
+
+.world-page [data-module-id='map'] .map-workspace {
+  margin: 0 !important;
+}
+
+.security-page [data-module-id='security-map'] {
+  max-height: none !important;
+}
+
+.security-page [data-module-id='security-map'] .module-content {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow: hidden !important;
+}
+
+.map-workspace,
+.map-collection-workspace,
+.security-map-workspace,
+.security-map-shell {
+  inline-size: 100%;
+  width: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  box-sizing: border-box;
+  overflow: hidden !important;
+  overscroll-behavior: contain;
+}
+
+.security-map-shell {
+  min-block-size: 560px !important;
+}
+
+.map-collection-chart {
+  display: block;
+  inline-size: 100% !important;
+  width: 100% !important;
+  min-inline-size: 0;
+  max-inline-size: 100% !important;
+  box-sizing: border-box;
+  overflow: hidden !important;
+}
+
+.map-collection-chart .highcharts-container {
+  inline-size: 100% !important;
+  width: 100% !important;
+  min-inline-size: 0 !important;
+  max-inline-size: 100% !important;
+  overflow: hidden !important;
+}
+
+.map-collection-chart .highcharts-root {
+  display: block;
+  inline-size: 100% !important;
+  width: 100% !important;
+  max-inline-size: 100% !important;
+}
+
+.map-collection-chart .highcharts-plot-background,
+.map-collection-chart .highcharts-pane-group {
+  cursor: grab;
+}
+
+.map-collection-chart .highcharts-plot-background:active,
+.map-collection-chart .highcharts-pane-group:active {
+  cursor: grabbing;
+}
+
+/* Highcharts keeps wheel, touch, double-click, and drag navigation enabled; only its stock buttons are replaced. */
+.map-collection-chart .highcharts-map-navigation {
+  display: none !important;
+}
+
+.map-zoom-control {
+  position: absolute;
+  z-index: 15;
+  inset-block-start: 12px;
+  inset-inline-start: 12px;
+}
+
+.map-zoom-button-group {
+  height: fit-content;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.map-zoom-button-group [data-slot='button'] {
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  border-color: var(--border);
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.map-zoom-button-group [data-slot='button']:hover {
+  background: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .world-page [data-module-id='map'] .module-content {
+    padding: 12px !important;
+  }
+
+  .security-map-shell {
+    min-block-size: 520px !important;
+  }
+
+  .map-zoom-control {
+    inset-block-start: 8px;
+    inset-inline-start: 8px;
+  }
+
+  .map-zoom-button-group [data-slot='button'] {
+    width: 40px;
+    height: 40px;
+  }
+}
