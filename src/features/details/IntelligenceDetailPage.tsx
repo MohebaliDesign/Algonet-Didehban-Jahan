@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { usePreferences } from '@/app/PreferencesProvider'
@@ -36,6 +36,7 @@ export function IntelligenceDetailPage() {
   const location = useLocation()
   const { kind = 'event', id = '' } = useParams()
   const [searchParams] = useSearchParams()
+  const [copied, setCopied] = useState(false)
   const state = location.state as InspectorItem | undefined
   const activeTab = searchParams.get('tab') ?? 'overview'
 
@@ -215,9 +216,26 @@ export function IntelligenceDetailPage() {
       ? state?.fromLabel ?? fallbackOrigin.fa
       : state?.fromLabelEn ?? fallbackOrigin.en
 
+  const rawJson = useMemo(
+    () => JSON.stringify(resolved ?? state ?? { kind, id }, null, 2),
+    [id, kind, resolved, state],
+  )
+
   const setTab = (value: string) => {
     const search = value === 'overview' ? '' : `?tab=${value}`
     navigate({ pathname: location.pathname, search }, { replace: true, state })
+  }
+
+  const copyRawJson = async (eventObject: React.MouseEvent<HTMLButtonElement>) => {
+    eventObject.preventDefault()
+    eventObject.stopPropagation()
+    try {
+      await navigator.clipboard.writeText(rawJson)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    } catch {
+      setCopied(false)
+    }
   }
 
   const openNested = (nextKind: InspectorItem['kind'], nextId: string, nextTitle: string, nextTitleEn?: string) => {
@@ -251,14 +269,20 @@ export function IntelligenceDetailPage() {
         ]}
         actions={
           event ? (
-            <Badge variant="outline" className="internal-page-source-badge">
+            <button
+              type="button"
+              className="internal-page-source-badge"
+              onClick={() => setTab('sources')}
+              aria-label={local(locale, 'مشاهده منابع این رویداد', 'View sources for this event')}
+              title={local(locale, 'مشاهده منابع', 'View sources')}
+            >
               <Icon name="document" size={14} />
               {local(
                 locale,
                 `${formatNumber(event.sourceCount, locale)} منبع`,
                 `${formatNumber(event.sourceCount, locale)} sources`,
               )}
-            </Badge>
+            </button>
           ) : undefined
         }
       />
@@ -485,7 +509,6 @@ export function IntelligenceDetailPage() {
                     <small>{item.kind} · {item.domain ?? local(locale, 'عمومی', 'General')}</small>
                   </span>
                   <Badge variant="outline">{item.state}</Badge>
-                  <Icon name="arrow-left-01" size={18} className="directional-icon detail-link-arrow" />
                 </button>
               ))}
             </div>
@@ -516,7 +539,6 @@ export function IntelligenceDetailPage() {
                     <small>{locale === 'fa' ? item.region : item.regionEn}</small>
                   </span>
                   <span className="detail-linked-value">{formatNumber(item.confidence, locale)}٪</span>
-                  <Icon name="arrow-left-01" size={18} className="directional-icon detail-link-arrow" />
                 </button>
               ))}
             </div>
@@ -524,14 +546,7 @@ export function IntelligenceDetailPage() {
         </TabsContent>
 
         <TabsContent value="raw" className="detail-tab-content">
-          <InternalSection
-            title={local(locale, 'جزئیات داده', 'Data details')}
-            description={local(
-              locale,
-              'اطلاعات فنی به زبان قابل‌خواندن نمایش داده شده است؛ JSON خام فقط برای بررسی تخصصی در دسترس است.',
-              'Technical fields are translated into a readable view; raw JSON remains available only for advanced inspection.',
-            )}
-          >
+          <InternalSection title={local(locale, 'جزئیات داده', 'Data details')}>
             <dl className="detail-technical-list">
               {technicalFields.map((field) => (
                 <div key={field.label}>
@@ -543,19 +558,31 @@ export function IntelligenceDetailPage() {
 
             <details className="detail-raw-disclosure">
               <summary>
-                <span><Icon name="code" size={18} />{local(locale, 'نمایش JSON خام', 'Show raw JSON')}</span>
-                <Icon name="arrow-down-01" size={18} />
+                <span className="detail-raw-summary-title">
+                  <Icon name="code" size={18} />
+                  {local(locale, 'نمایش JSON', 'Show JSON')}
+                </span>
+                <span className="detail-raw-summary-actions">
+                  <button
+                    type="button"
+                    className="detail-json-copy"
+                    onClick={copyRawJson}
+                    aria-label={local(locale, 'کپی JSON', 'Copy JSON')}
+                    title={copied ? local(locale, 'کپی شد', 'Copied') : local(locale, 'کپی JSON', 'Copy JSON')}
+                  >
+                    <Icon name={copied ? 'tick-circle' : 'copy'} size={18} />
+                  </button>
+                  <Icon name="arrow-down-01" size={18} className="detail-raw-chevron" />
+                </span>
               </summary>
               <p>
                 {local(
                   locale,
-                  'این بخش برای بررسی فنی، عیب‌یابی و مقایسه با داده ورودی نگه داشته شده و برای استفاده روزمره لازم نیست.',
-                  'This section is intended for technical inspection, troubleshooting, and source-data comparison; it is not required for everyday use.',
+                  'نسخه ساختاریافته داده برای بررسی فنی و تطبیق با ورودی اصلی در دسترس است؛ برای استفاده روزمره نیازی به باز کردن این بخش نیست.',
+                  'Structured JSON is available for technical inspection and comparison with the original input; it is not required for everyday review.',
                 )}
               </p>
-              <pre className="detail-raw-data" dir="ltr">
-                {JSON.stringify(resolved ?? state ?? { kind, id }, null, 2)}
-              </pre>
+              <pre className="detail-raw-data" dir="ltr">{rawJson}</pre>
             </details>
           </InternalSection>
         </TabsContent>
