@@ -48,7 +48,6 @@ export function SecurityWorldMap({
           nameFa: item.label,
           nameEn: item.labelEn,
           score: Math.min(100, Math.round((item.likelihood + item.impact) / 2)),
-          eventCount: item.severity === 'critical' ? 8 : item.severity === 'high' ? 5 : 3,
         })),
     [continent, items],
   )
