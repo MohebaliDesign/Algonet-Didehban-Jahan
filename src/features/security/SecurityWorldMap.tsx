@@ -2,11 +2,13 @@ import './security.css'
 
 import { useMemo } from 'react'
 
+import { usePreferences } from '@/app/PreferencesProvider'
 import {
   MapCollectionDrilldownMap,
   type MapCollectionView,
   type MapTensionDatum,
 } from '@/components/product/MapCollectionDrilldownMap'
+import { MapOverlayControls } from '@/components/product/MapOverlayControls'
 
 export type Continent = 'all' | 'asia' | 'europe' | 'africa' | 'americas' | 'oceania'
 export type Severity = 'medium' | 'high' | 'critical'
@@ -39,6 +41,7 @@ export function SecurityWorldMap({
   items: SecurityRiskPoint[]
   continent: Continent
 }) {
+  const { locale } = usePreferences()
   const tensionData = useMemo<MapTensionDatum[]>(
     () =>
       items
@@ -53,8 +56,9 @@ export function SecurityWorldMap({
   )
 
   return (
-    <div className="security-map-workspace">
+    <div className="security-map-workspace" dir={locale === 'fa' ? 'rtl' : 'ltr'}>
       <div className="security-map-shell">
+        <MapOverlayControls isFa={locale === 'fa'} />
         <MapCollectionDrilldownMap
           tensionData={tensionData}
           height={600}
