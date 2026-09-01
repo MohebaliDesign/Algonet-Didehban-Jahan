@@ -18,19 +18,18 @@ export type MapCollectionView = {
   zoom?: number
 }
 
-type MapGeometry = {
-  properties?: Record<string, string | number | null | undefined>
-}
+type MapProperties = Record<string, string | number | null | undefined>
 
-type MapObject = {
-  geometries: MapGeometry[]
-  'hc-recommended-mapview'?: Highcharts.MapViewOptions
+type MapGeometry = {
+  properties?: MapProperties
 }
 
 type MapCollectionTopology = {
   type: 'Topology'
   objects: {
-    default: MapObject
+    default: {
+      geometries: MapGeometry[]
+    }
   }
   title?: string
   version?: string
@@ -50,6 +49,11 @@ type MapPointCustom = {
   isoA3?: string
 }
 
+type MapIndex = {
+  version: string
+  maps: Record<string, { topojson?: string }>
+}
+
 const MAP_COLLECTION_VERSION = '2.3.3'
 const MAP_COLLECTION_BASE = `https://code.highcharts.com/mapdata/${MAP_COLLECTION_VERSION}`
 const WORLD_TOPOLOGY_URL = '/world.topo.json'
@@ -57,11 +61,6 @@ const DRILLDOWN_DURATION = 680
 
 let modulesPromise: Promise<unknown> | null = null
 let mapIndexPromise: Promise<MapIndex> | null = null
-
-type MapIndex = {
-  version: string
-  maps: Record<string, { topojson?: string }>
-}
 
 function loadModules() {
   modulesPromise ??= Promise.all([
@@ -77,15 +76,10 @@ function cssToken(name: string, fallback: string) {
 }
 
 function pointProperties(point: Highcharts.Point) {
-  return (point as Highcharts.Point & {
-    properties?: Record<string, string | number | null | undefined>
-  }).properties
+  return (point as Highcharts.Point & { properties?: MapProperties }).properties
 }
 
-function stringProperty(
-  properties: Record<string, string | number | null | undefined> | undefined,
-  key: string,
-) {
+function stringProperty(properties: MapProperties | undefined, key: string) {
   const value = properties?.[key]
   return value == null ? '' : String(value)
 }
@@ -151,7 +145,7 @@ async function resolveCountryTopologyUrl(point: Highcharts.Point) {
     )
     if (prefixed?.[1].topojson) return prefixed[1].topojson
   } catch {
-    // The direct hc-key path below mirrors the Map Collection naming convention.
+    // Fall through to the canonical hc-key URL used by the collection.
   }
 
   if (!hcKey) return null
@@ -166,8 +160,8 @@ async function fetchCountryTopology(point: Highcharts.Point) {
   return (await response.json()) as MapCollectionTopology
 }
 
-function getCountryScore(
-  properties: Record<string, string | number | null | undefined> | undefined,
+function getCountryDatum(
+  properties: MapProperties | undefined,
   byIsoA3: Map<string, MapTensionDatum>,
   byHcKey: Map<string, MapTensionDatum>,
 ) {
@@ -176,18 +170,21 @@ function getCountryScore(
   return byIsoA3.get(isoA3) ?? byHcKey.get(hcKey) ?? null
 }
 
-function labelForWorldPoint(point: Highcharts.Point) {
+function worldLabel(point: Highcharts.Point) {
   const properties = pointProperties(point)
   return stringProperty(properties, 'hc-a2') || stringProperty(properties, 'iso-a2')
 }
 
-function labelForSubdivisionPoint(point: Highcharts.Point) {
-  const properties = pointProperties(point)
-  return (
-    stringProperty(properties, 'postal-code') ||
-    stringProperty(properties, 'hc-a2') ||
-    String(point.name ?? '')
-  )
+function subdivisionLabel(point: Highcharts.Point, parentHcKey: string) {
+  if (parentHcKey === 'us') {
+    const properties = pointProperties(point)
+    return (
+      stringProperty(properties, 'hc-a2') ||
+      stringProperty(properties, 'postal-code') ||
+      String(point.name ?? '')
+    )
+  }
+  return String(point.name ?? '')
 }
 
 export function MapCollectionDrilldownMap({
@@ -203,7 +200,6 @@ export function MapCollectionDrilldownMap({
 }) {
   const { locale, theme } = usePreferences()
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const chartRef = useRef<Highcharts.MapChart | null>(null)
   const [topology, setTopology] = useState<MapCollectionTopology | null>(null)
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
   const isFa = locale === 'fa'
@@ -220,28 +216,39 @@ export function MapCollectionDrilldownMap({
       foreground: cssToken('--foreground', theme === 'dark' ? '#f3f5f7' : '#172033'),
       muted: cssToken('--muted-foreground', theme === 'dark' ? '#9aa4b2' : '#667085'),
       border: cssToken('--map-country-border', theme === 'dark' ? '#3a424d' : '#c2c8d0'),
-      hoverBorder: cssToken('--primary', theme === 'dark' ? '#7f9cff' : '#416dff'),
+      hoverBorder: cssToken('--primary', theme === 'dark' ? '#7193ff' : '#416dff'),
       noData: cssToken('--map-neutral-country', theme === 'dark' ? '#222832' : '#f1f3f5'),
-      low: cssToken('--temp-viz-low', '#278c77'),
-      medium: cssToken('--temp-viz-medium', '#b87709'),
-      high: cssToken('--temp-viz-high', '#d65d38'),
-      critical: cssToken('--temp-viz-critical', '#c84555'),
+      low: cssToken('--temp-viz-low', '#0e7490'),
+      medium: cssToken('--temp-viz-medium', '#b46b0b'),
+      high: cssToken('--temp-viz-high', '#d05a31'),
+      critical: cssToken('--temp-viz-critical', '#c33b42'),
     }),
     [theme],
   )
 
   const byIsoA3 = useMemo(
-    () => new Map(tensionData.filter((item) => item.isoA3).map((item) => [item.isoA3!, item])),
+    () =>
+      new Map(
+        tensionData
+          .filter((item) => item.isoA3)
+          .map((item) => [item.isoA3!.toUpperCase(), item] as const),
+      ),
     [tensionData],
   )
   const byHcKey = useMemo(
-    () => new Map(tensionData.filter((item) => item.hcKey).map((item) => [item.hcKey!, item])),
+    () =>
+      new Map(
+        tensionData
+          .filter((item) => item.hcKey)
+          .map((item) => [item.hcKey!.toLowerCase(), item] as const),
+      ),
     [tensionData],
   )
 
   useEffect(() => {
     const controller = new AbortController()
     setLoadState('loading')
+
     Promise.all([
       loadModules(),
       fetch(WORLD_TOPOLOGY_URL, { signal: controller.signal }).then((response) => {
@@ -266,7 +273,7 @@ export function MapCollectionDrilldownMap({
 
     const worldData = topology.objects.default.geometries.map((geometry) => {
       const properties = geometry.properties
-      const datum = getCountryScore(properties, byIsoA3, byHcKey)
+      const datum = getCountryDatum(properties, byIsoA3, byHcKey)
       const key = stringProperty(properties, 'hc-key')
       const isoA2 = stringProperty(properties, 'iso-a2').toUpperCase()
       const isoA3 = stringProperty(properties, 'iso-a3').toUpperCase()
@@ -288,19 +295,12 @@ export function MapCollectionDrilldownMap({
       }
     })
 
-    const tensionLabels = {
-      low: isFa ? 'تنش کم' : 'Low tension',
-      medium: isFa ? 'تنش متوسط' : 'Moderate tension',
-      high: isFa ? 'تنش بالا' : 'High tension',
-      critical: isFa ? 'تنش بحرانی' : 'Critical tension',
-    }
-
     const chart = Highcharts.mapChart(containerRef.current, {
       accessibility: {
         enabled: true,
         description: isFa
-          ? 'نقشهٔ تعاملی جهان با رنگ‌بندی شدت تنش و امکان ورود به نقشهٔ استان‌ها و تقسیمات کشوری.'
-          : 'Interactive world map colored by tension intensity with drilldown into country subdivisions.',
+          ? 'نقشهٔ تعاملی جهان با رنگ‌بندی شدت تنش و امکان ورود به تقسیمات کشوری.'
+          : 'Interactive world map colored by tension intensity with country subdivision drilldown.',
         series: {
           descriptionFormat: '{series.name}, map with {series.points.length} areas.',
           pointDescriptionEnabledThreshold: 50,
@@ -318,9 +318,11 @@ export function MapCollectionDrilldownMap({
         events: {
           async drilldown(event) {
             if (event.seriesOptions) return
+
             const point = event.point as Highcharts.Point
             const options = point.options as { custom?: MapPointCustom }
             const parentScore = options.custom?.score ?? null
+            const parentHcKey = stringProperty(pointProperties(point), 'hc-key').toLowerCase()
 
             this.showLoading(
               isFa ? 'در حال بارگذاری تقسیمات کشوری…' : 'Loading country subdivisions…',
@@ -353,44 +355,39 @@ export function MapCollectionDrilldownMap({
                 }
               })
 
-              const recommendedView = countryTopology.objects.default['hc-recommended-mapview']
-              if (recommendedView) {
-                this.mapView.update(
-                  Highcharts.merge({ insets: undefined, padding: 12 }, recommendedView),
-                  false,
-                )
-              }
-
               this.hideLoading()
-              this.addSeriesAsDrilldown(point, {
-                type: 'map',
-                name: String(point.name ?? countryTopology.title ?? 'Country'),
-                mapData: countryTopology as unknown as Highcharts.TopoJSON,
-                data: subdivisions as never,
-                joinBy: ['hc-key', 'key'],
-                nullColor: palette.noData,
-                borderColor: palette.border,
-                borderWidth: 0.72,
-                dataLabels: {
-                  allowOverlap: false,
-                  enabled: true,
-                  formatter() {
-                    return labelForSubdivisionPoint(this.point as Highcharts.Point)
+              this.addSeriesAsDrilldown(
+                point,
+                {
+                  type: 'map',
+                  name: String(point.name ?? countryTopology.title ?? 'Country'),
+                  mapData: countryTopology as unknown as Highcharts.TopoJSON,
+                  data: subdivisions as never,
+                  joinBy: ['hc-key', 'key'],
+                  nullColor: palette.noData,
+                  borderColor: palette.border,
+                  borderWidth: 0.72,
+                  dataLabels: {
+                    allowOverlap: false,
+                    enabled: true,
+                    formatter() {
+                      return subdivisionLabel(this.point as Highcharts.Point, parentHcKey)
+                    },
+                    style: {
+                      color: palette.foreground,
+                      fontFamily: 'var(--font-sans-en)',
+                      fontSize: '11px',
+                      fontWeight: '500',
+                      textOutline: `2px ${palette.surface}`,
+                    },
                   },
-                  style: {
-                    color: palette.foreground,
-                    fontFamily: 'var(--font-sans-en)',
-                    fontSize: '11px',
-                    fontWeight: '500',
-                    textOutline: `2px ${palette.surface}`,
+                  custom: {
+                    mapName: countryTopology.title ?? String(point.name ?? ''),
+                    mapVersion: countryTopology.version ?? MAP_COLLECTION_VERSION,
+                    parentScore,
                   },
-                },
-                custom: {
-                  mapName: countryTopology.title ?? String(point.name ?? ''),
-                  mapVersion: countryTopology.version ?? MAP_COLLECTION_VERSION,
-                  parentScore,
-                },
-              } as Highcharts.SeriesMapOptions)
+                } as never,
+              )
               this.credits?.update()
             } catch {
               this.showLoading(
@@ -410,12 +407,20 @@ export function MapCollectionDrilldownMap({
       colorAxis: {
         min: 0,
         max: 100,
-        dataClasses: [
-          { from: 0, to: 24, color: palette.low, name: tensionLabels.low },
-          { from: 25, to: 49, color: palette.medium, name: tensionLabels.medium },
-          { from: 50, to: 74, color: palette.high, name: tensionLabels.high },
-          { from: 75, to: 100, color: palette.critical, name: tensionLabels.critical },
+        stops: [
+          [0, palette.low],
+          [0.35, palette.medium],
+          [0.7, palette.high],
+          [1, palette.critical],
         ],
+        tickPositions: [0, 25, 50, 75, 100],
+        labels: {
+          style: {
+            color: palette.muted,
+            fontFamily: 'var(--font-sans-en)',
+            fontSize: '10px',
+          },
+        },
       },
       credits: {
         enabled: true,
@@ -446,9 +451,9 @@ export function MapCollectionDrilldownMap({
             },
           },
           position: {
-            align: isFa ? 'right' : 'left',
-            x: isFa ? -12 : 12,
-            y: 12,
+            align: 'left',
+            x: 10,
+            y: 10,
           },
           showFullPath: false,
         },
@@ -456,10 +461,10 @@ export function MapCollectionDrilldownMap({
       legend: {
         enabled: true,
         layout: 'vertical',
-        align: isFa ? 'right' : 'left',
+        align: 'left',
         verticalAlign: 'bottom',
         floating: true,
-        x: isFa ? -8 : 8,
+        x: 8,
         y: -8,
         padding: 8,
         backgroundColor: palette.surface,
@@ -468,7 +473,7 @@ export function MapCollectionDrilldownMap({
         borderRadius: 8,
         itemStyle: {
           color: palette.foreground,
-          fontFamily: isFa ? 'var(--font-sans-fa)' : 'var(--font-sans-en)',
+          fontFamily: 'var(--font-sans-en)',
           fontSize: '11px',
           fontWeight: '500',
         },
@@ -480,12 +485,12 @@ export function MapCollectionDrilldownMap({
         enableMouseWheelZoom: true,
         enableTouchZoom: true,
         buttonOptions: {
-          align: isFa ? 'right' : 'left',
+          align: 'left',
           alignTo: 'spacingBox',
           verticalAlign: 'top',
           width: 32,
           height: 32,
-          x: isFa ? -10 : 10,
+          x: 10,
           y: 10,
           theme: {
             fill: palette.surface,
@@ -552,7 +557,7 @@ export function MapCollectionDrilldownMap({
             allowOverlap: false,
             enabled: true,
             formatter() {
-              return labelForWorldPoint(this.point as Highcharts.Point)
+              return worldLabel(this.point as Highcharts.Point)
             },
             style: {
               color: palette.foreground,
@@ -590,22 +595,33 @@ export function MapCollectionDrilldownMap({
           if (custom.level === 'country') {
             const englishName = custom.nameEn ?? String(point.name ?? '')
             const persianName = custom.nameFa ?? englishName
-            const score = custom.score == null ? '—' : String(custom.score)
-            const events = custom.eventCount == null ? '—' : String(custom.eventCount)
-            return `<div class="map-collection-tooltip" dir="${isFa ? 'rtl' : 'ltr'}"><strong><span dir="ltr" class="map-label-en">${escapeHtml(englishName)}</span>${isFa ? `<span> · ${escapeHtml(persianName)}</span>` : ''}</strong><span>${isFa ? 'شاخص تنش' : 'Tension index'}: <bdi dir="ltr">${score}/100</bdi></span><span>${isFa ? 'رویدادهای ثبت‌شده' : 'Recorded events'}: <bdi dir="ltr">${events}</bdi></span><small>${isFa ? 'برای مشاهده تقسیمات کشوری کلیک کنید' : 'Click to explore subdivisions'}</small></div>`
+            const identity = isFa
+              ? `<strong><span dir="ltr" class="map-label-en">${escapeHtml(englishName)}</span><span>${escapeHtml(persianName)}</span></strong>`
+              : `<strong><span dir="ltr" class="map-label-en">${escapeHtml(englishName)}</span></strong>`
+            const scoreRow =
+              custom.score == null
+                ? `<span>${isFa ? 'دادهٔ تنش این کشور در نمونهٔ فعلی موجود نیست' : 'No local tension fixture for this country'}</span>`
+                : `<span>${isFa ? 'شاخص تنش' : 'Tension index'}: <bdi dir="ltr">${custom.score}/100</bdi></span>`
+            const eventRow =
+              custom.eventCount == null
+                ? ''
+                : `<span>${isFa ? 'رویدادهای این نمای زمانی' : 'Events in this time view'}: <bdi dir="ltr">${custom.eventCount}</bdi></span>`
+            return `<div class="map-collection-tooltip" dir="${isFa ? 'rtl' : 'ltr'}">${identity}${scoreRow}${eventRow}<small>${isFa ? 'برای مشاهده تقسیمات کشوری کلیک کنید' : 'Click to explore subdivisions'}</small></div>`
           }
 
-          const score = custom.score == null ? '—' : String(custom.score)
-          return `<div class="map-collection-tooltip" dir="${isFa ? 'rtl' : 'ltr'}"><strong><span dir="ltr" class="map-label-en">${escapeHtml(point.name ?? '')}</span></strong><span>${isFa ? 'شاخص تنش' : 'Tension index'}: <bdi dir="ltr">${score}/100</bdi></span>${custom.synthetic ? `<small>${isFa ? 'دادهٔ نمونهٔ تقسیمات کشوری' : 'Prototype subdivision data'}</small>` : ''}</div>`
+          const scoreRow =
+            custom.score == null
+              ? `<span>${isFa ? 'دادهٔ تنش استانی متصل نیست' : 'No subdivision tension data connected'}</span>`
+              : `<span>${isFa ? 'شاخص تنش نمونه' : 'Prototype tension index'}: <bdi dir="ltr">${custom.score}/100</bdi></span>`
+          const prototypeNotice = custom.synthetic
+            ? `<small>${isFa ? 'مقدار نمایشی مشتق‌شده از شاخص کشور؛ دادهٔ واقعی استان متصل نیست.' : 'Prototype value derived from the country index; no live subdivision data is connected.'}</small>`
+            : ''
+          return `<div class="map-collection-tooltip" dir="${isFa ? 'rtl' : 'ltr'}"><strong><span dir="ltr" class="map-label-en">${escapeHtml(point.name ?? '')}</span></strong>${scoreRow}${prototypeNotice}</div>`
         },
       },
     } as Highcharts.Options)
 
-    chartRef.current = chart
-    return () => {
-      chartRef.current = null
-      chart.destroy()
-    }
+    return () => chart.destroy()
   }, [
     byHcKey,
     byIsoA3,
