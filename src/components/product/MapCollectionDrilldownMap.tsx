@@ -18,6 +18,24 @@ export type MapCollectionView = {
   zoom?: number
 }
 
+export type MapCollectionEventPoint = {
+  id: string
+  latitude: number
+  longitude: number
+  titleFa: string
+  titleEn: string
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  sourceCount?: number
+  occurredAt?: string
+}
+
+export type MapCollectionRoute = {
+  id: string
+  titleFa: string
+  titleEn: string
+  coordinates: Array<[number, number]>
+}
+
 type MapProperties = Record<string, string | number | null | undefined>
 
 type MapGeometry = {
@@ -39,14 +57,18 @@ type MapCollectionTopology = {
 }
 
 type MapPointCustom = {
-  level: 'country' | 'subdivision'
-  score: number | null
+  level: 'country' | 'subdivision' | 'event' | 'route'
+  score?: number | null
   eventCount?: number
   synthetic?: boolean
   nameFa?: string
   nameEn?: string
   isoA2?: string
   isoA3?: string
+  eventId?: string
+  severity?: MapCollectionEventPoint['severity']
+  sourceCount?: number
+  occurredAt?: string
 }
 
 type MapIndex = {
@@ -66,6 +88,7 @@ function loadModules() {
   modulesPromise ??= Promise.all([
     import('highcharts/es-modules/masters/modules/accessibility.src.js'),
     import('highcharts/es-modules/masters/modules/drilldown.src.js'),
+    import('highcharts/es-modules/masters/modules/marker-clusters.src.js'),
   ])
   return modulesPromise
 }
@@ -187,13 +210,23 @@ function subdivisionLabel(point: Highcharts.Point, parentHcKey: string) {
   return String(point.name ?? '')
 }
 
+function overlayRole(series: Highcharts.Series) {
+  return (series.options.custom as { overlayRole?: string } | undefined)?.overlayRole
+}
+
 export function MapCollectionDrilldownMap({
   tensionData,
+  eventPoints = [],
+  routes = [],
+  onEventClick,
   height = 600,
   view,
   className,
 }: {
   tensionData: MapTensionDatum[]
+  eventPoints?: MapCollectionEventPoint[]
+  routes?: MapCollectionRoute[]
+  onEventClick?: (eventId: string) => void
   height?: number
   view?: MapCollectionView
   className?: string
@@ -213,11 +246,13 @@ export function MapCollectionDrilldownMap({
   const palette = useMemo(
     () => ({
       surface: cssToken('--surface', theme === 'dark' ? '#161616' : '#ffffff'),
+      water: cssToken('--temp-viz-water', theme === 'dark' ? '#101820' : '#f5f8fb'),
       foreground: cssToken('--foreground', theme === 'dark' ? '#f3f5f7' : '#172033'),
       muted: cssToken('--muted-foreground', theme === 'dark' ? '#9aa4b2' : '#667085'),
       border: cssToken('--map-country-border', theme === 'dark' ? '#3a424d' : '#c2c8d0'),
       hoverBorder: cssToken('--primary', theme === 'dark' ? '#7193ff' : '#416dff'),
-      noData: cssToken('--map-neutral-country', theme === 'dark' ? '#222832' : '#f1f3f5'),
+      noData: cssToken('--map-neutral-country', theme === 'dark' ? '#263341' : '#dce5ef'),
+      route: cssToken('--temp-viz-route', theme === 'dark' ? '#ff7446' : '#ff4000'),
       low: cssToken('--temp-viz-low', '#0e7490'),
       medium: cssToken('--temp-viz-medium', '#b46b0b'),
       high: cssToken('--temp-viz-high', '#d05a31'),
@@ -295,12 +330,21 @@ export function MapCollectionDrilldownMap({
       }
     })
 
+    const formatEventDate = (value?: string) => {
+      if (!value) return ''
+      return new Intl.DateTimeFormat(isFa ? 'fa-IR-u-ca-gregory' : 'en-GB', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'UTC',
+      }).format(new Date(value))
+    }
+
     const chart = Highcharts.mapChart(containerRef.current, {
       accessibility: {
         enabled: true,
         description: isFa
-          ? 'نقشهٔ تعاملی جهان با رنگ‌بندی شدت تنش و امکان ورود به تقسیمات کشوری.'
-          : 'Interactive world map colored by tension intensity with country subdivision drilldown.',
+          ? 'نقشهٔ تعاملی جهان با رنگ‌بندی شدت تنش، رویدادهای اطلاعاتی و امکان ورود به تقسیمات کشوری.'
+          : 'Interactive world map with tension shading, intelligence events, and country subdivision drilldown.',
         series: {
           descriptionFormat: '{series.name}, map with {series.points.length} areas.',
           pointDescriptionEnabledThreshold: 50,
@@ -308,7 +352,7 @@ export function MapCollectionDrilldownMap({
       },
       chart: {
         animation: reducedMotion ? false : { duration: DRILLDOWN_DURATION },
-        backgroundColor: palette.surface,
+        backgroundColor: palette.water,
         height,
         map: topology as unknown as Highcharts.TopoJSON,
         spacing: [12, 12, 12, 12],
@@ -378,7 +422,7 @@ export function MapCollectionDrilldownMap({
                       fontFamily: 'var(--font-sans-en)',
                       fontSize: '11px',
                       fontWeight: '500',
-                      textOutline: `2px ${palette.surface}`,
+                      textOutline: `2px ${palette.water}`,
                     },
                   },
                   custom: {
@@ -397,9 +441,17 @@ export function MapCollectionDrilldownMap({
             }
           },
           afterDrilldown() {
+            this.series.forEach((series) => {
+              if (overlayRole(series)) series.setVisible(false, false)
+            })
+            this.redraw()
             this.credits?.update()
           },
           afterDrillUp() {
+            this.series.forEach((series) => {
+              if (overlayRole(series)) series.setVisible(true, false)
+            })
+            this.redraw()
             this.credits?.update()
           },
         },
@@ -408,9 +460,10 @@ export function MapCollectionDrilldownMap({
         min: 0,
         max: 100,
         stops: [
-          [0, palette.low],
-          [0.35, palette.medium],
-          [0.7, palette.high],
+          [0, palette.noData],
+          [0.25, palette.low],
+          [0.5, palette.medium],
+          [0.75, palette.high],
           [1, palette.critical],
         ],
         tickPositions: [0, 25, 50, 75, 100],
@@ -535,10 +588,9 @@ export function MapCollectionDrilldownMap({
                 align: 'center',
                 verticalAlign: 'bottom',
                 x: 0,
+                y: -4,
               },
-              mapNavigation: {
-                buttonOptions: { verticalAlign: 'top' },
-              },
+              mapView: { padding: 10 },
             },
           },
         ],
@@ -564,7 +616,7 @@ export function MapCollectionDrilldownMap({
               fontFamily: 'var(--font-sans-en)',
               fontSize: '10px',
               fontWeight: '500',
-              textOutline: `2px ${palette.surface}`,
+              textOutline: `2px ${palette.water}`,
             },
           },
           custom: {
@@ -572,7 +624,81 @@ export function MapCollectionDrilldownMap({
             mapVersion: topology.version ?? MAP_COLLECTION_VERSION,
           },
         },
-      ],
+        {
+          type: 'mapline',
+          name: isFa ? 'مسیرهای پایش‌شده' : 'Monitored routes',
+          color: palette.route,
+          lineWidth: 1.5,
+          dashStyle: 'ShortDash',
+          enableMouseTracking: true,
+          animation: reducedMotion ? false : { duration: 260 },
+          showInLegend: false,
+          custom: { overlayRole: 'routes' },
+          data: routes.map((route) => ({
+            id: route.id,
+            name: isFa ? route.titleFa : route.titleEn,
+            geometry: { type: 'LineString', coordinates: route.coordinates },
+            custom: { level: 'route' } satisfies MapPointCustom,
+          })) as never,
+        },
+        {
+          type: 'mappoint',
+          name: isFa ? 'رویدادهای اطلاعاتی' : 'Intelligence events',
+          animation: reducedMotion ? false : { duration: 260 },
+          showInLegend: false,
+          custom: { overlayRole: 'events' },
+          marker: {
+            lineColor: palette.surface,
+            lineWidth: 2,
+            symbol: 'circle',
+          },
+          cluster: {
+            enabled: true,
+            allowOverlap: false,
+            animation: reducedMotion ? false : { duration: 220 },
+            drillToCluster: true,
+            minimumClusterSize: 2,
+            marker: {
+              fillColor: palette.hoverBorder,
+              lineColor: palette.surface,
+              lineWidth: 2,
+              radius: 15,
+            },
+          },
+          data: eventPoints.map((eventPoint) => ({
+            id: eventPoint.id,
+            name: isFa ? eventPoint.titleFa : eventPoint.titleEn,
+            lat: eventPoint.latitude,
+            lon: eventPoint.longitude,
+            color: palette[eventPoint.severity],
+            marker: {
+              radius:
+                eventPoint.severity === 'critical'
+                  ? 8
+                  : eventPoint.severity === 'high'
+                    ? 7
+                    : 6,
+            },
+            custom: {
+              level: 'event',
+              eventId: eventPoint.id,
+              nameFa: eventPoint.titleFa,
+              nameEn: eventPoint.titleEn,
+              severity: eventPoint.severity,
+              sourceCount: eventPoint.sourceCount,
+              occurredAt: eventPoint.occurredAt,
+            } satisfies MapPointCustom,
+          })) as never,
+          point: {
+            events: {
+              click() {
+                const custom = (this.options as { custom?: MapPointCustom }).custom
+                if (custom?.eventId) onEventClick?.(custom.eventId)
+              },
+            },
+          },
+        },
+      ] as never,
       title: { text: undefined },
       tooltip: {
         useHTML: true,
@@ -591,6 +717,20 @@ export function MapCollectionDrilldownMap({
           const options = point.options as { custom?: MapPointCustom }
           const custom = options.custom
           if (!custom) return escapeHtml(point.name ?? '')
+
+          if (custom.level === 'event') {
+            const title = isFa ? custom.nameFa : custom.nameEn
+            const sourceRow =
+              custom.sourceCount == null
+                ? ''
+                : `<span>${isFa ? 'منابع' : 'Sources'}: <bdi dir="ltr">${custom.sourceCount}</bdi></span>`
+            const dateRow = custom.occurredAt
+              ? `<span><bdi dir="ltr">${escapeHtml(formatEventDate(custom.occurredAt))} UTC</bdi></span>`
+              : ''
+            return `<div class="map-collection-tooltip" dir="${isFa ? 'rtl' : 'ltr'}"><strong>${escapeHtml(title ?? point.name ?? '')}</strong>${sourceRow}${dateRow}</div>`
+          }
+
+          if (custom.level === 'route') return escapeHtml(point.name ?? '')
 
           if (custom.level === 'country') {
             const englishName = custom.nameEn ?? String(point.name ?? '')
@@ -625,11 +765,14 @@ export function MapCollectionDrilldownMap({
   }, [
     byHcKey,
     byIsoA3,
+    eventPoints,
     height,
     isFa,
     loadState,
+    onEventClick,
     palette,
     reducedMotion,
+    routes,
     theme,
     topology,
     view?.center,
