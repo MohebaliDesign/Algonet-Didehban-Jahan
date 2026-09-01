@@ -189,18 +189,6 @@ export function WorldMap() {
 
   return (
     <div className="map-workspace map-collection-workspace" dir={isFa ? 'rtl' : 'ltr'}>
-      <div className="map-view-switcher">
-        <ToggleGroup
-          type="single"
-          value={view}
-          onValueChange={(next) => next && setView(next as 'map' | 'list')}
-          aria-label={isFa ? 'شیوه نمایش نقشه' : 'Map display mode'}
-        >
-          <ToggleGroupItem value="map">{isFa ? 'نقشه' : 'Map'}</ToggleGroupItem>
-          <ToggleGroupItem value="list">{isFa ? 'فهرست' : 'List'}</ToggleGroupItem>
-        </ToggleGroup>
-      </div>
-
       <MapOverlayControls
         isFa={isFa}
         layers={layerOptions}
