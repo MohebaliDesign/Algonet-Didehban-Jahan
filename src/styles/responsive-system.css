@@ -134,6 +134,69 @@ canvas {
   overflow-wrap: anywhere;
 }
 
+/* Compact tab navigation keeps the same information architecture without squeezing labels. */
+.responsive-tab-select {
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin-block-end: 16px;
+}
+
+.responsive-tab-select [data-slot='select-trigger'] {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* Hamburger-to-close motion is small, stateful, and remains inside the shadcn Button surface. */
+.mobile-menu-glyph {
+  position: relative;
+  display: inline-grid;
+  inline-size: 20px;
+  block-size: 20px;
+  flex: none;
+  place-items: center;
+}
+
+.mobile-menu-glyph i {
+  position: absolute;
+  inline-size: 18px;
+  block-size: 2px;
+  border-radius: 999px;
+  background: currentcolor;
+  transform-origin: center;
+  transition:
+    transform 180ms ease,
+    opacity 140ms ease;
+}
+
+.mobile-menu-glyph i:nth-child(1) {
+  transform: translateY(-5px);
+}
+
+.mobile-menu-glyph i:nth-child(2) {
+  transform: translateY(0);
+}
+
+.mobile-menu-glyph i:nth-child(3) {
+  transform: translateY(5px);
+}
+
+.mobile-menu-glyph.is-open i:nth-child(1) {
+  transform: translateY(0) rotate(45deg);
+}
+
+.mobile-menu-glyph.is-open i:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0.5);
+}
+
+.mobile-menu-glyph.is-open i:nth-child(3) {
+  transform: translateY(0) rotate(-45deg);
+}
+
+.mobile-drawer-close {
+  display: none;
+}
+
 /* Reusable cards adapt when their grid track becomes narrow, even on a wide viewport. */
 @container module (max-width: 560px) {
   .module-header {
@@ -183,39 +246,14 @@ canvas {
   }
 }
 
-/* Laptop and compact desktop. */
-@media (max-width: 1200px) {
+/* Tablet, compact laptop, and responsive analytical mode. */
+@media (max-width: 1199px) {
   .page-header {
     gap: 16px;
   }
 
   .kpi-strip {
     grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-  }
-
-  .global-search-trigger {
-    inline-size: min(360px, 40vw);
-  }
-
-  .data-source-toolbar {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  .data-source-search {
-    grid-column: 1 / -1;
-  }
-}
-
-/* Tablet and small laptop: navigation becomes off-canvas and dashboard cards linearize. */
-@media (max-width: 899px) {
-  :root {
-    --responsive-page-gutter: 20px;
-    --responsive-grid-gap: 16px;
-    --responsive-card-gap: 16px;
-  }
-
-  .mobile-sidebar-trigger {
-    display: inline-flex !important;
   }
 
   .global-topbar {
@@ -227,6 +265,7 @@ canvas {
   }
 
   .mobile-sidebar-trigger {
+    display: inline-flex !important;
     grid-column: 1;
   }
 
@@ -255,12 +294,84 @@ canvas {
     text-overflow: ellipsis;
   }
 
+  .primary-nav .product-lockup {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .primary-nav .product-lockup-inner {
+    min-inline-size: 0;
+  }
+
+  .mobile-drawer-close {
+    display: inline-flex;
+    flex: none;
+  }
+
+  .primary-nav .nav-collapse {
+    display: none !important;
+  }
+
+  /*
+   * Dense analytical modules should not share a row once their text and charts
+   * start competing for horizontal space. Preserve content by linearizing first.
+   */
+  .product-page-grid,
+  .world-page .module-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .product-page-grid > .module-frame,
+  .world-page .module-grid > .module-frame {
+    grid-column: 1 / -1 !important;
+    inline-size: 100%;
+    min-inline-size: 0;
+    max-block-size: none !important;
+  }
+
+  .product-page-grid > .module-frame > [data-slot='collapsible'],
+  .product-page-grid > .module-frame [data-slot='collapsible-content'],
+  .world-page .module-grid > .module-frame > [data-slot='collapsible'],
+  .world-page .module-grid > .module-frame [data-slot='collapsible-content'] {
+    overflow: visible;
+  }
+
+  .product-page-grid > .module-frame .module-content,
+  .world-page .module-grid > .module-frame .module-content {
+    max-block-size: none;
+    overflow-y: visible;
+    scrollbar-gutter: auto;
+  }
+
+  .detail-overview-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .data-source-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .data-source-search {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Tablet and small landscape: filters progressively disclose and secondary chrome compresses. */
+@media (max-width: 899px) {
+  :root {
+    --responsive-page-gutter: 20px;
+    --responsive-grid-gap: 16px;
+    --responsive-card-gap: 16px;
+  }
+
   .context-bar,
   .context-bar.open,
   [dir='rtl'] .context-bar.open {
     position: relative !important;
     inset: auto !important;
-    display: grid !important;
     min-block-size: 56px;
     max-block-size: none;
     grid-template-columns: 1fr;
@@ -313,26 +424,6 @@ canvas {
     flex-wrap: wrap;
     justify-content: flex-start;
     gap: 8px;
-  }
-
-  .product-page-grid > .module-frame,
-  .world-page .module-grid > .module-frame {
-    grid-column: 1 / -1 !important;
-    max-block-size: none !important;
-  }
-
-  .product-page-grid > .module-frame > [data-slot='collapsible'],
-  .product-page-grid > .module-frame [data-slot='collapsible-content'],
-  .world-page .module-grid > .module-frame > [data-slot='collapsible'],
-  .world-page .module-grid > .module-frame [data-slot='collapsible-content'] {
-    overflow: visible;
-  }
-
-  .product-page-grid > .module-frame .module-content,
-  .world-page .module-grid > .module-frame .module-content {
-    max-block-size: none;
-    overflow-y: visible;
-    scrollbar-gutter: auto;
   }
 
   .kpi-strip {
@@ -476,14 +567,11 @@ canvas {
     max-block-size: calc(100dvh - 24px);
   }
 
-  .map-detail-sheet {
+  .map-detail-sheet,
+  [data-slot='sheet-content'] {
     inline-size: 100vw !important;
     max-inline-size: 100vw !important;
     padding-block-end: max(16px, env(safe-area-inset-bottom));
-  }
-
-  .map-detail-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .map-detail-metrics {
@@ -539,5 +627,9 @@ canvas {
   *::before,
   *::after {
     scroll-behavior: auto !important;
+  }
+
+  .mobile-menu-glyph i {
+    transition: none;
   }
 }
