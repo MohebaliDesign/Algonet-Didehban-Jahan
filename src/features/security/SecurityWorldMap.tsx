@@ -65,7 +65,7 @@ export function SecurityWorldMap({
         <MapZoomControls isFa={locale === 'fa'} />
         <MapCollectionDrilldownMap
           tensionData={tensionData}
-          height={isMobile ? 460 : 600}
+          height={isMobile ? 520 : 560}
           view={continentViews[continent]}
           className="security-world-map"
         />
