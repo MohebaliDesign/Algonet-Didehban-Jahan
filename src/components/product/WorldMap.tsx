@@ -4,6 +4,8 @@ import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
 import {
   MapCollectionDrilldownMap,
+  type MapCollectionEventPoint,
+  type MapCollectionRoute,
   type MapTensionDatum,
 } from '@/components/product/MapCollectionDrilldownMap'
 import {
@@ -14,7 +16,11 @@ import { WorldMapDetailPanel } from '@/components/product/WorldMapDetailPanel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { countryMapData, intelligenceMapEvents } from '@/data/mock/worldMapData'
+import {
+  countryMapData,
+  intelligenceMapEvents,
+  intelligenceMapRoutes,
+} from '@/data/mock/worldMapData'
 import { layerLabels } from '@/data/mock/visualMvpData'
 import { useIsMobile } from '@/hooks/use-mobile'
 import type { IntelligenceDomain } from '@/types/domain'
@@ -57,6 +63,16 @@ export function WorldMap() {
     [filters.domain, filters.timeRange, selectedLayers],
   )
 
+  const visibleRoutes = useMemo(
+    () =>
+      intelligenceMapRoutes.filter(
+        (route) =>
+          selectedLayers.has(route.category) &&
+          (filters.domain === 'all' || route.category === filters.domain),
+      ),
+    [filters.domain, selectedLayers],
+  )
+
   const tensionData = useMemo<MapTensionDatum[]>(
     () =>
       countryMapData.map((country) => {
@@ -72,6 +88,32 @@ export function WorldMap() {
         }
       }),
     [visibleEvents],
+  )
+
+  const mapEventPoints = useMemo<MapCollectionEventPoint[]>(
+    () =>
+      visibleEvents.map((event) => ({
+        id: event.id,
+        latitude: event.latitude,
+        longitude: event.longitude,
+        titleFa: event.titleFa,
+        titleEn: event.titleEn,
+        severity: event.severity,
+        sourceCount: event.sourceCount,
+        occurredAt: event.occurredAt,
+      })),
+    [visibleEvents],
+  )
+
+  const mapRoutes = useMemo<MapCollectionRoute[]>(
+    () =>
+      visibleRoutes.map((route) => ({
+        id: route.id,
+        titleFa: route.title.fa,
+        titleEn: route.title.en,
+        coordinates: route.coordinates,
+      })),
+    [visibleRoutes],
   )
 
   const layerOptions = useMemo<MapLayerControlOption[]>(
@@ -104,6 +146,13 @@ export function WorldMap() {
     })
   }
 
+  const selectMapEvent = (eventId: string) => {
+    const event = visibleEvents.find((item) => item.id === eventId)
+    if (!event) return
+    setSelectedCountryCode(event.countryCode)
+    setSelectedEventId(event.id)
+  }
+
   const closeDetails = () => {
     setSelectedCountryCode(null)
     setSelectedEventId(null)
@@ -133,6 +182,9 @@ export function WorldMap() {
       {view === 'map' ? (
         <MapCollectionDrilldownMap
           tensionData={tensionData}
+          eventPoints={mapEventPoints}
+          routes={mapRoutes}
+          onEventClick={selectMapEvent}
           height={isMobile ? 520 : 560}
           className="world-map-collection"
         />
@@ -148,10 +200,7 @@ export function WorldMap() {
                 type="button"
                 variant="ghost"
                 className="map-accessible-list-item"
-                onClick={() => {
-                  setSelectedCountryCode(event.countryCode)
-                  setSelectedEventId(event.id)
-                }}
+                onClick={() => selectMapEvent(event.id)}
               >
                 <span>
                   <strong>{isFa ? event.titleFa : event.titleEn}</strong>
@@ -173,7 +222,11 @@ export function WorldMap() {
               </Button>
             ))
           ) : (
-            <p>{isFa ? 'رویدادی در این بازه و لایه‌ها وجود ندارد.' : 'No events match this time range and layer selection.'}</p>
+            <p>
+              {isFa
+                ? 'رویدادی در این بازه و لایه‌ها وجود ندارد.'
+                : 'No events match this time range and layer selection.'}
+            </p>
           )}
         </div>
       )}
