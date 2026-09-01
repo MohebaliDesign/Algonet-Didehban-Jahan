@@ -24,11 +24,7 @@
 /* shadcn-style scroll-edge fade for internal scrolling surfaces. */
 @import './scroll-fade.css';
 @import './scroll-fade-surfaces.css';
-/* Final bilingual table alignment and module-toolbar interaction contract. */
-@import './global-component-alignment.css';
-/* Dedicated drill-down page toolbar, full-width tabs, and section composition. */
-@import './internal-pages.css';
-/* Final detail-page chrome, linked-row and JSON disclosure refinements. */
-@import '../features/details/detail-refinement.css';
+/* Role-gated full-page source selection, health checks, and collection states. */
+@import './data-management.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
