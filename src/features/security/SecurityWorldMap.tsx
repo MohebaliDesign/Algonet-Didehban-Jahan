@@ -9,6 +9,7 @@ import {
   type MapTensionDatum,
 } from '@/components/product/MapCollectionDrilldownMap'
 import { MapOverlayControls } from '@/components/product/MapOverlayControls'
+import { MapZoomControls } from '@/components/product/MapZoomControls'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 export type Continent = 'all' | 'asia' | 'europe' | 'africa' | 'americas' | 'oceania'
@@ -61,6 +62,7 @@ export function SecurityWorldMap({
     <div className="security-map-workspace" dir={locale === 'fa' ? 'rtl' : 'ltr'}>
       <div className="security-map-shell">
         <MapOverlayControls isFa={locale === 'fa'} />
+        <MapZoomControls isFa={locale === 'fa'} />
         <MapCollectionDrilldownMap
           tensionData={tensionData}
           height={isMobile ? 460 : 600}
