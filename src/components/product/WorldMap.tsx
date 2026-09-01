@@ -6,6 +6,10 @@ import {
   MapCollectionDrilldownMap,
   type MapTensionDatum,
 } from '@/components/product/MapCollectionDrilldownMap'
+import {
+  MapOverlayControls,
+  type MapLayerControlOption,
+} from '@/components/product/MapOverlayControls'
 import { WorldMapDetailPanel } from '@/components/product/WorldMapDetailPanel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,33 +21,66 @@ import { filterMapEvents } from './worldMapUtils'
 
 const allDomains = new Set(Object.keys(layerLabels) as IntelligenceDomain[])
 
+const layerColorClasses: Record<IntelligenceDomain, string> = {
+  conflict: 'layer-conflict',
+  political: 'layer-political',
+  military: 'layer-military',
+  economic: 'layer-economic',
+  hazard: 'layer-hazard',
+  infrastructure: 'layer-infrastructure',
+  maritime: 'layer-maritime',
+  cyber: 'layer-cyber',
+}
+
+function eventWeight(severity: 'low' | 'medium' | 'high' | 'critical') {
+  if (severity === 'critical') return 10
+  if (severity === 'high') return 7
+  if (severity === 'medium') return 4
+  return 2
+}
+
 export function WorldMap() {
   const { locale } = usePreferences()
   const { filters } = useWorkspace()
   const [view, setView] = useState<'map' | 'list'>('map')
+  const [selectedLayers, setSelectedLayers] = useState<Set<IntelligenceDomain>>(
+    () => new Set(allDomains),
+  )
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const isFa = locale === 'fa'
 
   const visibleEvents = useMemo(
-    () => filterMapEvents(intelligenceMapEvents, allDomains, filters.timeRange, filters.domain),
-    [filters.domain, filters.timeRange],
+    () => filterMapEvents(intelligenceMapEvents, selectedLayers, filters.timeRange, filters.domain),
+    [filters.domain, filters.timeRange, selectedLayers],
   )
 
   const tensionData = useMemo<MapTensionDatum[]>(
     () =>
       countryMapData.map((country) => {
         const countryEvents = visibleEvents.filter((event) => event.countryCode === country.countryCode)
+        const eventPressure = countryEvents.reduce((sum, event) => sum + eventWeight(event.severity), 0)
 
         return {
           isoA3: country.countryCode,
           nameFa: country.countryNameFa,
           nameEn: country.countryNameEn,
-          score: country.value,
+          score: Math.min(100, Math.round(country.value * 0.92 + eventPressure)),
           eventCount: countryEvents.length,
         }
       }),
     [visibleEvents],
+  )
+
+  const layerOptions = useMemo<MapLayerControlOption[]>(
+    () =>
+      (Object.keys(layerLabels) as IntelligenceDomain[]).map((domain) => ({
+        id: domain,
+        label: layerLabels[domain][locale],
+        colorClass: layerColorClasses[domain],
+        count: intelligenceMapEvents.filter((event) => event.domain === domain).length,
+      })),
+    [locale],
   )
 
   const selectedCountry = useMemo(
@@ -54,6 +91,16 @@ export function WorldMap() {
     () => visibleEvents.find((event) => event.id === selectedEventId) ?? null,
     [selectedEventId, visibleEvents],
   )
+
+  const toggleLayer = (id: string, checked: boolean) => {
+    setSelectedLayers((current) => {
+      const next = new Set(current)
+      const domain = id as IntelligenceDomain
+      if (checked) next.add(domain)
+      else next.delete(domain)
+      return next
+    })
+  }
 
   const closeDetails = () => {
     setSelectedCountryCode(null)
@@ -73,6 +120,13 @@ export function WorldMap() {
           <ToggleGroupItem value="list">{isFa ? 'فهرست' : 'List'}</ToggleGroupItem>
         </ToggleGroup>
       </div>
+
+      <MapOverlayControls
+        isFa={isFa}
+        layers={layerOptions}
+        selectedLayerIds={selectedLayers}
+        onLayerToggle={toggleLayer}
+      />
 
       {view === 'map' ? (
         <MapCollectionDrilldownMap
@@ -117,7 +171,7 @@ export function WorldMap() {
               </Button>
             ))
           ) : (
-            <p>{isFa ? 'رویدادی در این بازه وجود ندارد.' : 'No events in this time range.'}</p>
+            <p>{isFa ? 'رویدادی در این بازه و لایه‌ها وجود ندارد.' : 'No events match this time range and layer selection.'}</p>
           )}
         </div>
       )}
