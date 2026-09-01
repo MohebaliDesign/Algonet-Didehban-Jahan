@@ -18,12 +18,14 @@
   background: var(--surface);
 }
 
-.intelligence-detail-page .detail-page-heading {
+.intelligence-detail-page .detail-page-heading,
+.internal-page-heading {
   padding-inline: 0 !important;
   border-inline: 0 !important;
 }
 
-.intelligence-detail-page .detail-page-heading h1 {
+.intelligence-detail-page .detail-page-heading h1,
+.internal-page-heading h1 {
   font-weight: 700;
 }
 
@@ -37,6 +39,34 @@
   border-radius: 0 0 16px 16px;
   background: var(--surface) !important;
   box-shadow: 0 10px 22px -24px color-mix(in srgb, var(--muted-foreground) 30%, transparent);
+}
+
+/* Security assessment uses the same white top-surface pattern even though it has no tabs. */
+.security-assessment-page {
+  gap: 0;
+}
+
+.security-assessment-page > .internal-page-toolbar {
+  border: 1px solid var(--border-subtle);
+  border-block-end: 0;
+  border-radius: 16px 16px 0 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.security-assessment-page > .internal-page-heading {
+  padding: 24px 24px 12px !important;
+  border-inline: 1px solid var(--border-subtle) !important;
+  background: var(--surface);
+}
+
+.security-assessment-page > .internal-page-meta-grid {
+  margin-block-end: 24px;
+  padding: 0 24px 24px;
+  border: 1px solid var(--border-subtle);
+  border-block-start: 0;
+  border-radius: 0 0 16px 16px;
+  background: var(--surface);
 }
 
 /* The source count is a real navigation control, not a decorative badge. */
@@ -153,6 +183,14 @@
 @media (max-width: 720px) {
   .intelligence-detail-page > .detail-page-hero {
     padding: 20px 16px;
+  }
+
+  .security-assessment-page > .internal-page-heading {
+    padding: 20px 16px 10px !important;
+  }
+
+  .security-assessment-page > .internal-page-meta-grid {
+    padding: 0 16px 20px;
   }
 
   .detail-technical-list > div {
