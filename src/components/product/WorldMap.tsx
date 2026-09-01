@@ -17,13 +17,6 @@ import { filterMapEvents } from './worldMapUtils'
 
 const allDomains = new Set(Object.keys(layerLabels) as IntelligenceDomain[])
 
-function eventWeight(severity: 'low' | 'medium' | 'high' | 'critical') {
-  if (severity === 'critical') return 12
-  if (severity === 'high') return 8
-  if (severity === 'medium') return 4
-  return 2
-}
-
 export function WorldMap() {
   const { locale } = usePreferences()
   const { filters } = useWorkspace()
@@ -41,14 +34,12 @@ export function WorldMap() {
     () =>
       countryMapData.map((country) => {
         const countryEvents = visibleEvents.filter((event) => event.countryCode === country.countryCode)
-        const eventPressure = countryEvents.reduce((sum, event) => sum + eventWeight(event.severity), 0)
-        const score = Math.min(100, Math.round(country.value * 0.88 + eventPressure))
 
         return {
           isoA3: country.countryCode,
           nameFa: country.countryNameFa,
           nameEn: country.countryNameEn,
-          score,
+          score: country.value,
           eventCount: countryEvents.length,
         }
       }),
