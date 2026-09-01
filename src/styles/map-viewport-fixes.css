@@ -6,7 +6,23 @@
   overflow: hidden !important;
 }
 
-.world-page [data-module-id='map'] .module-content,
+/* The world map keeps the normal 16px analytical inset after the full-width reflow fix. */
+.world-page [data-module-id='map'] .module-content {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  padding: 16px !important;
+  overflow: hidden !important;
+}
+
+.world-page [data-module-id='map'] .map-workspace {
+  margin: 0 !important;
+}
+
+.security-page [data-module-id='security-map'] {
+  max-height: none !important;
+}
+
 .security-page [data-module-id='security-map'] .module-content {
   inline-size: 100%;
   min-inline-size: 0;
@@ -25,6 +41,10 @@
   box-sizing: border-box;
   overflow: hidden !important;
   overscroll-behavior: contain;
+}
+
+.security-map-shell {
+  min-block-size: 560px !important;
 }
 
 .map-collection-chart {
@@ -95,6 +115,14 @@
 }
 
 @media (max-width: 640px) {
+  .world-page [data-module-id='map'] .module-content {
+    padding: 12px !important;
+  }
+
+  .security-map-shell {
+    min-block-size: 520px !important;
+  }
+
   .map-zoom-control {
     inset-block-start: 8px;
     inset-inline-start: 8px;
