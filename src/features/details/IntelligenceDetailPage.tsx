@@ -5,10 +5,11 @@ import { usePreferences } from '@/app/PreferencesProvider'
 import type { InspectorItem } from '@/app/WorkspaceProvider'
 import { Icon } from '@/components/Icon'
 import { PageHeader } from '@/components/product/PageHeader'
+import { ResponsiveTabsNav } from '@/components/product/ResponsiveTabsNav'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { corridors, countries, events, reports, sources } from '@/data/mock/visualMvpData'
 
 import './details.css'
@@ -56,9 +57,7 @@ export function IntelligenceDetailPage() {
     local(locale, 'جزئیات تحلیل', 'Analysis detail')
 
   const entityDomain = event?.domain ?? source?.domain
-  const scopedSources = sources
-    .filter((item) => !entityDomain || item.domain === entityDomain)
-    .slice(0, 4)
+  const scopedSources = sources.filter((item) => !entityDomain || item.domain === entityDomain).slice(0, 4)
   const relatedEvents = events
     .filter((item) => item.id !== event?.id && (!entityDomain || item.domain === entityDomain))
     .slice(0, 4)
@@ -67,6 +66,13 @@ export function IntelligenceDetailPage() {
     const search = value === 'overview' ? '' : `?tab=${value}`
     navigate({ pathname: location.pathname, search }, { replace: true, state })
   }
+
+  const tabItems = [
+    { value: 'overview', label: local(locale, 'نمای کلی', 'Overview') },
+    { value: 'sources', label: local(locale, 'منابع و شواهد', 'Sources & evidence') },
+    { value: 'related', label: local(locale, 'موارد مرتبط', 'Related') },
+    { value: 'raw', label: local(locale, 'داده خام', 'Raw data') },
+  ]
 
   return (
     <div className="page-view intelligence-detail-page" dir={locale === 'fa' ? 'rtl' : 'ltr'}>
@@ -88,12 +94,13 @@ export function IntelligenceDetailPage() {
       />
 
       <Tabs value={activeTab} onValueChange={setTab} className="detail-tabs">
-        <TabsList variant="line" className="detail-tabs-list">
-          <TabsTrigger value="overview">{local(locale, 'نمای کلی', 'Overview')}</TabsTrigger>
-          <TabsTrigger value="sources">{local(locale, 'منابع و شواهد', 'Sources & evidence')}</TabsTrigger>
-          <TabsTrigger value="related">{local(locale, 'موارد مرتبط', 'Related')}</TabsTrigger>
-          <TabsTrigger value="raw">{local(locale, 'داده خام', 'Raw data')}</TabsTrigger>
-        </TabsList>
+        <ResponsiveTabsNav
+          value={activeTab}
+          onValueChange={setTab}
+          items={tabItems}
+          ariaLabel={local(locale, 'بخش جزئیات تحلیل', 'Analysis detail section')}
+          className="detail-tabs-list"
+        />
 
         <TabsContent value="overview" className="detail-tab-content">
           <div className="detail-overview-grid">
@@ -170,7 +177,9 @@ export function IntelligenceDetailPage() {
                     </div>
                     <div>
                       <dt>{local(locale, 'تأخیر', 'Delay')}</dt>
-                      <dd>{formatNumber(corridor.delayHours, locale)} {local(locale, 'ساعت', 'hours')}</dd>
+                      <dd>
+                        {formatNumber(corridor.delayHours, locale)} {local(locale, 'ساعت', 'hours')}
+                      </dd>
                     </div>
                   </dl>
                 )}
@@ -270,7 +279,9 @@ export function IntelligenceDetailPage() {
                   >
                     <span>
                       <strong>{locale === 'fa' ? item.name : item.nameEn}</strong>
-                      <small>{item.kind} · {item.domain ?? local(locale, 'عمومی', 'General')}</small>
+                      <small>
+                        {item.kind} · {item.domain ?? local(locale, 'عمومی', 'General')}
+                      </small>
                     </span>
                     <Badge variant="outline">{item.state}</Badge>
                   </button>
