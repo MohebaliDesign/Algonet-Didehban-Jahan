@@ -260,6 +260,7 @@ canvas {
   [dir='rtl'] .context-bar.open {
     position: relative !important;
     inset: auto !important;
+    display: grid !important;
     min-block-size: 56px;
     max-block-size: none;
     grid-template-columns: 1fr;
@@ -475,8 +476,7 @@ canvas {
     max-block-size: calc(100dvh - 24px);
   }
 
-  .map-detail-sheet,
-  [data-slot='sheet-content'] {
+  .map-detail-sheet {
     inline-size: 100vw !important;
     max-inline-size: 100vw !important;
     padding-block-end: max(16px, env(safe-area-inset-bottom));
