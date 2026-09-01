@@ -9,6 +9,7 @@ import {
   type MapTensionDatum,
 } from '@/components/product/MapCollectionDrilldownMap'
 import { MapOverlayControls } from '@/components/product/MapOverlayControls'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export type Continent = 'all' | 'asia' | 'europe' | 'africa' | 'americas' | 'oceania'
 export type Severity = 'medium' | 'high' | 'critical'
@@ -42,6 +43,7 @@ export function SecurityWorldMap({
   continent: Continent
 }) {
   const { locale } = usePreferences()
+  const isMobile = useIsMobile()
   const tensionData = useMemo<MapTensionDatum[]>(
     () =>
       items
@@ -61,7 +63,7 @@ export function SecurityWorldMap({
         <MapOverlayControls isFa={locale === 'fa'} />
         <MapCollectionDrilldownMap
           tensionData={tensionData}
-          height={600}
+          height={isMobile ? 460 : 600}
           view={continentViews[continent]}
           className="security-world-map"
         />
