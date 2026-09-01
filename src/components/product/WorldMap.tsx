@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { countryMapData, intelligenceMapEvents } from '@/data/mock/worldMapData'
 import { layerLabels } from '@/data/mock/visualMvpData'
+import { useIsMobile } from '@/hooks/use-mobile'
 import type { IntelligenceDomain } from '@/types/domain'
 import { filterMapEvents } from './worldMapUtils'
 
@@ -42,6 +43,7 @@ function eventWeight(severity: 'low' | 'medium' | 'high' | 'critical') {
 export function WorldMap() {
   const { locale } = usePreferences()
   const { filters } = useWorkspace()
+  const isMobile = useIsMobile()
   const [view, setView] = useState<'map' | 'list'>('map')
   const [selectedLayers, setSelectedLayers] = useState<Set<IntelligenceDomain>>(
     () => new Set(allDomains),
@@ -131,7 +133,7 @@ export function WorldMap() {
       {view === 'map' ? (
         <MapCollectionDrilldownMap
           tensionData={tensionData}
-          height={560}
+          height={isMobile ? 520 : 560}
           className="world-map-collection"
         />
       ) : (
