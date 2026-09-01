@@ -279,7 +279,7 @@
   width: 100%;
   min-width: 0;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--temp-viz-water);
 }
 
 .map-collection-chart .highcharts-container,
@@ -288,7 +288,7 @@
 }
 
 .map-collection-chart .highcharts-background {
-  fill: var(--surface) !important;
+  fill: var(--temp-viz-water) !important;
 }
 
 .map-collection-chart .highcharts-map-series .highcharts-point {
@@ -298,11 +298,6 @@
     stroke 150ms ease,
     stroke-width 150ms ease,
     opacity 150ms ease;
-}
-
-/* No-data countries and subdivisions keep a soft geographic tint instead of raw white/black. */
-.map-collection-chart .highcharts-map-series .highcharts-null-point {
-  fill: var(--temp-viz-land) !important;
 }
 
 .map-collection-chart .highcharts-map-series .highcharts-point-hover {
@@ -501,6 +496,7 @@
   }
 
   .map-accessible-list {
+    min-height: 520px;
     padding: 94px 8px 60px;
   }
 }
