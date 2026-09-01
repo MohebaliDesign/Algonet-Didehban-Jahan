@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
@@ -12,8 +12,14 @@ import {
   MapOverlayControls,
   type MapLayerControlOption,
 } from '@/components/product/MapOverlayControls'
-import { MapZoomControls } from '@/components/product/MapZoomControls'
-import { WorldMapDetailPanel } from '@/components/product/WorldMapDetailPanel'
+import {
+  MapZoomControls,
+  type MapCountrySelection,
+} from '@/components/product/MapZoomControls'
+import {
+  WorldMapDetailPanel,
+  type WorldMapCountryIdentity,
+} from '@/components/product/WorldMapDetailPanel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -56,6 +62,8 @@ export function WorldMap() {
     () => new Set(allDomains),
   )
   const [selectedCountryCode, setSelectedCountryCode] = useState<string | null>(null)
+  const [selectedCountryIdentity, setSelectedCountryIdentity] =
+    useState<WorldMapCountryIdentity | null>(null)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const isFa = locale === 'fa'
 
@@ -147,15 +155,35 @@ export function WorldMap() {
     })
   }
 
-  const selectMapEvent = (eventId: string) => {
-    const event = visibleEvents.find((item) => item.id === eventId)
-    if (!event) return
-    setSelectedCountryCode(event.countryCode)
-    setSelectedEventId(event.id)
-  }
+  const selectMapCountry = useCallback((country: MapCountrySelection) => {
+    setSelectedCountryCode(country.countryCode)
+    setSelectedCountryIdentity(country)
+    setSelectedEventId(null)
+  }, [])
+
+  const selectMapEvent = useCallback(
+    (eventId: string) => {
+      const event = visibleEvents.find((item) => item.id === eventId)
+      if (!event) return
+      const country = countryMapData.find((item) => item.countryCode === event.countryCode)
+      setSelectedCountryCode(event.countryCode)
+      setSelectedCountryIdentity(
+        country
+          ? {
+              countryCode: country.countryCode,
+              countryNameFa: country.countryNameFa,
+              countryNameEn: country.countryNameEn,
+            }
+          : null,
+      )
+      setSelectedEventId(event.id)
+    },
+    [visibleEvents],
+  )
 
   const closeDetails = () => {
     setSelectedCountryCode(null)
+    setSelectedCountryIdentity(null)
     setSelectedEventId(null)
   }
 
@@ -182,7 +210,7 @@ export function WorldMap() {
 
       {view === 'map' ? (
         <>
-          <MapZoomControls isFa={isFa} />
+          <MapZoomControls isFa={isFa} onCountryDrilldown={selectMapCountry} />
           <MapCollectionDrilldownMap
             tensionData={tensionData}
             eventPoints={mapEventPoints}
@@ -237,6 +265,7 @@ export function WorldMap() {
 
       <WorldMapDetailPanel
         country={selectedCountry}
+        countryIdentity={selectedCountryIdentity}
         event={selectedEvent}
         events={visibleEvents}
         timelineNotice={false}
