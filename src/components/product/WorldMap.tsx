@@ -12,6 +12,7 @@ import {
   MapOverlayControls,
   type MapLayerControlOption,
 } from '@/components/product/MapOverlayControls'
+import { MapZoomControls } from '@/components/product/MapZoomControls'
 import { WorldMapDetailPanel } from '@/components/product/WorldMapDetailPanel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -180,14 +181,17 @@ export function WorldMap() {
       />
 
       {view === 'map' ? (
-        <MapCollectionDrilldownMap
-          tensionData={tensionData}
-          eventPoints={mapEventPoints}
-          routes={mapRoutes}
-          onEventClick={selectMapEvent}
-          height={isMobile ? 520 : 560}
-          className="world-map-collection"
-        />
+        <>
+          <MapZoomControls isFa={isFa} />
+          <MapCollectionDrilldownMap
+            tensionData={tensionData}
+            eventPoints={mapEventPoints}
+            routes={mapRoutes}
+            onEventClick={selectMapEvent}
+            height={isMobile ? 520 : 560}
+            className="world-map-collection"
+          />
+        </>
       ) : (
         <div
           className="map-accessible-list"
