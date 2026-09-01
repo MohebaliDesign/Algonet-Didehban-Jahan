@@ -65,8 +65,10 @@ export function MapOverlayControls({
     return layers.filter((layer) => layer.label.toLocaleLowerCase(isFa ? 'fa' : 'en').includes(query))
   }, [isFa, layerSearch, layers])
 
+  const selected = selectedLayerIds ?? new Set<string>()
+  const toggleLayer = onLayerToggle ?? (() => undefined)
   const activeLayerCount = selectedLayerIds?.size ?? layers.length
-  const hasLayerControls = layers.length > 0 && selectedLayerIds && onLayerToggle
+  const hasLayerControls = layers.length > 0 && selectedLayerIds != null && onLayerToggle != null
 
   return (
     <>
@@ -130,13 +132,13 @@ export function MapOverlayControls({
                   {filteredLayers.length ? (
                     filteredLayers.map((layer) => {
                       const controlId = `map-layer-${layer.id}`
-                      const checked = selectedLayerIds.has(layer.id)
+                      const checked = selected.has(layer.id)
                       return (
                         <Label key={layer.id} htmlFor={controlId} className="map-layer-option">
                           <Checkbox
                             id={controlId}
                             checked={checked}
-                            onCheckedChange={(value) => onLayerToggle(layer.id, value === true)}
+                            onCheckedChange={(value) => toggleLayer(layer.id, value === true)}
                           />
                           <span className={`map-layer-dot ${layer.colorClass}`} aria-hidden="true" />
                           <span className="map-layer-option-label">{layer.label}</span>
