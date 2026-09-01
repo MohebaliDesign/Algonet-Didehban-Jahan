@@ -1,0 +1,199 @@
+/* Final visual refinement for internal intelligence detail pages. */
+.intelligence-detail-page {
+  gap: 0;
+}
+
+/* Toolbar, page heading and tabs read as one calm white workspace surface. */
+.intelligence-detail-page > .internal-page-toolbar {
+  border: 1px solid var(--border-subtle);
+  border-block-end: 0;
+  border-radius: 16px 16px 0 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.intelligence-detail-page > .detail-page-hero {
+  padding: 24px;
+  border-inline: 1px solid var(--border-subtle);
+  background: var(--surface);
+}
+
+.intelligence-detail-page .detail-page-heading,
+.internal-page-heading {
+  padding-inline: 0 !important;
+  border-inline: 0 !important;
+}
+
+.intelligence-detail-page .detail-page-heading h1,
+.internal-page-heading h1 {
+  font-weight: 700;
+}
+
+.intelligence-detail-page .detail-tabs {
+  gap: 24px;
+}
+
+.intelligence-detail-page .detail-tabs-list {
+  border-inline: 1px solid var(--border-subtle);
+  border-block-end: 1px solid var(--border-subtle);
+  border-radius: 0 0 16px 16px;
+  background: var(--surface) !important;
+  box-shadow: 0 10px 22px -24px color-mix(in srgb, var(--muted-foreground) 30%, transparent);
+}
+
+/* Security assessment uses the same white top-surface pattern even though it has no tabs. */
+.security-assessment-page {
+  gap: 0;
+}
+
+.security-assessment-page > .internal-page-toolbar {
+  border: 1px solid var(--border-subtle);
+  border-block-end: 0;
+  border-radius: 16px 16px 0 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.security-assessment-page > .internal-page-heading {
+  padding: 24px 24px 12px !important;
+  border-inline: 1px solid var(--border-subtle) !important;
+  background: var(--surface);
+}
+
+.security-assessment-page > .internal-page-meta-grid {
+  margin-block-end: 24px;
+  padding: 0 24px 24px;
+  border: 1px solid var(--border-subtle);
+  border-block-start: 0;
+  border-radius: 0 0 16px 16px;
+  background: var(--surface);
+}
+
+/* The source count is a real navigation control, not a decorative badge. */
+.internal-page-source-badge {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 10px;
+  border: 1px solid color-mix(in srgb, var(--status-info) 18%, var(--border-subtle));
+  border-radius: var(--radius-lg);
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--status-info) 6%, var(--surface));
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.internal-page-source-badge:hover {
+  border-color: color-mix(in srgb, var(--status-info) 32%, var(--border-subtle));
+  background: color-mix(in srgb, var(--status-info) 10%, var(--surface));
+}
+
+.internal-page-source-badge:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  outline-offset: 2px;
+}
+
+/* Linked rows keep the status/value as information only; no extra arrow sits beside the badge. */
+.detail-linked-row {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.intelligence-detail-page .detail-linked-row [data-slot='badge']::after,
+.intelligence-detail-page .detail-linked-value::after {
+  content: none !important;
+}
+
+/* Keep data labels and values on the same visual alignment line in each locale. */
+.intelligence-detail-page[dir='rtl'] .detail-technical-list dt,
+.intelligence-detail-page[dir='rtl'] .detail-technical-list dd {
+  text-align: right;
+}
+
+.intelligence-detail-page[dir='ltr'] .detail-technical-list dt,
+.intelligence-detail-page[dir='ltr'] .detail-technical-list dd {
+  text-align: left;
+}
+
+.detail-technical-list > div {
+  grid-template-columns: minmax(148px, 0.3fr) minmax(0, 1fr);
+}
+
+/* JSON stays progressively disclosed, with copy and expand controls grouped together. */
+.detail-raw-disclosure > summary {
+  min-height: 56px;
+}
+
+.detail-raw-summary-title,
+.detail-raw-summary-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-raw-summary-actions {
+  flex: none;
+}
+
+.detail-json-copy {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  color: var(--muted-foreground);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.detail-json-copy:hover {
+  border-color: var(--border-subtle);
+  color: var(--foreground);
+  background: var(--surface);
+}
+
+.detail-json-copy:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.detail-raw-disclosure[open] > summary > .detail-raw-summary-actions {
+  transform: none !important;
+}
+
+.detail-raw-chevron {
+  transition: transform 140ms ease;
+}
+
+.detail-raw-disclosure[open] .detail-raw-chevron {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 720px) {
+  .intelligence-detail-page > .detail-page-hero {
+    padding: 20px 16px;
+  }
+
+  .security-assessment-page > .internal-page-heading {
+    padding: 20px 16px 10px !important;
+  }
+
+  .security-assessment-page > .internal-page-meta-grid {
+    padding: 0 16px 20px;
+  }
+
+  .detail-technical-list > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

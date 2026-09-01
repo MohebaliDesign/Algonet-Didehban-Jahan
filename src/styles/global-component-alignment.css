@@ -1,0 +1,173 @@
+/*
+ * Global component contract for bilingual tables, analytical module toolbars,
+ * and layout-editing feedback. This layer is intentionally loaded last so
+ * page-specific legacy overrides cannot break the shared behavior.
+ */
+
+/* Tables follow the active product language consistently, including legacy
+ * native tables that do not yet use the shadcn Table wrapper. */
+:root[dir='rtl'] table th,
+:root[dir='rtl'] table td,
+:root[dir='rtl'] table caption,
+:root[dir='rtl'] [data-slot='table-head'],
+:root[dir='rtl'] [data-slot='table-cell'],
+:root[dir='rtl'] [data-slot='table-caption'] {
+  text-align: right !important;
+}
+
+:root[dir='ltr'] table th,
+:root[dir='ltr'] table td,
+:root[dir='ltr'] table caption,
+:root[dir='ltr'] [data-slot='table-head'],
+:root[dir='ltr'] [data-slot='table-cell'],
+:root[dir='ltr'] [data-slot='table-caption'] {
+  text-align: left !important;
+}
+
+/* Keep 12px breathing room from the aligned edge in both language modes. */
+table th,
+table td,
+[data-slot='table-head'],
+[data-slot='table-cell'] {
+  padding-inline-start: 12px !important;
+}
+
+/*
+ * Module toolbar actions use a 48px interactive frame with a true 40px
+ * Iconsax element. The frame remains quiet at rest and becomes visible only
+ * on hover/focus.
+ */
+.module-frame .module-controls {
+  align-items: center;
+}
+
+.module-frame .module-controls .module-icon-button {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  min-height: 48px;
+  flex: 0 0 48px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--muted-foreground);
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.module-frame .module-controls .module-icon-button > span {
+  display: inline-flex !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  line-height: 40px;
+}
+
+.module-frame .module-controls .module-icon-button iconsax-icon {
+  display: block !important;
+  inline-size: 40px !important;
+  block-size: 40px !important;
+  min-inline-size: 40px !important;
+  min-block-size: 40px !important;
+  font-size: 40px !important;
+  line-height: 40px !important;
+}
+
+.module-frame .module-controls .module-icon-button:hover,
+.module-frame .module-controls .module-icon-button:focus-visible {
+  color: var(--foreground);
+  border-color: var(--border);
+  background: var(--accent);
+}
+
+.module-frame .module-controls .module-icon-button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 12%, transparent);
+}
+
+/* Layout editing / drag-and-drop feedback. */
+.module-frame.module-draggable {
+  position: relative;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.module-frame .drag-handle {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--muted-foreground);
+  background: transparent;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.module-frame .drag-handle:hover,
+.module-frame .drag-handle:focus-visible {
+  color: var(--foreground);
+  border-color: var(--border);
+  background: var(--accent);
+}
+
+.module-frame.module-dragging {
+  z-index: 4;
+  opacity: 0.48;
+  transform: scale(0.992);
+  border-color: color-mix(in srgb, var(--primary) 26%, var(--border));
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--muted-foreground) 12%, transparent);
+}
+
+.module-frame.module-dragging .drag-handle {
+  cursor: grabbing;
+}
+
+.module-frame.module-drag-over {
+  z-index: 3;
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 36%, var(--border));
+  background: color-mix(in srgb, var(--primary) 2.5%, var(--surface));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--primary) 8%, transparent),
+    0 10px 24px color-mix(in srgb, var(--muted-foreground) 8%, transparent);
+}
+
+.module-frame.module-drag-over::after {
+  position: absolute;
+  z-index: 5;
+  inset-block-start: -2px;
+  inset-inline: 16px;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 72%, var(--foreground));
+  content: '';
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-frame.module-draggable,
+  .module-frame .drag-handle {
+    transition: none;
+  }
+}

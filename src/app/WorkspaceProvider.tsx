@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import type { IntelligenceDomain, Role } from '@/types/domain'
@@ -18,6 +18,9 @@ export interface InspectorItem {
   id: string
   title: string
   titleEn?: string
+  fromPath?: string
+  fromLabel?: string
+  fromLabelEn?: string
 }
 
 interface WorkspaceValue {
@@ -42,12 +45,23 @@ const defaults: ContextFilters = {
   savedView: 'daily',
 }
 
+const routeLabels: Record<string, { fa: string; en: string }> = {
+  '/world': { fa: 'رصد جهان', en: 'World monitor' },
+  '/developments': { fa: 'تحولات و پیش‌بینی‌ها', en: 'Developments & forecasts' },
+  '/security': { fa: 'امنیت و ژئوپلیتیک', en: 'Security & geopolitics' },
+  '/markets': { fa: 'اقتصاد و بازارها', en: 'Economy & markets' },
+  '/countries': { fa: 'کشورها و مسیرها', en: 'Countries & routes' },
+  '/reports': { fa: 'گزارش‌ها و تحلیل‌ها', en: 'Reports & analysis' },
+  '/data': { fa: 'داده‌ها و منابع', en: 'Data & sources' },
+}
+
 const WorkspaceContext = createContext<WorkspaceValue | null>(null)
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // DEMO ONLY: local React state previews role-dependent interfaces. It is not
   // authentication, is deliberately not persisted, and grants no production permission.
   const navigate = useNavigate()
+  const location = useLocation()
   const [role, setRole] = useState<Role>(PROTOTYPE_CURRENT_USER.defaultRole)
   const [filters, setFilters] = useState(defaults)
   const [inspector, setInspector] = useState<InspectorItem | null>(null)
@@ -61,10 +75,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const openInspector = useCallback(
     (item: InspectorItem) => {
+      const origin = routeLabels[location.pathname]
+      const state: InspectorItem = {
+        ...item,
+        fromPath: item.fromPath ?? `${location.pathname}${location.search}`,
+        fromLabel: item.fromLabel ?? origin?.fa,
+        fromLabelEn: item.fromLabelEn ?? origin?.en,
+      }
+
       setInspector(null)
-      navigate(`/details/${item.kind}/${encodeURIComponent(item.id)}`, { state: item })
+      navigate(`/details/${item.kind}/${encodeURIComponent(item.id)}`, { state })
     },
-    [navigate],
+    [location.pathname, location.search, navigate],
   )
 
   const notify = useCallback((message: string) => {
