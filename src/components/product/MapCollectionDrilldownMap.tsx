@@ -442,7 +442,7 @@ export function MapCollectionDrilldownMap({
             r: 8,
             style: {
               color: palette.foreground,
-              fontFamily: isFa ? 'var(--font-sans-fa)' : 'var(--font-sans-en)',
+              fontFamily: 'var(--font-sans-en)',
               fontSize: '12px',
               fontWeight: '500',
             },
@@ -451,8 +451,8 @@ export function MapCollectionDrilldownMap({
             },
           },
           position: {
-            align: 'left',
-            x: 10,
+            align: 'center',
+            x: 0,
             y: 10,
           },
           showFullPath: false,
@@ -485,12 +485,12 @@ export function MapCollectionDrilldownMap({
         enableMouseWheelZoom: true,
         enableTouchZoom: true,
         buttonOptions: {
-          align: 'left',
+          align: isFa ? 'right' : 'left',
           alignTo: 'spacingBox',
           verticalAlign: 'top',
           width: 32,
           height: 32,
-          x: 10,
+          x: isFa ? -10 : 10,
           y: 10,
           theme: {
             fill: palette.surface,
