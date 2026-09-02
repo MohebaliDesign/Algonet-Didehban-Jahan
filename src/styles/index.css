@@ -33,5 +33,7 @@
  * sit at the end of the global cascade so the saved HTML reference renders deterministically. */
 @import './internal-pages.css';
 @import '../features/details/detail-refinement.css';
+/* Final project-wide responsive and adaptive behavior across shell, pages, cards, charts and overlays. */
+@import './responsive-system.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { usePreferences } from '@/app/PreferencesProvider'
 import { useWorkspace } from '@/app/WorkspaceProvider'
 import { Icon } from '@/components/Icon'
+import { ResponsiveTabsNav } from '@/components/product/ResponsiveTabsNav'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,7 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import type { CountryMapDatum, IntelligenceMapEvent } from '@/types/domain'
 
 export interface WorldMapCountryIdentity {
@@ -66,6 +67,12 @@ export function WorldMapDetailPanel({
   const countryTitle = `${identity.countryNameEn} · ${identity.countryNameFa}`
   const title = event ? (isFa ? event.titleFa : event.titleEn) : countryTitle
   const countryEvents = events.filter((item) => item.countryCode === identity.countryCode)
+  const tabItems = [
+    { value: 'overview', label: isFa ? 'نمای کلی' : 'Overview' },
+    { value: 'events', label: isFa ? 'رویدادها' : 'Events' },
+    { value: 'trends', label: isFa ? 'روندها' : 'Trends' },
+    { value: 'evidence', label: isFa ? 'شواهد' : 'Evidence' },
+  ]
 
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
@@ -154,12 +161,13 @@ export function WorldMapDetailPanel({
             />
           ) : (
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList className="map-detail-tabs">
-                <TabsTrigger value="overview">{isFa ? 'نمای کلی' : 'Overview'}</TabsTrigger>
-                <TabsTrigger value="events">{isFa ? 'رویدادها' : 'Events'}</TabsTrigger>
-                <TabsTrigger value="trends">{isFa ? 'روندها' : 'Trends'}</TabsTrigger>
-                <TabsTrigger value="evidence">{isFa ? 'شواهد' : 'Evidence'}</TabsTrigger>
-              </TabsList>
+              <ResponsiveTabsNav
+                value={tab}
+                onValueChange={setTab}
+                items={tabItems}
+                ariaLabel={isFa ? 'بخش اطلاعات کشور' : 'Country information section'}
+                className="map-detail-tabs"
+              />
               <TabsContent value="overview" className="map-detail-stack">
                 <Alert className="prototype-map-alert">
                   <Icon name="info-circle" />
