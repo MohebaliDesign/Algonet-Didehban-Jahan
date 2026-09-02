@@ -28,6 +28,11 @@
 @import './data-management.css';
 /* Keep Highcharts map surfaces fill-width, scrollbar-free, and constrained to their modules. */
 @import './map-viewport-fixes.css';
+/* Internal drill-down pages: shared shell first, then the detail-page final refinement.
+ * IntelligenceDetailPage imports its own details.css base directly; these imports intentionally
+ * sit at the end of the global cascade so the saved HTML reference renders deterministically. */
+@import './internal-pages.css';
+@import '../features/details/detail-refinement.css';
 /* Final project-wide responsive and adaptive behavior across shell, pages, cards, charts and overlays. */
 @import './responsive-system.css';
 
