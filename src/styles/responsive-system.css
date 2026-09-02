@@ -1,0 +1,635 @@
+/*
+ * Didehban Jahan responsive layout contract.
+ *
+ * Principles:
+ * - Preserve approved content; transform layout before removing information.
+ * - Use fluid inline sizing and content-driven block sizing.
+ * - Keep page-level horizontal overflow off the document; allow it only inside
+ *   genuinely two-dimensional surfaces such as data tables and maps.
+ * - Keep large-screen information density useful instead of scaling everything up.
+ * - Let reusable modules respond to their own container, not only the viewport.
+ */
+
+:root {
+  --responsive-page-gutter: 24px;
+  --responsive-grid-gap: 16px;
+  --responsive-card-gap: 16px;
+  --responsive-control-gap: 8px;
+}
+
+html,
+body,
+#root,
+.app-shell,
+.shell-main,
+[data-slot='sidebar-inset'],
+.product-canvas,
+.page-view {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+.product-canvas {
+  padding: var(--responsive-page-gutter);
+}
+
+.page-view,
+.module-grid,
+.product-page-grid,
+.module-frame,
+.module-header,
+.module-content,
+.module-footer,
+.page-header,
+.page-actions,
+.global-topbar,
+.topbar-actions,
+.context-bar,
+.kpi-strip,
+.chart-figure,
+.bar-chart,
+.matrix-chart {
+  min-inline-size: 0;
+}
+
+.module-grid,
+.product-page-grid {
+  gap: var(--responsive-grid-gap);
+}
+
+.module-frame {
+  container-name: module;
+  container-type: inline-size;
+}
+
+.page-view {
+  container-name: page;
+  container-type: inline-size;
+}
+
+.module-content > *,
+.page-header > *,
+.global-topbar > *,
+.topbar-actions > * {
+  min-inline-size: 0;
+}
+
+img,
+video,
+canvas {
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+[data-slot='chart'],
+.product-chart,
+.map-workspace,
+.map-collection-workspace,
+.map-collection-chart,
+.security-map-workspace,
+.security-map-shell {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+/* Charts keep a useful analytical height without becoming billboard-sized on 4K screens. */
+.product-chart {
+  aspect-ratio: auto !important;
+  block-size: clamp(280px, 32cqi, 440px);
+  min-block-size: 280px;
+  max-block-size: 440px;
+}
+
+.chart-figure,
+.bar-chart,
+.matrix-chart {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  overflow: hidden;
+}
+
+/* Tables remain comparison surfaces. Horizontal scrolling is isolated to the table, never the page. */
+[data-slot='table-container'],
+.data-source-table-wrap > [data-slot='table-container'],
+.data-health-table-wrap {
+  max-inline-size: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-slot='table'] {
+  max-inline-size: none;
+}
+
+/* Long technical strings must not force their parent card wider than its grid track. */
+:where(code, .data-source-identity span, .map-collection-tooltip, .map-list-alternative) {
+  overflow-wrap: anywhere;
+}
+
+/* Compact tab navigation keeps the same information architecture without squeezing labels. */
+.responsive-tab-select {
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin-block-end: 16px;
+}
+
+.responsive-tab-select [data-slot='select-trigger'] {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* Hamburger-to-close motion is small, stateful, and remains inside the shadcn Button surface. */
+.mobile-menu-glyph {
+  position: relative;
+  display: inline-grid;
+  inline-size: 20px;
+  block-size: 20px;
+  flex: none;
+  place-items: center;
+}
+
+.mobile-menu-glyph i {
+  position: absolute;
+  inline-size: 18px;
+  block-size: 2px;
+  border-radius: 999px;
+  background: currentcolor;
+  transform-origin: center;
+  transition:
+    transform 180ms ease,
+    opacity 140ms ease;
+}
+
+.mobile-menu-glyph i:nth-child(1) {
+  transform: translateY(-5px);
+}
+
+.mobile-menu-glyph i:nth-child(2) {
+  transform: translateY(0);
+}
+
+.mobile-menu-glyph i:nth-child(3) {
+  transform: translateY(5px);
+}
+
+.mobile-menu-glyph.is-open i:nth-child(1) {
+  transform: translateY(0) rotate(45deg);
+}
+
+.mobile-menu-glyph.is-open i:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0.5);
+}
+
+.mobile-menu-glyph.is-open i:nth-child(3) {
+  transform: translateY(0) rotate(-45deg);
+}
+
+.mobile-drawer-close {
+  display: none;
+}
+
+/* Reusable cards adapt when their grid track becomes narrow, even on a wide viewport. */
+@container module (max-width: 560px) {
+  .module-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .module-controls {
+    max-inline-size: 100%;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .module-title,
+  .module-title-line {
+    min-inline-size: 0;
+  }
+
+  .module-title-line {
+    flex-wrap: wrap;
+  }
+
+  .product-chart {
+    block-size: 300px;
+    min-block-size: 300px;
+  }
+}
+
+/* High-resolution desktop: use the extra channel capacity for content, not oversized UI. */
+@media (min-width: 1600px) {
+  :root {
+    --responsive-grid-gap: 20px;
+    --responsive-card-gap: 20px;
+  }
+
+  .app-shell {
+    --content-grid-gap: 20px;
+  }
+
+  .module-grid,
+  .product-page-grid {
+    gap: 20px;
+  }
+
+  .page-header > div:first-child {
+    max-inline-size: 960px;
+  }
+}
+
+/* Tablet, compact laptop, and responsive analytical mode. */
+@media (max-width: 1199px) {
+  .page-header {
+    gap: 16px;
+  }
+
+  .kpi-strip {
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  }
+
+  .global-topbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-block-size: auto;
+    gap: 8px 12px;
+    padding: 12px 20px;
+  }
+
+  .mobile-sidebar-trigger {
+    display: inline-flex !important;
+    grid-column: 1;
+  }
+
+  .global-search-trigger {
+    grid-column: 2;
+    inline-size: 100%;
+    min-inline-size: 0;
+  }
+
+  .global-search-trigger kbd {
+    display: none;
+  }
+
+  .topbar-actions {
+    grid-column: 3;
+    min-inline-size: 0;
+    margin-inline-start: 0;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  .sync-status {
+    max-inline-size: 144px;
+    margin-inline-end: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .primary-nav .product-lockup {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .primary-nav .product-lockup-inner {
+    min-inline-size: 0;
+  }
+
+  .mobile-drawer-close {
+    display: inline-flex;
+    flex: none;
+  }
+
+  .primary-nav .nav-collapse {
+    display: none !important;
+  }
+
+  /*
+   * Dense analytical modules should not share a row once their text and charts
+   * start competing for horizontal space. Preserve content by linearizing first.
+   */
+  .product-page-grid,
+  .world-page .module-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .product-page-grid > .module-frame,
+  .world-page .module-grid > .module-frame {
+    grid-column: 1 / -1 !important;
+    inline-size: 100%;
+    min-inline-size: 0;
+    max-block-size: none !important;
+  }
+
+  .product-page-grid > .module-frame > [data-slot='collapsible'],
+  .product-page-grid > .module-frame [data-slot='collapsible-content'],
+  .world-page .module-grid > .module-frame > [data-slot='collapsible'],
+  .world-page .module-grid > .module-frame [data-slot='collapsible-content'] {
+    overflow: visible;
+  }
+
+  .product-page-grid > .module-frame .module-content,
+  .world-page .module-grid > .module-frame .module-content {
+    max-block-size: none;
+    overflow-y: visible;
+    scrollbar-gutter: auto;
+  }
+
+  .detail-overview-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .data-source-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .data-source-search {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Tablet and small landscape: filters progressively disclose and secondary chrome compresses. */
+@media (max-width: 899px) {
+  :root {
+    --responsive-page-gutter: 20px;
+    --responsive-grid-gap: 16px;
+    --responsive-card-gap: 16px;
+  }
+
+  .context-bar,
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    position: relative !important;
+    inset: auto !important;
+    min-block-size: 56px;
+    max-block-size: none;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 8px 20px;
+    overflow: visible;
+  }
+
+  .compact-filter-toggle {
+    display: inline-flex !important;
+    justify-self: start;
+  }
+
+  .context-bar:not(.open) > :not(.compact-filter-toggle) {
+    display: none !important;
+  }
+
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    max-block-size: min(70dvh, 560px);
+    padding: 12px 20px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .context-bar.open .compact-filter-toggle {
+    grid-column: 1 / -1;
+  }
+
+  .context-bar.open .context-filter {
+    inline-size: 100%;
+    min-inline-size: 0;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .page-header > div:first-child {
+    max-inline-size: none;
+  }
+
+  .page-actions,
+  .data-management-page-actions {
+    inline-size: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .data-run-status [data-slot='card-content'] {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .data-run-progress {
+    grid-column: 1 / -1;
+  }
+
+  .data-sources-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+
+  .data-selection-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 12px 20px;
+  }
+
+  .data-selection-toolbar > div {
+    justify-content: flex-start;
+  }
+
+  [data-slot='dialog-content'] {
+    max-inline-size: calc(100vw - 40px);
+    max-block-size: calc(100dvh - 40px);
+  }
+
+  .map-detail-sheet {
+    inline-size: min(92vw, 420px) !important;
+    max-inline-size: min(92vw, 420px) !important;
+  }
+}
+
+/* Phone: preserve content, stack actions, and avoid fixed-height dashboard cards. */
+@media (max-width: 639px) {
+  :root {
+    --responsive-page-gutter: 20px;
+    --responsive-grid-gap: 12px;
+    --responsive-card-gap: 12px;
+  }
+
+  .global-topbar {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    padding: 12px 20px;
+  }
+
+  .mobile-sidebar-trigger {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .topbar-actions {
+    grid-column: 2;
+    grid-row: 1;
+    inline-size: 100%;
+    flex-wrap: wrap;
+  }
+
+  .global-search-trigger {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    inline-size: 100%;
+  }
+
+  .sync-status {
+    max-inline-size: none;
+  }
+
+  .data-management-topbar-cta {
+    max-inline-size: 100%;
+  }
+
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    grid-template-columns: 1fr;
+    padding: 12px 20px;
+  }
+
+  .page-actions > [data-slot='button'],
+  .data-management-page-actions > [data-slot='button'] {
+    flex: 1 1 auto;
+  }
+
+  .kpi-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .module-frame,
+  .module-content,
+  .module-header,
+  .module-footer {
+    min-inline-size: 0;
+  }
+
+  .product-chart {
+    block-size: 300px;
+    min-block-size: 300px;
+    max-block-size: 360px;
+  }
+
+  .data-source-toolbar {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .data-source-search {
+    grid-column: auto;
+  }
+
+  .data-sources-card-header {
+    padding: 16px;
+  }
+
+  .data-selection-toolbar {
+    padding: 12px 16px;
+  }
+
+  .data-run-status [data-slot='card-content'] {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .data-health-dialog,
+  .data-add-source-dialog,
+  [data-slot='dialog-content'] {
+    inline-size: calc(100vw - 24px) !important;
+    max-inline-size: calc(100vw - 24px) !important;
+    max-block-size: calc(100dvh - 24px);
+  }
+
+  .map-detail-sheet,
+  [data-slot='sheet-content'] {
+    inline-size: 100vw !important;
+    max-inline-size: 100vw !important;
+    padding-block-end: max(16px, env(safe-area-inset-bottom));
+  }
+
+  .map-detail-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Very narrow screens and high browser zoom still retain one-dimensional page reflow. */
+@media (max-width: 359px) {
+  .product-canvas,
+  .global-topbar,
+  .context-bar,
+  .context-bar.open,
+  [dir='rtl'] .context-bar.open {
+    padding-inline: 16px;
+  }
+
+  .topbar-actions {
+    justify-content: flex-start;
+  }
+
+  .page-actions,
+  .data-management-page-actions {
+    flex-direction: column;
+  }
+
+  .page-actions > [data-slot='button'],
+  .data-management-page-actions > [data-slot='button'] {
+    inline-size: 100%;
+  }
+}
+
+/* Touch input needs forgiving targets; hover remains supplementary, never required. */
+@media (hover: none), (pointer: coarse) {
+  :where(
+    [data-slot='button'],
+    [data-slot='sidebar-menu-button'],
+    [data-slot='select-trigger'],
+    [data-slot='tabs-trigger'],
+    [data-slot='toggle-group-item']
+  ) {
+    min-block-size: 44px;
+  }
+
+  .map-collection-chart .highcharts-plot-background,
+  .map-collection-chart .highcharts-pane-group {
+    cursor: default;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+
+  .mobile-menu-glyph i {
+    transition: none;
+  }
+}

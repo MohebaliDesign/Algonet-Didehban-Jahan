@@ -93,13 +93,20 @@ function AppShellContent() {
   const copy = useProductCopy()
   const { locale, setLocale, theme, setTheme } = usePreferences()
   const { role, filters, setFilter, resetFilters, setSearchOpen } = useWorkspace()
-  const { state, isMobile } = useSidebar()
+  const { state, isMobile, openMobile, setOpenMobile, toggleSidebar } = useSidebar()
   const navigate = useNavigate()
   const location = useLocation()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const isManagementAuthorized = role === 'org-admin' || role === 'data-manager'
   const isDataManagementPage = location.pathname === '/data'
   const currentLocation = `${location.pathname}${location.search}${location.hash}`
+  const mobileMenuLabel = openMobile
+    ? locale === 'fa'
+      ? 'بستن منو'
+      : 'Close menu'
+    : locale === 'fa'
+      ? 'بازکردن منو'
+      : 'Open menu'
 
   useEffect(() => setFiltersOpen(false), [location.pathname])
 
@@ -143,6 +150,19 @@ function AppShellContent() {
               <strong>{copy.product}</strong>
             </span>
           </div>
+          {isMobile && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="mobile-drawer-close"
+              aria-label={locale === 'fa' ? 'بستن منو' : 'Close menu'}
+              title={locale === 'fa' ? 'بستن منو' : 'Close menu'}
+              onClick={() => setOpenMobile(false)}
+            >
+              <MobileMenuGlyph open />
+            </Button>
+          )}
         </SidebarHeader>
         <SidebarContent>
           <nav aria-label={copy.primaryNavigation}>
@@ -164,6 +184,7 @@ function AppShellContent() {
                         to={item.path}
                         className="nav-item"
                         aria-current={active ? 'page' : undefined}
+                        onClick={() => isMobile && setOpenMobile(false)}
                       >
                         <Icon
                           name={item.icon}
@@ -222,13 +243,18 @@ function AppShellContent() {
 
       <SidebarInset className="shell-main">
         <header className="global-topbar">
-          <SidebarTrigger
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             className="mobile-sidebar-trigger"
-            aria-label={copy.expandSidebar}
-            title={copy.expandSidebar}
+            aria-label={mobileMenuLabel}
+            title={mobileMenuLabel}
+            aria-expanded={openMobile}
+            onClick={toggleSidebar}
           >
-            <Icon name="menu" size={20} />
-          </SidebarTrigger>
+            <MobileMenuGlyph open={openMobile} />
+          </Button>
           <Button
             variant="outline"
             className="global-search-trigger"
@@ -446,6 +472,16 @@ function SidebarProfileMenu({ onOpenManagement }: { onOpenManagement: () => void
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
+  )
+}
+
+function MobileMenuGlyph({ open }: { open: boolean }) {
+  return (
+    <span className={`mobile-menu-glyph ${open ? 'is-open' : ''}`} aria-hidden="true">
+      <i />
+      <i />
+      <i />
+    </span>
   )
 }
 

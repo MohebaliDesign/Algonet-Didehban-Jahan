@@ -28,5 +28,7 @@
 @import './data-management.css';
 /* Keep Highcharts map surfaces fill-width, scrollbar-free, and constrained to their modules. */
 @import './map-viewport-fixes.css';
+/* Final project-wide responsive and adaptive behavior across shell, pages, cards, charts and overlays. */
+@import './responsive-system.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
