@@ -12,6 +12,7 @@
   width: 100%;
   min-width: 0;
   gap: 24px;
+  margin-top: 24px;
 }
 
 /* Local toolbar visually continues the global header and stays attached while scrolling. */
