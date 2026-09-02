@@ -1,3 +1,4 @@
+import { Icon } from '@/components/Icon'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   Select,
@@ -21,6 +22,27 @@ interface ResponsiveTabsNavProps {
   className?: string
 }
 
+function TabIcon({ value }: { value: string }) {
+  switch (value) {
+    case 'overview':
+      return <Icon name="eye" size={18} />
+    case 'sources':
+      return <Icon name="document" size={18} />
+    case 'related':
+      return <Icon name="link-2" size={18} />
+    case 'raw':
+      return <Icon name="data" size={18} />
+    case 'events':
+      return <Icon name="radar-2" size={18} />
+    case 'trends':
+      return <Icon name="trend-up" size={18} />
+    case 'evidence':
+      return <Icon name="document-text" size={18} />
+    default:
+      return null
+  }
+}
+
 export function ResponsiveTabsNav({
   value,
   onValueChange,
@@ -40,7 +62,10 @@ export function ResponsiveTabsNav({
           <SelectContent>
             {items.map((item) => (
               <SelectItem key={item.value} value={item.value}>
-                {item.label}
+                <span className="inline-flex items-center gap-2">
+                  <TabIcon value={item.value} />
+                  <span>{item.label}</span>
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -50,10 +75,11 @@ export function ResponsiveTabsNav({
   }
 
   return (
-    <TabsList className={className} aria-label={ariaLabel}>
+    <TabsList variant="line" className={className} aria-label={ariaLabel}>
       {items.map((item) => (
         <TabsTrigger key={item.value} value={item.value}>
-          {item.label}
+          <TabIcon value={item.value} />
+          <span>{item.label}</span>
         </TabsTrigger>
       ))}
     </TabsList>
